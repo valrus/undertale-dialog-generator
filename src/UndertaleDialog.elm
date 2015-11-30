@@ -105,8 +105,16 @@ moodSection address maybeChar =
 
 -- Dialog box
 
+centeredDialogBox e =
+  div
+  [ style [ ("width", "100%") ] ]
+  [ div
+    [ style [ ("width", "594px"), ("margin", "0 auto") ] ]
+    [ e ]
+  ]
+
 dialogBox text imgSrc =
-  fromElement <| collage 594 170
+  centeredDialogBox <| fromElement <| collage 594 170
     [ filled (grayscale 1) (rect 594 170)  -- outer black border
     , filled (grayscale 0) (rect 578 152)  -- outer white border
     , filled (grayscale 1) (rect 566 140)  -- inner black box
