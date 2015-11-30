@@ -1,6 +1,9 @@
 module UndertaleDialog where
 
 import Character
+import Color exposing (..)
+import Graphics.Collage exposing (collage, move, filled, rect, toForm)
+import Graphics.Element exposing (container, image)
 import Html exposing (..)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (class, classList, src, style)
@@ -14,6 +17,7 @@ type alias Model =
   { characters : List Character.Name
   , selection : Maybe Character.Name
   , moodImg : Maybe String
+  , text : String
   }
 
 
@@ -22,6 +26,7 @@ init characters =
   { characters = characters
   , selection = Nothing
   , moodImg = Nothing
+  , text = ""
   }
 
 
@@ -36,9 +41,17 @@ flatButton =
     ]
   ]
 
+header s =
+  div
+  [ ]
+  [ hr [ ] [ ]
+  , h1 [ style [ ("text-align", "center") ] ] [ text s ] ]
+
+blank = div [ ] [ ]
+
 -- Character section
 
-characterHeader = h1 [] [ text "Character" ]
+characterHeader = header "Character"
 
 spriteFolder : Character.Name -> String
 spriteFolder c = "sprites" ++ "/" ++ toString c
@@ -65,7 +78,7 @@ characterButtons address characters =
 
 -- Mood section
 
-moodHeader = h1 [] [ text "Mood" ]
+moodHeader = header "Mood"
 
 moodButton : Signal.Address Action -> Character.Name -> Int -> Html
 moodButton address c n =
@@ -87,22 +100,35 @@ moodButtons address c =
 moodSection : Signal.Address Action -> Maybe Character.Name -> Html
 moodSection address maybeChar =
   case maybeChar of
-    Nothing -> div [] []
+    Nothing -> blank
     Just c -> moodButtons address c
+
+-- Dialog box
+
+dialogBox text imgSrc =
+  fromElement <| collage 594 170
+    [ filled (grayscale 1) (rect 594 170)  -- outer black border
+    , filled (grayscale 0) (rect 578 152)  -- outer white border
+    , filled (grayscale 1) (rect 566 140)  -- inner black box
+    , (toForm <| image 120 120 imgSrc) |> move (-211, 0)
+    ]
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-  div []
+  div
+    [ style [ ("padding", "30px") ] ]
     [ characterHeader
     , characterButtons address model.characters
     , moodHeader
     , moodSection address model.selection
+    , hr [ ] [ ]
+    , Maybe.withDefault blank <| Maybe.map (dialogBox model.text) model.moodImg
     ]
 
 
 -- Update
 
-type Action = ChooseCharacter Character.Name | ChooseMood String | EnterText
+type Action = ChooseCharacter Character.Name | ChooseMood String | EnterText String
 
 
 noop whatever = whatever
@@ -110,6 +136,15 @@ noop whatever = whatever
 
 update action model =
   case action of
-    ChooseCharacter c -> { model | selection = Just c }
-    ChooseMood s -> { model | moodImg = Just s }
-    EnterText -> noop model
+    ChooseCharacter c ->
+      { model
+      | selection = Just c
+      , moodImg = Nothing
+      , text = ""
+      }
+    ChooseMood s ->
+      { model
+      | moodImg = Just s
+      , text = ""
+      }
+    EnterText s -> noop model
