@@ -5,9 +5,10 @@ import Color exposing (..)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (container, image)
 import Html exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (on, targetValue, onClick)
 import Html.Attributes exposing (class, classList, src, style)
 import Maybe exposing (Maybe)
+import Text
 import StartApp.Simple as StartApp
 
 
@@ -45,7 +46,17 @@ header s =
   div
   [ ]
   [ hr [ ] [ ]
-  , h1 [ style [ ("text-align", "center") ] ] [ text s ] ]
+  , h1 [ style [ ("text-align", "center")
+               , ("font-family", "8bitoperator JVE Regular") ]
+       , class "header"
+       ]
+    [ text s ]
+  ]
+
+maybeHeader choice s =
+  case choice of
+    Nothing -> blank
+    Just a -> header s
 
 blank = div [ ] [ ]
 
@@ -78,7 +89,7 @@ characterButtons address characters =
 
 -- Mood section
 
-moodHeader = header "Mood"
+moodHeader choice = maybeHeader choice "Mood"
 
 moodButton : Signal.Address Action -> Character.Name -> Int -> Html
 moodButton address c n =
@@ -103,34 +114,70 @@ moodSection address maybeChar =
     Nothing -> blank
     Just c -> moodButtons address c
 
+-- Text section
+
+textHeader choice = maybeHeader choice "Text"
+
+textBox : Signal.Address Action -> Html
+textBox address =
+  div
+  [ ]
+  [ textarea
+    [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
+    , style [ ("width", "200px"), ("height", "170px"), ("float", "left") ] ]
+    [ ]
+  ]
+
+textSection : Signal.Address Action -> Maybe a -> Html
+textSection address x =
+  case x of
+    Nothing -> blank
+    Just something -> textBox address
+
 -- Dialog box
 
 centeredDialogBox e =
   div
   [ style [ ("width", "100%") ] ]
   [ div
-    [ style [ ("width", "594px"), ("margin", "0 auto") ] ]
+    [ style [ ("width", "594px"), ("float", "right") ] ]
     [ e ]
   ]
 
-dialogBox text imgSrc =
-  centeredDialogBox <| fromElement <| collage 594 170
-    [ filled (grayscale 1) (rect 594 170)  -- outer black border
-    , filled (grayscale 0) (rect 578 152)  -- outer white border
-    , filled (grayscale 1) (rect 566 140)  -- inner black box
-    , (toForm <| image 120 120 imgSrc) |> move (-211, 0)
-    ]
+dialogText : String -> Text.Text
+dialogText s =
+  Text.typeface ["determination_monoregular"]
+  <| Text.height 26  -- 26 px ~= 20 pt?
+  <| Text.color (grayscale 0)
+  <| Text.monospace <| Text.fromString s
+
+dialogElement : String -> Graphics.Element.Element
+dialogElement s =
+  Graphics.Element.size 416 120 <| Graphics.Element.leftAligned <| dialogText s
+
+dialogBox model =
+  case model.moodImg of
+    Nothing -> Nothing
+    Just imgSrc ->
+      Just <| centeredDialogBox <| fromElement <| collage 596 170
+      [ filled (grayscale 1) (rect 596 170)  -- outer black border
+      , filled (grayscale 0) (rect 580 152)  -- outer white border
+      , filled (grayscale 1) (rect 568 140)  -- inner black box
+      , (toForm <| image 120 120 imgSrc) |> move (-214, 0)
+      , (toForm <| dialogElement model.text) |> move (64, 0) -- this is kind of a guess
+      ]
 
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
-    [ style [ ("padding", "30px") ] ]
+    [ style [ ("padding", "28px") ] ]
     [ characterHeader
     , characterButtons address model.characters
-    , moodHeader
+    , moodHeader model.selection
     , moodSection address model.selection
-    , hr [ ] [ ]
-    , Maybe.withDefault blank <| Maybe.map (dialogBox model.text) model.moodImg
+    , textHeader model.moodImg
+    , textSection address model.moodImg
+    , Maybe.withDefault blank <| dialogBox model
     ]
 
 
@@ -155,4 +202,7 @@ update action model =
       | moodImg = Just s
       , text = ""
       }
-    EnterText s -> noop model
+    EnterText s ->
+      { model
+      | text = s
+      }

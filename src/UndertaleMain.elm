@@ -1,3 +1,5 @@
+module UndertaleMain where
+
 import Character
 import UndertaleDialog exposing (init, update, view)
 import StartApp.Simple exposing (start)
