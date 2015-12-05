@@ -1,15 +1,18 @@
 module UndertaleDialog where
 
+import StartApp exposing (start)
+
 import Character
 import Color exposing (..)
+import Effects exposing (none, Never)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (container, image)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
 import Html.Attributes exposing (class, classList, src, style)
 import Maybe exposing (Maybe)
+import Task
 import Text
-import StartApp.Simple as StartApp
 
 
 -- Model
@@ -19,6 +22,8 @@ type alias Model =
   , selection : Maybe Character.Name
   , moodImg : Maybe String
   , text : String
+  , staticRoot : String
+  , scriptRoot : String
   }
 
 
@@ -28,6 +33,8 @@ init characters =
   , selection = Nothing
   , moodImg = Nothing
   , text = ""
+  , staticRoot = ""
+  , scriptRoot = ""
   }
 
 
@@ -64,55 +71,55 @@ blank = div [ ] [ ]
 
 characterHeader = header "Character"
 
-spriteFolder : Character.Name -> String
-spriteFolder c = "sprites" ++ "/" ++ toString c
+spriteFolder : String -> Character.Name -> String
+spriteFolder root c = root ++ "images/sprites/" ++ toString c
 
-spriteNumber : Character.Name -> Int -> String
-spriteNumber c n = (spriteFolder c) ++ "/" ++ (toString n) ++ ".png"
+spriteNumber : String -> Character.Name -> Int -> String
+spriteNumber root c n = (spriteFolder root c) ++ "/" ++ (toString n) ++ ".png"
 
-defaultSprite : Character.Name -> String
-defaultSprite c = spriteNumber c 0
+defaultSprite : String -> Character.Name -> String
+defaultSprite root c = spriteNumber root c 0
 
-characterButton : Signal.Address Action -> Character.Name -> Html
-characterButton address c =
+characterButton : Signal.Address Action -> String -> Character.Name -> Html
+characterButton address staticRoot c =
   button
   (flatButton ++ [ onClick address <| ChooseCharacter c ])
-  [ img [ src <| defaultSprite c ] [] ]
+  [ img [ src <| defaultSprite staticRoot c ] [] ]
 
-characterButtons : Signal.Address Action -> List Character.Name -> Html
-characterButtons address characters =
+characterButtons : Signal.Address Action -> String -> List Character.Name -> Html
+characterButtons address staticRoot characters =
   div [ ]
     [ ul
       [ class "characters" ]
-      <| List.map (characterButton address) characters
+      <| List.map (characterButton address staticRoot) characters
     ]
 
 -- Mood section
 
 moodHeader choice = maybeHeader choice "Mood"
 
-moodButton : Signal.Address Action -> Character.Name -> Int -> Html
-moodButton address c n =
+moodButton : Signal.Address Action -> String -> Character.Name -> Int -> Html
+moodButton address root c n =
   let
-    spriteStr = spriteNumber c n
+    spriteStr = spriteNumber root c n
   in
     button
       (flatButton ++ [ onClick address <| ChooseMood spriteStr ])
-      [ img [ src <| spriteNumber c n ] [ ] ]
+      [ img [ src <| spriteStr ] [ ] ]
 
-moodButtons : Signal.Address Action -> Character.Name -> Html
-moodButtons address c =
+moodButtons : Signal.Address Action -> String -> Character.Name -> Html
+moodButtons address root c =
   div [ ]
     [ ul
       [ class "moods" ]
-      <| List.map (moodButton address c) [ 0..(Character.moodCount c) - 1 ]
+      <| List.map (moodButton address root c) [ 0..(Character.moodCount c) - 1 ]
     ]
 
-moodSection : Signal.Address Action -> Maybe Character.Name -> Html
-moodSection address maybeChar =
+moodSection : Signal.Address Action -> String -> Maybe Character.Name -> Html
+moodSection address root maybeChar =
   case maybeChar of
     Nothing -> blank
-    Just c -> moodButtons address c
+    Just c -> moodButtons address root c
 
 -- Text section
 
@@ -120,11 +127,18 @@ textHeader choice = maybeHeader choice "Text"
 
 textBox : Signal.Address Action -> Html
 textBox address =
-  div
-  [ ]
+  div [ ]
   [ textarea
     [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
-    , style [ ("width", "200px"), ("height", "170px"), ("float", "left") ] ]
+    , style
+      [ ("font-family", "monospace")
+      , ("font-size", "24px")
+      , ("float", "left")
+      , ("resize", "none")
+      ]
+    , Html.Attributes.cols 24
+    , Html.Attributes.rows 3
+    ]
     [ ]
   ]
 
@@ -136,7 +150,7 @@ textSection address x =
 
 -- Dialog box
 
-centeredDialogBox e =
+dialogCollage e =
   div
   [ style [ ("width", "100%") ] ]
   [ div
@@ -159,7 +173,7 @@ dialogBox model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
-      Just <| centeredDialogBox <| fromElement <| collage 596 170
+      Just <| dialogCollage <| fromElement <| collage 596 170
       [ filled (grayscale 1) (rect 596 170)  -- outer black border
       , filled (grayscale 0) (rect 580 152)  -- outer white border
       , filled (grayscale 1) (rect 568 140)  -- inner black box
@@ -170,20 +184,25 @@ dialogBox model =
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
-    [ style [ ("padding", "28px") ] ]
+    [ style [ ("padding", "26px") ] ]
     [ characterHeader
-    , characterButtons address model.characters
+    , characterButtons address model.staticRoot model.characters
     , moodHeader model.selection
-    , moodSection address model.selection
+    , moodSection address model.staticRoot model.selection
     , textHeader model.moodImg
-    , textSection address model.moodImg
     , Maybe.withDefault blank <| dialogBox model
+    , textSection address model.moodImg
     ]
 
 
 -- Update
 
-type Action = ChooseCharacter Character.Name | ChooseMood String | EnterText String
+type Action =
+      ChooseCharacter Character.Name
+    | ChooseMood String
+    | EnterText String
+    | SetScriptRoot String
+    | SetStaticRoot String
 
 
 noop whatever = whatever
@@ -192,17 +211,63 @@ noop whatever = whatever
 update action model =
   case action of
     ChooseCharacter c ->
-      { model
-      | selection = Just c
-      , moodImg = Nothing
-      , text = ""
-      }
+      ( { model
+        | selection = Just c
+        , moodImg = Nothing
+        , text = ""
+        }
+      , none
+      )
     ChooseMood s ->
-      { model
-      | moodImg = Just s
-      , text = ""
-      }
+      ( { model
+        | moodImg = Just s
+        , text = ""
+        }
+      , none
+      )
     EnterText s ->
-      { model
-      | text = s
-      }
+      ( { model
+        | text = s
+        }
+      , none
+      )
+    SetScriptRoot s ->
+      ( { model
+        | scriptRoot = s
+        }
+      , none
+      )
+    SetStaticRoot s ->
+      ( { model
+        | staticRoot = s
+        }
+      , none
+      )
+
+
+-- Main
+
+port scriptRoot : Signal String
+port staticRoot : Signal String
+
+app =
+  start
+  { init =
+    ( init [ Character.Alphys ]
+    , none
+    )
+  , update = update
+  , view = view
+  , inputs =
+    [ Signal.map SetScriptRoot scriptRoot
+    , Signal.map SetStaticRoot staticRoot ]
+  }
+
+
+main =
+  app.html
+
+
+port tasks : Signal (Task.Task Never ())
+port tasks =
+  app.tasks
