@@ -253,7 +253,13 @@ port staticRoot : Signal String
 app =
   start
   { init =
-    ( init [ Character.Alphys ]
+    ( init
+      [ Character.Toriel
+      , Character.Sans
+      , Character.Papyrus
+      , Character.Undyne
+      , Character.Alphys
+      ]
     , none
     )
   , update = update
