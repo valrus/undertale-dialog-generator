@@ -4,12 +4,15 @@ import StartApp exposing (start)
 
 import Character
 import Color exposing (..)
-import Effects exposing (none, Never)
+import Effects exposing (none, Effects, Never)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (container, image)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
 import Html.Attributes exposing (class, classList, src, style)
+import Http
+import Json.Encode
+import Json.Decode
 import Maybe exposing (Maybe)
 import Task
 import Text
@@ -24,6 +27,7 @@ type alias Model =
   , text : String
   , staticRoot : String
   , scriptRoot : String
+  , downloadURL : Maybe String
   }
 
 
@@ -35,6 +39,7 @@ init characters =
   , text = ""
   , staticRoot = ""
   , scriptRoot = ""
+  , downloadURL = Nothing
   }
 
 
@@ -150,9 +155,11 @@ textSection address x =
 
 -- Dialog box
 
-dialogCollage e =
+dialogCollage address e =
   div
-  [ style [ ("width", "100%") ] ]
+  [ style [ ("width", "100%") ]
+  , onClick address GetDownload
+  ]
   [ div
     [ style [ ("width", "594px"), ("float", "right") ] ]
     [ e ]
@@ -169,11 +176,11 @@ dialogElement : String -> Graphics.Element.Element
 dialogElement s =
   Graphics.Element.size 416 120 <| Graphics.Element.leftAligned <| dialogText s
 
-dialogBox model =
+dialogBox address model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
-      Just <| dialogCollage <| fromElement <| collage 596 170
+      Just <| dialogCollage address <| fromElement <| collage 596 170
       [ filled (grayscale 1) (rect 596 170)  -- outer black border
       , filled (grayscale 0) (rect 580 152)  -- outer white border
       , filled (grayscale 1) (rect 568 140)  -- inner black box
@@ -190,7 +197,7 @@ view address model =
     , moodHeader model.selection
     , moodSection address model.staticRoot model.selection
     , textHeader model.moodImg
-    , Maybe.withDefault blank <| dialogBox model
+    , Maybe.withDefault blank <| dialogBox address model
     , textSection address model.moodImg
     ]
 
@@ -203,9 +210,8 @@ type Action =
     | EnterText String
     | SetScriptRoot String
     | SetStaticRoot String
-
-
-noop whatever = whatever
+    | GetDownload
+    | GotDownload (Maybe String)
 
 
 update action model =
@@ -243,6 +249,38 @@ update action model =
         }
       , none
       )
+    GetDownload ->
+      ( model
+      , getDialogBoxImg model
+      )
+    GotDownload url ->
+      ( { model
+        | downloadURL = url
+        }
+      , none
+      )
+
+
+-- Tasks
+
+getSubmitURL root = root ++ "submit"
+
+getDialogBoxImg : Model -> Effects Action
+getDialogBoxImg model =
+  case Maybe.map2 (,) model.selection model.moodImg of
+    Nothing -> none
+    Just (c, img) ->
+      let body =
+        Http.multipart [
+            Http.stringData "character" <| toString c
+          , Http.stringData "moodImg" img
+          , Http.stringData "text" model.text
+          ]
+      in
+        Http.post (Json.Decode.string) (getSubmitURL model.scriptRoot) body
+        |> Task.toMaybe
+        |> Task.map GotDownload
+        |> Effects.task
 
 
 -- Main
