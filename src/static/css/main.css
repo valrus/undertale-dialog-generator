@@ -5,12 +5,12 @@
 /* Converted to web font with font squirrel */
 @font-face {
     font-family: 'determination_monoregular';
-    src: url('DeterminationMono/dtm-mono-webfont.eot');
-    src: url('DeterminationMono/dtm-mono-webfont.eot?#iefix') format('embedded-opentype'),
-         url('DeterminationMono/dtm-mono-webfont.woff2') format('woff2'),
-         url('DeterminationMono/dtm-mono-webfont.woff') format('woff'),
-         url('DeterminationMono/dtm-mono-webfont.ttf') format('truetype'),
-         url('DeterminationMono/dtm-mono-webfont.svg#determination_monoregular') format('svg');
+    src: url('fonts/DeterminationMono/dtm-mono-webfont.eot');
+    src: url('fonts/DeterminationMono/dtm-mono-webfont.eot?#iefix') format('embedded-opentype'),
+         url('fonts/DeterminationMono/dtm-mono-webfont.woff2') format('woff2'),
+         url('fonts/DeterminationMono/dtm-mono-webfont.woff') format('woff'),
+         url('fonts/DeterminationMono/dtm-mono-webfont.ttf') format('truetype'),
+         url('fonts/DeterminationMono/dtm-mono-webfont.svg#determination_monoregular') format('svg');
     font-weight: normal;
     font-style: normal;
 

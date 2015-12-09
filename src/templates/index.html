@@ -17,6 +17,7 @@
             scriptRoot: "{{ request.script_root|safe }}"
         }
     );
+    // passing in above doesn't seem to work?
     undertale.ports.staticRoot.send("{{ url_for('static', filename='') }}");
     undertale.ports.scriptRoot.send("{{ request.script_root|safe }}");
   </script>
