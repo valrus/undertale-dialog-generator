@@ -26,7 +26,7 @@ type alias Model =
   , selection : Maybe Character.Name
   , moodImg : Maybe String
   , text : String
-  , staticRoot : String
+  , staticRoot : Maybe String
   , scriptRoot : String
   , imageData : Maybe String
   }
@@ -38,7 +38,7 @@ init characters =
   , selection = Nothing
   , moodImg = Nothing
   , text = ""
-  , staticRoot = ""
+  , staticRoot = Nothing
   , scriptRoot = ""
   , imageData = Nothing
   }
@@ -92,13 +92,16 @@ characterButton address staticRoot c =
   (flatButton ++ [ onClick address <| ChooseCharacter c ])
   [ img [ src <| defaultSprite staticRoot c ] [] ]
 
-characterButtons : Signal.Address Action -> String -> List Character.Name -> Html
+characterButtons : Signal.Address Action -> Maybe String -> List Character.Name -> Html
 characterButtons address staticRoot characters =
-  div [ ]
-    [ ul
-      [ class "characters" ]
-      <| List.map (characterButton address staticRoot) characters
-    ]
+  case staticRoot of
+    Nothing -> div [ ] [ ]
+    Just root ->
+        div [ ]
+            [ ul
+              [ class "characters" ]
+              <| List.map (characterButton address root) characters
+            ]
 
 -- Mood section
 
@@ -121,11 +124,11 @@ moodButtons address root c =
       <| List.map (moodButton address root c) [ 0..(Character.moodCount c) - 1 ]
     ]
 
-moodSection : Signal.Address Action -> String -> Maybe Character.Name -> Html
-moodSection address root maybeChar =
-  case maybeChar of
+moodSection : Signal.Address Action -> Maybe String -> Maybe Character.Name -> Html
+moodSection address staticRoot maybeChar =
+  case Maybe.map2 (,) staticRoot maybeChar of
     Nothing -> blank
-    Just c -> moodButtons address root c
+    Just (root, c) -> moodButtons address root c
 
 -- Text section
 
@@ -271,7 +274,7 @@ update action model =
       )
     SetStaticRoot s ->
       ( { model
-        | staticRoot = s
+        | staticRoot = Just s
         }
       , none
       )
