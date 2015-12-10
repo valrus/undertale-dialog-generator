@@ -12,3 +12,17 @@ moodCount c =
     Alphys -> 22
     Asgore -> 0
     Flowey -> 0
+
+fontFace : Maybe Name -> List String
+fontFace c =
+  case c of
+    Just Papyrus -> [ "Papyrus" ]
+    Just Sans -> [ "Comic Sans", "Comic Sans MS Regular", "Comic Sans MS" ]
+    _ -> [ "determination_monoregular" ]
+
+fontSize : Maybe Name -> Float
+fontSize c =
+  case c of
+    Just Papyrus -> 36.0
+    Just Sans -> 26.0
+    _ -> 26.0

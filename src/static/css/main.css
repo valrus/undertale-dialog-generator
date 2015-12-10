@@ -16,12 +16,17 @@
 
 }
 
+body {
+    background-color: black;
+}
+
 .header {
     -webkit-font-smoothing: none;
     font-smooth: never;
     font-family: "determination_monoregular";
     font-size: 42px;
     margin: 5px;
+    color: white;
 }
 
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */

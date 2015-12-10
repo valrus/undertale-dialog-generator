@@ -14,6 +14,7 @@ import Http
 import Json.Encode
 import Json.Decode
 import Maybe exposing (Maybe)
+import String
 import Task
 import Text
 
@@ -27,7 +28,7 @@ type alias Model =
   , text : String
   , staticRoot : String
   , scriptRoot : String
-  , downloadURL : Maybe String
+  , imageData : Maybe String
   }
 
 
@@ -39,7 +40,7 @@ init characters =
   , text = ""
   , staticRoot = ""
   , scriptRoot = ""
-  , downloadURL = Nothing
+  , imageData = Nothing
   }
 
 
@@ -59,7 +60,7 @@ header s =
   [ ]
   [ hr [ ] [ ]
   , h1 [ style [ ("text-align", "center")
-               , ("font-family", "8bitoperator JVE Regular") ]
+               , ("font-family", "determination_monoregular") ]
        , class "header"
        ]
     [ text s ]
@@ -165,28 +166,48 @@ dialogCollage address e =
     [ e ]
   ]
 
-dialogText : String -> Text.Text
-dialogText s =
-  Text.typeface ["determination_monoregular"]
-  <| Text.height 26  -- 26 px ~= 20 pt?
+dialogLine : Maybe Character.Name -> String -> Text.Text
+dialogLine c s =
+  Text.typeface (Character.fontFace c)
+  <| Text.height (Character.fontSize c)
   <| Text.color (grayscale 0)
   <| Text.monospace <| Text.fromString s
 
-dialogElement : String -> Graphics.Element.Element
-dialogElement s =
-  Graphics.Element.size 416 120 <| Graphics.Element.leftAligned <| dialogText s
+padWithBlanks : List String -> Int -> List String
+padWithBlanks l n = List.append l <| List.repeat (n - List.length l) ""
+
+dialogText : Maybe Character.Name -> String -> List Text.Text
+dialogText c s =
+  List.map
+  (\line -> dialogLine c line)
+  <| padWithBlanks (String.split "\n" s) 3
+
+dialogLineElement : Text.Text -> Graphics.Element.Element
+dialogLineElement t =
+  Graphics.Element.size 416 36 <| Graphics.Element.leftAligned <| t
+
+dialogElement : Maybe Character.Name -> String -> Graphics.Element.Element
+dialogElement c s =
+  Graphics.Element.flow Graphics.Element.down <| List.map dialogLineElement <| dialogText c s
 
 dialogBox address model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
-      Just <| dialogCollage address <| fromElement <| collage 596 170
-      [ filled (grayscale 1) (rect 596 170)  -- outer black border
+      Just <| dialogCollage address <| fromElement <| collage 596 168
+      [ filled (grayscale 1) (rect 596 168)  -- outer black border
       , filled (grayscale 0) (rect 580 152)  -- outer white border
       , filled (grayscale 1) (rect 568 140)  -- inner black box
       , (toForm <| image 120 120 imgSrc) |> move (-214, 0)
-      , (toForm <| dialogElement model.text) |> move (64, 0) -- this is kind of a guess
+      , (toForm <| dialogElement model.selection model.text) |> move (64, 0) -- this is kind of a guess
       ]
+
+returnedDialogBox dialogBoxBase64 =
+  Html.img
+  [ style [ ("float", "right") ]
+  , src <| "data:image/png;base64," ++ dialogBoxBase64
+  ]
+  [ ]
 
 view : Signal.Address Action -> Model -> Html
 view address model =
@@ -197,7 +218,10 @@ view address model =
     , moodHeader model.selection
     , moodSection address model.staticRoot model.selection
     , textHeader model.moodImg
-    , Maybe.withDefault blank <| dialogBox address model
+    , Maybe.withDefault blank <|
+      Maybe.oneOf
+      [ Maybe.map returnedDialogBox model.imageData
+      , dialogBox address model]
     , textSection address model.moodImg
     ]
 
@@ -221,19 +245,21 @@ update action model =
         | selection = Just c
         , moodImg = Nothing
         , text = ""
+        , imageData = Nothing
         }
       , none
       )
     ChooseMood s ->
       ( { model
         | moodImg = Just s
-        , text = ""
+        , imageData = Nothing
         }
       , none
       )
     EnterText s ->
       ( { model
         | text = s
+        , imageData = Nothing
         }
       , none
       )
@@ -255,7 +281,7 @@ update action model =
       )
     GotDownload url ->
       ( { model
-        | downloadURL = url
+        | imageData = url
         }
       , none
       )
@@ -270,17 +296,15 @@ getDialogBoxImg model =
   case Maybe.map2 (,) model.selection model.moodImg of
     Nothing -> none
     Just (c, img) ->
-      let body =
-        Http.multipart [
-            Http.stringData "character" <| toString c
-          , Http.stringData "moodImg" img
-          , Http.stringData "text" model.text
-          ]
-      in
-        Http.post (Json.Decode.string) (getSubmitURL model.scriptRoot) body
-        |> Task.toMaybe
-        |> Task.map GotDownload
-        |> Effects.task
+      Http.url (getSubmitURL model.scriptRoot)
+      [ ("character", toString c)
+      , ("moodImg", img)
+      , ("text", model.text)
+      ]
+      |> Http.getString
+      |> Task.toMaybe
+      |> Task.map GotDownload
+      |> Effects.task
 
 
 -- Main
