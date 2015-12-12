@@ -22,7 +22,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 def getFontForCharacter(character):
-    font_dir = os.path.join('static', 'css', 'fonts')
+    font_dir = os.path.join(app.root_path, 'static', 'css', 'fonts')
     if character.lower() == 'sans':
         return ImageFont.load(os.path.join(font_dir, 'a skele-ton.pil'))
     elif character.lower() == 'papyrus':
