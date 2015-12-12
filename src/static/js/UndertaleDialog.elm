@@ -10,7 +10,7 @@ import Graphics.Element exposing (container, image)
 import Graphics.Input
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
-import Html.Attributes exposing (class, classList, src, style)
+import Html.Attributes exposing (class, classList, src, style, download, downloadAs, href)
 import Http
 import Json.Encode
 import Json.Decode
@@ -211,11 +211,19 @@ dialogBox address model =
       `Graphics.Element.above` (crunchyButton address)
 
 returnedDialogBox dialogBoxBase64 =
-  Html.img
-  [ style [ ("float", "right") ]
-  , src <| "data:image/png;base64," ++ dialogBoxBase64
-  ]
-  [ ]
+  let pngData = "data:image/png;base64," ++ dialogBoxBase64
+  in
+    Html.a
+    [ download True
+    , downloadAs "undertale-dialog.png"
+    , href pngData
+    ]
+    [ Html.img
+        [ style [ ("float", "right") ]
+        , src pngData
+        ]
+        [ ]
+    ]
 
 view : Signal.Address Action -> Model -> Html
 view address model =

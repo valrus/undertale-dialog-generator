@@ -11630,10 +11630,12 @@ Elm.UndertaleDialog.make = function (_elm) {
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
    var returnedDialogBox = function (dialogBoxBase64) {
-      return A2($Html.img,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "float",_1: "right"}]))
-              ,$Html$Attributes.src(A2($Basics._op["++"],"data:image/png;base64,",dialogBoxBase64))]),
-      _U.list([]));
+      var pngData = A2($Basics._op["++"],"data:image/png;base64,",dialogBoxBase64);
+      return A2($Html.a,
+      _U.list([$Html$Attributes.download(true),$Html$Attributes.downloadAs("undertale-dialog.png"),$Html$Attributes.href(pngData)]),
+      _U.list([A2($Html.img,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "float",_1: "right"}])),$Html$Attributes.src(pngData)]),
+      _U.list([]))]));
    };
    var crunchyButton = function (address) {
       return A3($Graphics$Element.size,596,48,A2($Graphics$Input.button,A2($Signal.message,address,GetDownload),"MAKE IT CRUNCHY"));
