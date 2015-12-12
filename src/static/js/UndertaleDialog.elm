@@ -7,6 +7,7 @@ import Color exposing (..)
 import Effects exposing (none, Effects, Never)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (container, image)
+import Graphics.Input
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
 import Html.Attributes exposing (class, classList, src, style)
@@ -159,13 +160,13 @@ textSection address x =
 
 -- Dialog box
 
-dialogCollage address e =
+dialogCollage e =
   div
   [ style [ ("width", "100%") ]
-  , onClick address GetDownload
   ]
   [ div
-    [ style [ ("width", "594px"), ("float", "right") ] ]
+    [ style [ ("width", "594px"), ("float", "right") ]
+    , Html.Attributes.id "dialog" ]
     [ e ]
   ]
 
@@ -193,17 +194,21 @@ dialogElement : Maybe Character.Name -> String -> Graphics.Element.Element
 dialogElement c s =
   Graphics.Element.flow Graphics.Element.down <| List.map dialogLineElement <| dialogText c s
 
+crunchyButton address =
+  Graphics.Element.size 596 48 <| Graphics.Input.button (Signal.message address GetDownload) "MAKE IT CRUNCHY"
+
 dialogBox address model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
-      Just <| dialogCollage address <| fromElement <| collage 596 168
+      Just <| dialogCollage <| fromElement <| collage 596 168
       [ filled (grayscale 1) (rect 596 168)  -- outer black border
       , filled (grayscale 0) (rect 580 152)  -- outer white border
       , filled (grayscale 1) (rect 568 140)  -- inner black box
       , (toForm <| image 120 120 imgSrc) |> move (-214, 0)
       , (toForm <| dialogElement model.selection model.text) |> move (64, 0) -- this is kind of a guess
       ]
+      `Graphics.Element.above` (crunchyButton address)
 
 returnedDialogBox dialogBoxBase64 =
   Html.img
