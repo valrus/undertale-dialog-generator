@@ -11089,7 +11089,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
-   var getSubmitURL = function (root) {    return A2($Basics._op["++"],root,"submit");};
+   var getSubmitURL = function (root) {    return A2($Basics._op["++"],root,"/submit");};
    var GotDownload = function (a) {    return {ctor: "GotDownload",_0: a};};
    var getDialogBoxImg = function (model) {
       var _p0 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);

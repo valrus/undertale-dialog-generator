@@ -292,7 +292,7 @@ update action model =
 
 -- Tasks
 
-getSubmitURL root = root ++ "submit"
+getSubmitURL root = root ++ "/submit"
 
 getDialogBoxImg : Model -> Effects Action
 getDialogBoxImg model =
