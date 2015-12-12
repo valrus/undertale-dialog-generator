@@ -29,6 +29,17 @@ body {
     color: white;
 }
 
+#dialog button {
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    font-family: "determination_monoregular";
+    font-size: 42px;
+    margin: 5px;
+    color: yellow;
+    border: none;
+    background-color: black;
+}
+
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */
 canvas {
     font-smooth: never;
