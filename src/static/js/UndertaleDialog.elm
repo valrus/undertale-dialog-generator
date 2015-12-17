@@ -4,9 +4,9 @@ import StartApp exposing (start)
 
 import Character
 import Color exposing (..)
-import Effects exposing (none, Effects, Never)
+import Effects exposing (Effects, Never, none)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
-import Graphics.Element exposing (container, image)
+import Graphics.Element exposing (Element, container, image, above, flow, down, size)
 import Graphics.Input
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
@@ -15,6 +15,7 @@ import Http
 import Json.Encode
 import Json.Decode
 import Maybe exposing (Maybe)
+import Modal
 import String
 import Task
 import Text
@@ -30,6 +31,7 @@ type alias Model =
   , staticRoot : Maybe String
   , scriptRoot : String
   , imageData : Maybe String
+  , modal : Modal.Model
   }
 
 
@@ -42,6 +44,7 @@ init characters =
   , staticRoot = Nothing
   , scriptRoot = ""
   , imageData = Nothing
+  , modal = Modal.init <| grayscale 1
   }
 
 
@@ -186,16 +189,16 @@ dialogText c s =
   (\line -> dialogLine c line)
   <| padWithBlanks (String.split "\n" s) 3
 
-dialogLineElement : Text.Text -> Graphics.Element.Element
+dialogLineElement : Text.Text -> Element
 dialogLineElement t =
-  Graphics.Element.size 416 36 <| Graphics.Element.leftAligned <| t
+  size 416 36 <| Graphics.Element.leftAligned <| t
 
-dialogElement : Maybe Character.Name -> String -> Graphics.Element.Element
+dialogElement : Maybe Character.Name -> String -> Element
 dialogElement c s =
-  Graphics.Element.flow Graphics.Element.down <| List.map dialogLineElement <| dialogText c s
+  flow down <| List.map dialogLineElement <| dialogText c s
 
 crunchyButton address =
-  Graphics.Element.size 596 48 <| Graphics.Input.button (Signal.message address GetDownload) "MAKE IT CRUNCHY"
+  size 596 48 <| Graphics.Input.button (Signal.message address GetDownload) "MAKE IT CRUNCHY"
 
 dialogBox address model =
   case model.moodImg of
@@ -208,7 +211,7 @@ dialogBox address model =
       , (toForm <| image 120 120 imgSrc) |> move (-214, 0)
       , (toForm <| dialogElement model.selection model.text) |> move (64, 0) -- this is kind of a guess
       ]
-      `Graphics.Element.above` (crunchyButton address)
+      `above` (crunchyButton address)
 
 returnedDialogBox dialogBoxBase64 =
   let pngData = "data:image/png;base64," ++ dialogBoxBase64
@@ -225,20 +228,43 @@ returnedDialogBox dialogBoxBase64 =
         [ ]
     ]
 
+
+modalDialog : Html
+modalDialog =
+  div
+  [ style [ ("backgroundColor", "white")
+          , ("color", "black")
+          ]
+  ]
+  [ text "Test modal" ]
+
+
+modalButton : Signal.Address Action -> Html
+modalButton address =
+  button
+  [ onClick address <| UpdateModal <| Modal.Show (Just <| modalDialog) ]
+  [ text "Show modal" ]
+
+
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
     [ style [ ("padding", "26px") ] ]
     [ characterHeader
     , characterButtons address model.staticRoot model.characters
+
     , moodHeader model.selection
     , moodSection address model.staticRoot model.selection
+
     , textHeader model.moodImg
     , Maybe.withDefault blank <|
       Maybe.oneOf
       [ Maybe.map returnedDialogBox model.imageData
       , dialogBox address model]
     , textSection address model.moodImg
+
+    , modalButton address
+    , Modal.view (Signal.forwardTo address UpdateModal) model.modal
     ]
 
 
@@ -252,6 +278,7 @@ type Action =
     | SetStaticRoot String
     | GetDownload
     | GotDownload (Maybe String)
+    | UpdateModal Modal.Action
 
 
 update action model =
@@ -298,6 +325,12 @@ update action model =
     GotDownload url ->
       ( { model
         | imageData = url
+        }
+      , none
+      )
+    UpdateModal action ->
+      ( { model
+        | modal = Modal.update action model.modal
         }
       , none
       )

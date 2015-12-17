@@ -11518,6 +11518,64 @@ Elm.Character.make = function (_elm) {
                                   ,fontFace: fontFace
                                   ,fontSize: fontSize};
 };
+Elm.Modal = Elm.Modal || {};
+Elm.Modal.make = function (_elm) {
+   "use strict";
+   _elm.Modal = _elm.Modal || {};
+   if (_elm.Modal.values) return _elm.Modal.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Color = Elm.Color.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var partlyTransparent = function (color) {    var rgb = $Color.toRgb(color);return A4($Color.rgba,rgb.red,rgb.green,rgb.blue,0.7);};
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      if (_p0.ctor === "Show") {
+            return _U.update(model,{childElement: _p0._0});
+         } else {
+            return model;
+         }
+   });
+   var NoOp = {ctor: "NoOp"};
+   var Show = function (a) {    return {ctor: "Show",_0: a};};
+   var backgroundAttrs = F2(function (address,color) {
+      return _U.list([A2($Html$Events.onClick,address,Show($Maybe.Nothing))
+                     ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: $Basics.toString(partlyTransparent(color))}
+                                                     ,{ctor: "_Tuple2",_0: "height",_1: "100%"}
+                                                     ,{ctor: "_Tuple2",_0: "width",_1: "100%"}
+                                                     ,{ctor: "_Tuple2",_0: "position",_1: "fixed"}
+                                                     ,{ctor: "_Tuple2",_0: "top",_1: "0"}
+                                                     ,{ctor: "_Tuple2",_0: "left",_1: "0"}
+                                                     ,{ctor: "_Tuple2",_0: "z-index",_1: "99999"}]))]);
+   });
+   var view = F2(function (address,model) {
+      var _p1 = model.childElement;
+      if (_p1.ctor === "Nothing") {
+            return A2($Html.div,_U.list([]),_U.list([]));
+         } else {
+            return A2($Html.div,A2(backgroundAttrs,address,model.backgroundColor),_U.list([_p1._0]));
+         }
+   });
+   var init = function (color) {    return {backgroundColor: color,childElement: $Maybe.Nothing};};
+   var Model = F2(function (a,b) {    return {backgroundColor: a,childElement: b};});
+   return _elm.Modal.values = {_op: _op
+                              ,Model: Model
+                              ,init: init
+                              ,Show: Show
+                              ,NoOp: NoOp
+                              ,update: update
+                              ,partlyTransparent: partlyTransparent
+                              ,backgroundAttrs: backgroundAttrs
+                              ,view: view};
+};
 Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
    "use strict";
@@ -11577,6 +11635,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Http = Elm.Http.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
+   $Modal = Elm.Modal.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
@@ -11595,6 +11654,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
    var getSubmitURL = function (root) {    return A2($Basics._op["++"],root,"/submit");};
+   var UpdateModal = function (a) {    return {ctor: "UpdateModal",_0: a};};
    var GotDownload = function (a) {    return {ctor: "GotDownload",_0: a};};
    var getDialogBoxImg = function (model) {
       var _p0 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
@@ -11621,7 +11681,8 @@ Elm.UndertaleDialog.make = function (_elm) {
          case "SetScriptRoot": return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p1._0}),_1: $Effects.none};
          case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: $Maybe.Just(_p1._0)}),_1: $Effects.none};
          case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p1._0}),_1: $Effects.none};}
+         case "GotDownload": return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p1._0}),_1: $Effects.none};
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p1._0,model.modal)}),_1: $Effects.none};}
    });
    var GetDownload = {ctor: "GetDownload"};
    var SetStaticRoot = function (a) {    return {ctor: "SetStaticRoot",_0: a};};
@@ -11629,6 +11690,14 @@ Elm.UndertaleDialog.make = function (_elm) {
    var EnterText = function (a) {    return {ctor: "EnterText",_0: a};};
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
+   var modalDialog = A2($Html.div,
+   _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]))]),
+   _U.list([$Html.text("Test modal")]));
+   var modalButton = function (address) {
+      return A2($Html.button,
+      _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just(modalDialog))))]),
+      _U.list([$Html.text("Show modal")]));
+   };
    var returnedDialogBox = function (dialogBoxBase64) {
       var pngData = A2($Basics._op["++"],"data:image/png;base64,",dialogBoxBase64);
       return A2($Html.a,
@@ -11755,7 +11824,9 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,A3(moodSection,address,model.staticRoot,model.selection)
               ,textHeader(model.moodImg)
               ,A2($Maybe.withDefault,blank,$Maybe.oneOf(_U.list([A2($Maybe.map,returnedDialogBox,model.imageData),A2(dialogBox,address,model)])))
-              ,A2(textSection,address,model.moodImg)]));
+              ,A2(textSection,address,model.moodImg)
+              ,modalButton(address)
+              ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
    var init = function (characters) {
       return {characters: characters
@@ -11764,7 +11835,8 @@ Elm.UndertaleDialog.make = function (_elm) {
              ,text: ""
              ,staticRoot: $Maybe.Nothing
              ,scriptRoot: ""
-             ,imageData: $Maybe.Nothing};
+             ,imageData: $Maybe.Nothing
+             ,modal: $Modal.init($Color.grayscale(1))};
    };
    var app = $StartApp.start({init: {ctor: "_Tuple2"
                                     ,_0: init(_U.list([$Character.Toriel,$Character.Sans,$Character.Papyrus,$Character.Undyne,$Character.Alphys]))
@@ -11774,7 +11846,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                              ,inputs: _U.list([A2($Signal.map,SetScriptRoot,scriptRoot),A2($Signal.map,SetStaticRoot,staticRoot)])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
-   var Model = F7(function (a,b,c,d,e,f,g) {    return {characters: a,selection: b,moodImg: c,text: d,staticRoot: e,scriptRoot: f,imageData: g};});
+   var Model = F8(function (a,b,c,d,e,f,g,h) {    return {characters: a,selection: b,moodImg: c,text: d,staticRoot: e,scriptRoot: f,imageData: g,modal: h};});
    return _elm.UndertaleDialog.values = {_op: _op
                                         ,Model: Model
                                         ,init: init
@@ -11804,6 +11876,8 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,crunchyButton: crunchyButton
                                         ,dialogBox: dialogBox
                                         ,returnedDialogBox: returnedDialogBox
+                                        ,modalDialog: modalDialog
+                                        ,modalButton: modalButton
                                         ,view: view
                                         ,ChooseCharacter: ChooseCharacter
                                         ,ChooseMood: ChooseMood
@@ -11812,6 +11886,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,SetStaticRoot: SetStaticRoot
                                         ,GetDownload: GetDownload
                                         ,GotDownload: GotDownload
+                                        ,UpdateModal: UpdateModal
                                         ,update: update
                                         ,getSubmitURL: getSubmitURL
                                         ,getDialogBoxImg: getDialogBoxImg

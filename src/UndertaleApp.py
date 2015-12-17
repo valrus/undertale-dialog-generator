@@ -54,10 +54,6 @@ def makeDialogBox():
         request.args.get('text'),
         getFontForCharacter(character)
     )
-    # fd, box_file = mkstemp(prefix='undertale_{}_'.format(character),
-    #                        suffix='.png',
-    #                        dir=app.config['UPLOAD_FOLDER'])
-    # os.close(fd)
     stream = StringIO()
     box.save(stream, format='png')
 
@@ -67,13 +63,6 @@ def makeDialogBox():
         return response
 
     return b64encode(stream.getvalue())
-    # return os.path.join(app.config['UPLOAD_FOLDER'], os.path.basename(box_file))
-    # result = send_from_directory(app.config['UPLOAD_FOLDER'],
-    #                              box_file, as_attachment=True)
-    # print(result.__dict__)
-    # return url_for('static',
-    #                filename='{}/{}'.format(app.config['UPLOAD_FOLDER'],
-    #                                        box_file))
 
 
 @app.route('/')
