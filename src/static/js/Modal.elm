@@ -3,7 +3,8 @@ module Modal where
 import Color exposing (Color)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html.Events exposing (Options, onClick, onWithOptions)
+import Json.Decode
 import Maybe exposing (Maybe)
 import String
 
@@ -70,10 +71,27 @@ backgroundAttrs address color =
   ]
 
 
-wrapperDiv : SizedHtml -> List Html
-wrapperDiv inner =
+messageOn : String -> Options -> Signal.Address a -> a -> Attribute
+messageOn name options addr msg =
+  onWithOptions name options Json.Decode.value (\_ -> Signal.message addr msg)
+
+
+noBubble : Options
+noBubble =
+  { stopPropagation = True
+  , preventDefault = False
+  }
+
+
+swallowClick : Signal.Address a -> a -> Attribute
+swallowClick = messageOn "click" noBubble
+
+
+wrapperDiv : Signal.Address Action -> SizedHtml -> List Html
+wrapperDiv address inner =
   [ div
-    [ style
+    [ swallowClick address NoOp
+    , style
       [ ("width", inner.width)
       , ("height", inner.height)
       , ("overflow", "auto")
@@ -96,4 +114,4 @@ view address model =
     Just dialog ->
       div
       ( backgroundAttrs address model.backgroundColor )
-      ( wrapperDiv dialog )
+      ( wrapperDiv address dialog )
