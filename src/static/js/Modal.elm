@@ -5,13 +5,20 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick)
 import Maybe exposing (Maybe)
+import String
 
 
 type alias Model =
   { backgroundColor : Color
-  , childElement : Maybe Html
+  , childElement : Maybe SizedHtml
   }
 
+
+type alias SizedHtml =
+  { html : Html
+  , width : String
+  , height : String
+  }
 
 
 init : Color -> Model
@@ -21,7 +28,7 @@ init color =
   }
 
 
-type Action = Show (Maybe Html) | NoOp
+type Action = Show (Maybe SizedHtml) | NoOp
 
 
 update action model =
@@ -33,23 +40,52 @@ update action model =
     NoOp -> model
 
 
-partlyTransparent : Color -> Color
+partlyTransparent : Color -> String
 partlyTransparent color =
   let rgb = (Color.toRgb color) in
-    Color.rgba rgb.red rgb.green rgb.blue 0.7
+    "rgba("
+    ++ (String.join ", " <| List.map toString
+        [ rgb.red
+        , rgb.green
+        , rgb.blue
+        ]
+       )
+    ++ ", 0.7)"
 
 
 backgroundAttrs address color =
   [ onClick address <| (Show Nothing)
   , style
-    [ ("backgroundColor", toString (partlyTransparent color))
+    [ ("backgroundColor", partlyTransparent color)
     , ("height", "100%")
     , ("width", "100%")
     , ("position", "fixed")
     , ("top", "0")
     , ("left", "0")
     , ("z-index", "99999")
+    , ("-webkit-transition", "opacity 400ms ease-in")
+    , ("-moz-transition", "opacity 400ms ease-in")
+    , ("transition", "opacity 400ms ease-in")
     ]
+  ]
+
+
+wrapperDiv : SizedHtml -> List Html
+wrapperDiv inner =
+  [ div
+    [ style
+      [ ("width", inner.width)
+      , ("height", inner.height)
+      , ("overflow", "auto")
+      , ("margin", "auto")
+      , ("position", "absolute")
+      , ("top", "0")
+      , ("left", "0")
+      , ("bottom", "0")
+      , ("right", "0")
+      ]
+    ]
+    [ inner.html ]
   ]
 
 
@@ -60,4 +96,4 @@ view address model =
     Just dialog ->
       div
       ( backgroundAttrs address model.backgroundColor )
-      [ dialog ]
+      ( wrapperDiv dialog )

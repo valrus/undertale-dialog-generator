@@ -213,6 +213,7 @@ dialogBox address model =
       ]
       `above` (crunchyButton address)
 
+
 returnedDialogBox dialogBoxBase64 =
   let pngData = "data:image/png;base64," ++ dialogBoxBase64
   in
@@ -229,27 +230,54 @@ returnedDialogBox dialogBoxBase64 =
     ]
 
 
-modalDialog : Html
-modalDialog =
-  div
-  [ style [ ("backgroundColor", "white")
-          , ("color", "black")
-          ]
+expand : List (String, String)
+expand = [ ("width", "100%"), ("height", "100%") ]
+
+
+creditsImg : String -> Html
+creditsImg staticRoot =
+  img
+  [ Html.Attributes.width 596
+  , Html.Attributes.height 654
+  , src <| staticRoot ++ "images/credits.png"
   ]
-  [ text "Test modal" ]
+  [ ]
 
 
-modalButton : Signal.Address Action -> Html
-modalButton address =
-  button
-  [ onClick address <| UpdateModal <| Modal.Show (Just <| modalDialog) ]
-  [ text "Show modal" ]
+modalDialog : String -> Modal.SizedHtml
+modalDialog staticRoot =
+  let
+    innerDiv =
+        div [ style <| [ ("backgroundColor", "white")
+                       , ("color", "black")
+                       ] ++ expand
+            ]
+            [ creditsImg staticRoot ]
+  in Modal.SizedHtml innerDiv "596" "654"
+
+
+infoButton : Signal.Address Action -> Maybe String -> Html
+infoButton address staticRoot =
+  case staticRoot of
+    Nothing -> blank
+    Just root ->
+      button
+      (
+        [ onClick address
+            <| UpdateModal
+            <| Modal.Show (Just <| modalDialog root)
+        ]
+        ++ flatButton
+      )
+      [ img [ src <| root ++ "images/creditsbutton.png" ] [ ] ]
 
 
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
-    [ style [ ("padding", "26px") ] ]
+
+    [ Html.Attributes.id "content" ]
+
     [ characterHeader
     , characterButtons address model.staticRoot model.characters
 
@@ -263,7 +291,7 @@ view address model =
       , dialogBox address model]
     , textSection address model.moodImg
 
-    , modalButton address
+    , infoButton address model.staticRoot
     , Modal.view (Signal.forwardTo address UpdateModal) model.modal
     ]
 

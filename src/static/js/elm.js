@@ -11533,9 +11533,28 @@ Elm.Modal.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
-   var partlyTransparent = function (color) {    var rgb = $Color.toRgb(color);return A4($Color.rgba,rgb.red,rgb.green,rgb.blue,0.7);};
+   var wrapperDiv = function (inner) {
+      return _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: inner.width}
+                                              ,{ctor: "_Tuple2",_0: "height",_1: inner.height}
+                                              ,{ctor: "_Tuple2",_0: "overflow",_1: "auto"}
+                                              ,{ctor: "_Tuple2",_0: "margin",_1: "auto"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "absolute"}
+                                              ,{ctor: "_Tuple2",_0: "top",_1: "0"}
+                                              ,{ctor: "_Tuple2",_0: "left",_1: "0"}
+                                              ,{ctor: "_Tuple2",_0: "bottom",_1: "0"}
+                                              ,{ctor: "_Tuple2",_0: "right",_1: "0"}]))]),
+      _U.list([inner.html]))]);
+   };
+   var partlyTransparent = function (color) {
+      var rgb = $Color.toRgb(color);
+      return A2($Basics._op["++"],
+      "rgba(",
+      A2($Basics._op["++"],A2($String.join,", ",A2($List.map,$Basics.toString,_U.list([rgb.red,rgb.green,rgb.blue]))),", 0.7)"));
+   };
    var update = F2(function (action,model) {
       var _p0 = action;
       if (_p0.ctor === "Show") {
@@ -11548,32 +11567,38 @@ Elm.Modal.make = function (_elm) {
    var Show = function (a) {    return {ctor: "Show",_0: a};};
    var backgroundAttrs = F2(function (address,color) {
       return _U.list([A2($Html$Events.onClick,address,Show($Maybe.Nothing))
-                     ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: $Basics.toString(partlyTransparent(color))}
+                     ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: partlyTransparent(color)}
                                                      ,{ctor: "_Tuple2",_0: "height",_1: "100%"}
                                                      ,{ctor: "_Tuple2",_0: "width",_1: "100%"}
                                                      ,{ctor: "_Tuple2",_0: "position",_1: "fixed"}
                                                      ,{ctor: "_Tuple2",_0: "top",_1: "0"}
                                                      ,{ctor: "_Tuple2",_0: "left",_1: "0"}
-                                                     ,{ctor: "_Tuple2",_0: "z-index",_1: "99999"}]))]);
+                                                     ,{ctor: "_Tuple2",_0: "z-index",_1: "99999"}
+                                                     ,{ctor: "_Tuple2",_0: "-webkit-transition",_1: "opacity 400ms ease-in"}
+                                                     ,{ctor: "_Tuple2",_0: "-moz-transition",_1: "opacity 400ms ease-in"}
+                                                     ,{ctor: "_Tuple2",_0: "transition",_1: "opacity 400ms ease-in"}]))]);
    });
    var view = F2(function (address,model) {
       var _p1 = model.childElement;
       if (_p1.ctor === "Nothing") {
             return A2($Html.div,_U.list([]),_U.list([]));
          } else {
-            return A2($Html.div,A2(backgroundAttrs,address,model.backgroundColor),_U.list([_p1._0]));
+            return A2($Html.div,A2(backgroundAttrs,address,model.backgroundColor),wrapperDiv(_p1._0));
          }
    });
    var init = function (color) {    return {backgroundColor: color,childElement: $Maybe.Nothing};};
+   var SizedHtml = F3(function (a,b,c) {    return {html: a,width: b,height: c};});
    var Model = F2(function (a,b) {    return {backgroundColor: a,childElement: b};});
    return _elm.Modal.values = {_op: _op
                               ,Model: Model
+                              ,SizedHtml: SizedHtml
                               ,init: init
                               ,Show: Show
                               ,NoOp: NoOp
                               ,update: update
                               ,partlyTransparent: partlyTransparent
                               ,backgroundAttrs: backgroundAttrs
+                              ,wrapperDiv: wrapperDiv
                               ,view: view};
 };
 Elm.StartApp = Elm.StartApp || {};
@@ -11690,13 +11715,19 @@ Elm.UndertaleDialog.make = function (_elm) {
    var EnterText = function (a) {    return {ctor: "EnterText",_0: a};};
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
-   var modalDialog = A2($Html.div,
-   _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]))]),
-   _U.list([$Html.text("Test modal")]));
-   var modalButton = function (address) {
-      return A2($Html.button,
-      _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just(modalDialog))))]),
-      _U.list([$Html.text("Show modal")]));
+   var creditsImg = function (staticRoot) {
+      return A2($Html.img,
+      _U.list([$Html$Attributes.width(596),$Html$Attributes.height(654),$Html$Attributes.src(A2($Basics._op["++"],staticRoot,"images/credits.png"))]),
+      _U.list([]));
+   };
+   var expand = _U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"},{ctor: "_Tuple2",_0: "height",_1: "100%"}]);
+   var modalDialog = function (staticRoot) {
+      var innerDiv = A2($Html.div,
+      _U.list([$Html$Attributes.style(A2($Basics._op["++"],
+      _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]),
+      expand))]),
+      _U.list([creditsImg(staticRoot)]));
+      return A3($Modal.SizedHtml,innerDiv,"596","654");
    };
    var returnedDialogBox = function (dialogBoxBase64) {
       var pngData = A2($Basics._op["++"],"data:image/png;base64,",dialogBoxBase64);
@@ -11815,9 +11846,20 @@ Elm.UndertaleDialog.make = function (_elm) {
             return A3(moodButtons,address,_p6._0._0,_p6._0._1);
          }
    });
+   var infoButton = F2(function (address,staticRoot) {
+      var _p7 = staticRoot;
+      if (_p7.ctor === "Nothing") {
+            return blank;
+         } else {
+            var _p8 = _p7._0;
+            return A2($Html.button,
+            A2($Basics._op["++"],_U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just(modalDialog(_p8)))))]),flatButton),
+            _U.list([A2($Html.img,_U.list([$Html$Attributes.src(A2($Basics._op["++"],_p8,"images/creditsbutton.png"))]),_U.list([]))]));
+         }
+   });
    var view = F2(function (address,model) {
       return A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "padding",_1: "26px"}]))]),
+      _U.list([$Html$Attributes.id("content")]),
       _U.list([characterHeader
               ,A3(characterButtons,address,model.staticRoot,model.characters)
               ,moodHeader(model.selection)
@@ -11825,7 +11867,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,textHeader(model.moodImg)
               ,A2($Maybe.withDefault,blank,$Maybe.oneOf(_U.list([A2($Maybe.map,returnedDialogBox,model.imageData),A2(dialogBox,address,model)])))
               ,A2(textSection,address,model.moodImg)
-              ,modalButton(address)
+              ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
    var init = function (characters) {
@@ -11876,8 +11918,10 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,crunchyButton: crunchyButton
                                         ,dialogBox: dialogBox
                                         ,returnedDialogBox: returnedDialogBox
+                                        ,expand: expand
+                                        ,creditsImg: creditsImg
                                         ,modalDialog: modalDialog
-                                        ,modalButton: modalButton
+                                        ,infoButton: infoButton
                                         ,view: view
                                         ,ChooseCharacter: ChooseCharacter
                                         ,ChooseMood: ChooseMood
