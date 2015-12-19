@@ -1,6 +1,7 @@
 module Character where
 
-type Name = Toriel | Sans | Papyrus | Undyne | Alphys | Asgore | Flowey
+type Name = Toriel | Sans | Papyrus | Undyne | Alphys | Asgore | Flowey | Napstablook
+
 
 moodCount : Name -> Int
 moodCount c =
@@ -10,8 +11,10 @@ moodCount c =
     Papyrus -> 18
     Undyne -> 25
     Alphys -> 22
-    Asgore -> 0
+    Asgore -> 13
+    Napstablook -> 2
     Flowey -> 0
+
 
 fontFace : Maybe Name -> List String
 fontFace c =
@@ -20,9 +23,24 @@ fontFace c =
     Just Sans -> [ "Comic Sans", "Comic Sans MS Regular", "Comic Sans MS" ]
     _ -> [ "determination_monoregular" ]
 
+
 fontSize : Maybe Name -> Float
 fontSize c =
   case c of
-    Just Papyrus -> 36.0
+    Just Papyrus -> 32.0
     Just Sans -> 26.0
     _ -> 26.0
+
+
+portraitSize : Maybe Name -> (Int, Int)
+portraitSize c =
+  case c of
+    Just Napstablook -> (60, 66)
+    _ -> (60, 60)
+
+
+portraitOffset : Maybe Name -> (Float, Float)
+portraitOffset c =
+  case c of
+    Just Napstablook -> (0, -4)
+    _ -> (0, 0)

@@ -215,18 +215,24 @@ crunchyButton address =
   size 596 48 <| Graphics.Input.button (Signal.message address GetDownload) "MAKE IT CRUNCHY"
 
 
+doubleImage imgSrc (w, h)=
+  image (w * 2) (h * 2) imgSrc
+
+
 dialogBox address model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
-      Just <| dialogCollage <| fromElement <| collage 596 168
-      [ filled (grayscale 1) (rect 596 168)  -- outer black border
-      , filled (grayscale 0) (rect 580 152)  -- outer white border
-      , filled (grayscale 1) (rect 568 140)  -- inner black box
-      , (toForm <| image 120 120 imgSrc) |> move (-214, 0)
-      , (toForm <| dialogElement model.selection model.text) |> move (64, 0) -- this is kind of a guess
-      ]
-      `above` (crunchyButton address)
+      let (imgX, imgY) = Character.portraitOffset model.selection
+      in
+        Just <| dialogCollage <| fromElement <| collage 596 168
+        [ filled (grayscale 1) (rect 596 168)  -- outer black border
+        , filled (grayscale 0) (rect 580 152)  -- outer white border
+        , filled (grayscale 1) (rect 568 140)  -- inner black box
+        , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection) |> move (-214 + imgX, imgY)
+        , (toForm <| dialogElement model.selection model.text) |> move (64, 0) -- this is kind of a guess
+        ]
+        `above` (crunchyButton address)
 
 
 returnedDialogBox dialogBoxBase64 =
@@ -448,6 +454,8 @@ app =
       , Character.Papyrus
       , Character.Undyne
       , Character.Alphys
+      , Character.Asgore
+      , Character.Napstablook
       ]
     , none
     )

@@ -11460,45 +11460,63 @@ Elm.Character.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var fontSize = function (c) {
+   var portraitOffset = function (c) {
       var _p0 = c;
-      _v0_2: do {
-         if (_p0.ctor === "Just") {
-               switch (_p0._0.ctor)
-               {case "Papyrus": return 36.0;
+      if (_p0.ctor === "Just" && _p0._0.ctor === "Napstablook") {
+            return {ctor: "_Tuple2",_0: 0,_1: -4};
+         } else {
+            return {ctor: "_Tuple2",_0: 0,_1: 0};
+         }
+   };
+   var portraitSize = function (c) {
+      var _p1 = c;
+      if (_p1.ctor === "Just" && _p1._0.ctor === "Napstablook") {
+            return {ctor: "_Tuple2",_0: 60,_1: 66};
+         } else {
+            return {ctor: "_Tuple2",_0: 60,_1: 60};
+         }
+   };
+   var fontSize = function (c) {
+      var _p2 = c;
+      _v2_2: do {
+         if (_p2.ctor === "Just") {
+               switch (_p2._0.ctor)
+               {case "Papyrus": return 32.0;
                   case "Sans": return 26.0;
-                  default: break _v0_2;}
+                  default: break _v2_2;}
             } else {
-               break _v0_2;
+               break _v2_2;
             }
       } while (false);
       return 26.0;
    };
    var fontFace = function (c) {
-      var _p1 = c;
-      _v1_2: do {
-         if (_p1.ctor === "Just") {
-               switch (_p1._0.ctor)
+      var _p3 = c;
+      _v3_2: do {
+         if (_p3.ctor === "Just") {
+               switch (_p3._0.ctor)
                {case "Papyrus": return _U.list(["Papyrus"]);
                   case "Sans": return _U.list(["Comic Sans","Comic Sans MS Regular","Comic Sans MS"]);
-                  default: break _v1_2;}
+                  default: break _v3_2;}
             } else {
-               break _v1_2;
+               break _v3_2;
             }
       } while (false);
       return _U.list(["determination_monoregular"]);
    };
    var moodCount = function (c) {
-      var _p2 = c;
-      switch (_p2.ctor)
+      var _p4 = c;
+      switch (_p4.ctor)
       {case "Toriel": return 45;
          case "Sans": return 5;
          case "Papyrus": return 18;
          case "Undyne": return 25;
          case "Alphys": return 22;
-         case "Asgore": return 0;
+         case "Asgore": return 13;
+         case "Napstablook": return 2;
          default: return 0;}
    };
+   var Napstablook = {ctor: "Napstablook"};
    var Flowey = {ctor: "Flowey"};
    var Asgore = {ctor: "Asgore"};
    var Alphys = {ctor: "Alphys"};
@@ -11514,9 +11532,12 @@ Elm.Character.make = function (_elm) {
                                   ,Alphys: Alphys
                                   ,Asgore: Asgore
                                   ,Flowey: Flowey
+                                  ,Napstablook: Napstablook
                                   ,moodCount: moodCount
                                   ,fontFace: fontFace
-                                  ,fontSize: fontSize};
+                                  ,fontSize: fontSize
+                                  ,portraitSize: portraitSize
+                                  ,portraitOffset: portraitOffset};
 };
 Elm.Modal = Elm.Modal || {};
 Elm.Modal.make = function (_elm) {
@@ -11776,6 +11797,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,$Html$Attributes.src(pngData)]),
       _U.list([]))]));
    };
+   var doubleImage = F2(function (imgSrc,_p2) {    var _p3 = _p2;return A3($Graphics$Element.image,_p3._0 * 2,_p3._1 * 2,imgSrc);});
    var crunchyButton = function (address) {
       return A3($Graphics$Element.size,596,48,A2($Graphics$Input.button,A2($Signal.message,address,GetDownload),"MAKE IT CRUNCHY"));
    };
@@ -11799,10 +11821,13 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([e]))]));
    };
    var dialogBox = F2(function (address,model) {
-      var _p2 = model.moodImg;
-      if (_p2.ctor === "Nothing") {
+      var _p4 = model.moodImg;
+      if (_p4.ctor === "Nothing") {
             return $Maybe.Nothing;
          } else {
+            var _p5 = $Character.portraitOffset(model.selection);
+            var imgX = _p5._0;
+            var imgY = _p5._1;
             return $Maybe.Just(dialogCollage($Html.fromElement(A2($Graphics$Element.above,
             A3($Graphics$Collage.collage,
             596,
@@ -11810,7 +11835,9 @@ Elm.UndertaleDialog.make = function (_elm) {
             _U.list([A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,596,168))
                     ,A2($Graphics$Collage.filled,$Color.grayscale(0),A2($Graphics$Collage.rect,580,152))
                     ,A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,568,140))
-                    ,A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: -214,_1: 0},$Graphics$Collage.toForm(A3($Graphics$Element.image,120,120,_p2._0)))
+                    ,A2($Graphics$Collage.move,
+                    {ctor: "_Tuple2",_0: -214 + imgX,_1: imgY},
+                    $Graphics$Collage.toForm(A2(doubleImage,_p4._0,$Character.portraitSize(model.selection))))
                     ,A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: 64,_1: 0},$Graphics$Collage.toForm(A2(dialogElement,model.selection,model.text)))])),
             crunchyButton(address)))));
          }
@@ -11844,11 +11871,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([]));
    };
    var blank = A2($Html.div,_U.list([]),_U.list([]));
-   var textSection = F2(function (address,x) {    var _p3 = x;if (_p3.ctor === "Nothing") {    return blank;} else {    return textBox(address);}});
+   var textSection = F2(function (address,x) {    var _p6 = x;if (_p6.ctor === "Nothing") {    return blank;} else {    return textBox(address);}});
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
-   var maybeDivider = function (choice) {    var _p4 = choice;if (_p4.ctor === "Nothing") {    return blank;} else {    return header;}};
+   var maybeDivider = function (choice) {    var _p7 = choice;if (_p7.ctor === "Nothing") {    return blank;} else {    return header;}};
    var flatButton = _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "transparent"},{ctor: "_Tuple2",_0: "border",_1: "none"}]);
    var characterButton = F3(function (address,staticRoot,c) {
       return A2($Html.button,
@@ -11872,11 +11899,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(1,$Character.moodCount(c))))]));
    });
    var moodSection = F3(function (address,root,maybeChar) {
-      var _p5 = maybeChar;
-      if (_p5.ctor === "Nothing") {
+      var _p8 = maybeChar;
+      if (_p8.ctor === "Nothing") {
             return blank;
          } else {
-            return A3(moodButtons,address,root,_p5._0);
+            return A3(moodButtons,address,root,_p8._0);
          }
    });
    var infoButton = F2(function (address,root) {
@@ -11911,7 +11938,13 @@ Elm.UndertaleDialog.make = function (_elm) {
              ,modal: $Modal.init($Color.grayscale(1))};
    };
    var app = $StartApp.start({init: {ctor: "_Tuple2"
-                                    ,_0: init(_U.list([$Character.Toriel,$Character.Sans,$Character.Papyrus,$Character.Undyne,$Character.Alphys]))
+                                    ,_0: init(_U.list([$Character.Toriel
+                                                      ,$Character.Sans
+                                                      ,$Character.Papyrus
+                                                      ,$Character.Undyne
+                                                      ,$Character.Alphys
+                                                      ,$Character.Asgore
+                                                      ,$Character.Napstablook]))
                                     ,_1: $Effects.none}
                              ,update: update
                              ,view: view
@@ -11944,6 +11977,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,dialogLineElement: dialogLineElement
                                         ,dialogElement: dialogElement
                                         ,crunchyButton: crunchyButton
+                                        ,doubleImage: doubleImage
                                         ,dialogBox: dialogBox
                                         ,returnedDialogBox: returnedDialogBox
                                         ,expand: expand
