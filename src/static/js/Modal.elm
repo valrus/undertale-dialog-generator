@@ -64,9 +64,6 @@ backgroundAttrs address color =
     , ("top", "0")
     , ("left", "0")
     , ("z-index", "99999")
-    , ("-webkit-transition", "opacity 400ms ease-in")
-    , ("-moz-transition", "opacity 400ms ease-in")
-    , ("transition", "opacity 400ms ease-in")
     ]
   ]
 

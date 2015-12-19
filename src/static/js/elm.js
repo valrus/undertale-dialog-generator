@@ -11601,10 +11601,7 @@ Elm.Modal.make = function (_elm) {
                                                      ,{ctor: "_Tuple2",_0: "position",_1: "fixed"}
                                                      ,{ctor: "_Tuple2",_0: "top",_1: "0"}
                                                      ,{ctor: "_Tuple2",_0: "left",_1: "0"}
-                                                     ,{ctor: "_Tuple2",_0: "z-index",_1: "99999"}
-                                                     ,{ctor: "_Tuple2",_0: "-webkit-transition",_1: "opacity 400ms ease-in"}
-                                                     ,{ctor: "_Tuple2",_0: "-moz-transition",_1: "opacity 400ms ease-in"}
-                                                     ,{ctor: "_Tuple2",_0: "transition",_1: "opacity 400ms ease-in"}]))]);
+                                                     ,{ctor: "_Tuple2",_0: "z-index",_1: "99999"}]))]);
    });
    var view = F2(function (address,model) {
       var _p2 = model.childElement;
