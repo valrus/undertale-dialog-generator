@@ -132,7 +132,7 @@ moodButtons address root c =
   div [ ]
     [ ul
       [ class "moods" ]
-      <| List.map (moodButton address root c) [ 0..(Character.moodCount c) - 1 ]
+      <| List.map (moodButton address root c) [ 1..(Character.moodCount c) ]
     ]
 
 moodSection : Signal.Address Action -> String -> Maybe Character.Name -> Html

@@ -11869,7 +11869,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    var moodButtons = F3(function (address,root,c) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(0,$Character.moodCount(c) - 1)))]));
+      _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(1,$Character.moodCount(c))))]));
    });
    var moodSection = F3(function (address,root,maybeChar) {
       var _p5 = maybeChar;
