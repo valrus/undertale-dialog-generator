@@ -1,0 +1,3 @@
+UndertaleApp
+Flask == 0.10.1
+Pillow == 3.0.0
