@@ -47,7 +47,6 @@ def dialogBox(portrait, text, fnt):
 
 @app.route('/submit', methods=['GET'])
 def makeDialogBox():
-    print(request.form)
     character = request.args.get('character')
     box = dialogBox(
         Image.open(request.args.get('moodImg').lstrip('/')),
