@@ -11772,7 +11772,8 @@ Elm.UndertaleDialog.make = function (_elm) {
       return A2($Html.a,
       _U.list([$Html$Attributes.download(true),$Html$Attributes.downloadAs("undertale-dialog.png"),$Html$Attributes.href(pngData)]),
       _U.list([A2($Html.img,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "float",_1: "right"}])),$Html$Attributes.src(pngData)]),
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "0 auto"},{ctor: "_Tuple2",_0: "display",_1: "block"}]))
+              ,$Html$Attributes.src(pngData)]),
       _U.list([]))]));
    };
    var crunchyButton = function (address) {
@@ -11793,7 +11794,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
       _U.list([A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "594px"},{ctor: "_Tuple2",_0: "float",_1: "right"}]))
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "594px"},{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}]))
               ,$Html$Attributes.id("dialog")]),
       _U.list([e]))]));
    };
@@ -11816,14 +11817,15 @@ Elm.UndertaleDialog.make = function (_elm) {
    });
    var textBox = function (address) {
       return A2($Html.div,
-      _U.list([]),
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
       _U.list([A2($Html.textarea,
       _U.list([A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
               ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-family",_1: "monospace"}
                                               ,{ctor: "_Tuple2",_0: "font-size",_1: "24px"}
-                                              ,{ctor: "_Tuple2",_0: "float",_1: "left"}
-                                              ,{ctor: "_Tuple2",_0: "resize",_1: "none"}]))
-              ,$Html$Attributes.cols(24)
+                                              ,{ctor: "_Tuple2",_0: "margin",_1: "30px auto"}
+                                              ,{ctor: "_Tuple2",_0: "resize",_1: "none"}
+                                              ,{ctor: "_Tuple2",_0: "display",_1: "block"}]))
+              ,$Html$Attributes.cols(30)
               ,$Html$Attributes.rows(3)]),
       _U.list([]))]));
    };
@@ -11834,7 +11836,10 @@ Elm.UndertaleDialog.make = function (_elm) {
    var defaultSprite = F2(function (root,c) {    return A3(spriteNumber,root,c,0);});
    var title = function (root) {
       return A2($Html.img,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "30px auto"},{ctor: "_Tuple2",_0: "display",_1: "block"}]))
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}
+                                              ,{ctor: "_Tuple2",_0: "padding-top",_1: "100px"}
+                                              ,{ctor: "_Tuple2",_0: "padding-bottom",_1: "30px"}
+                                              ,{ctor: "_Tuple2",_0: "display",_1: "block"}]))
               ,$Html$Attributes.src(A2($Basics._op["++"],root,"images/title.png"))]),
       _U.list([]));
    };
@@ -11843,7 +11848,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
-   var maybeHeader = function (choice) {    var _p4 = choice;if (_p4.ctor === "Nothing") {    return blank;} else {    return header;}};
+   var maybeDivider = function (choice) {    var _p4 = choice;if (_p4.ctor === "Nothing") {    return blank;} else {    return header;}};
    var flatButton = _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "transparent"},{ctor: "_Tuple2",_0: "border",_1: "none"}]);
    var characterButton = F3(function (address,staticRoot,c) {
       return A2($Html.button,
@@ -11887,11 +11892,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([$Html$Attributes.id("content")]),
       _U.list([title(model.staticRoot)
               ,A3(characterButtons,address,model.staticRoot,model.characters)
-              ,maybeHeader(model.selection)
+              ,maybeDivider(model.selection)
               ,A3(moodSection,address,model.staticRoot,model.selection)
-              ,maybeHeader(model.moodImg)
-              ,A2($Maybe.withDefault,blank,$Maybe.oneOf(_U.list([A2($Maybe.map,returnedDialogBox,model.imageData),A2(dialogBox,address,model)])))
+              ,maybeDivider(model.moodImg)
               ,A2(textSection,address,model.moodImg)
+              ,A2($Maybe.withDefault,blank,$Maybe.oneOf(_U.list([A2($Maybe.map,returnedDialogBox,model.imageData),A2(dialogBox,address,model)])))
               ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
@@ -11919,7 +11924,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,init: init
                                         ,flatButton: flatButton
                                         ,header: header
-                                        ,maybeHeader: maybeHeader
+                                        ,maybeDivider: maybeDivider
                                         ,blank: blank
                                         ,title: title
                                         ,spriteFolder: spriteFolder

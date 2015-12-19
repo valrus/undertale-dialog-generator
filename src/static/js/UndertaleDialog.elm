@@ -62,7 +62,7 @@ header =
   [ ]
   [ hr [ style [ ("margin-bottom", "30px") ] ] [ ] ]
 
-maybeHeader choice =
+maybeDivider choice =
   case choice of
     Nothing -> blank
     Just a -> header
@@ -73,7 +73,9 @@ blank = div [ ] [ ]
 title root =
   img
   [ style
-    [ ("margin", "30px auto")
+    [ ("margin", "0 auto")
+    , ("padding-top", "100px")
+    , ("padding-bottom", "30px")
     , ("display", "block") ]
   , src <| root ++ "images/title.png" ]
   [ ]
@@ -143,16 +145,18 @@ moodSection address root maybeChar =
 
 textBox : Signal.Address Action -> Html
 textBox address =
-  div [ ]
+  div
+  [ style [ ("width", "100%") ] ]
   [ textarea
     [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
     , style
       [ ("font-family", "monospace")
       , ("font-size", "24px")
-      , ("float", "left")
+      , ("margin", "30px auto")
       , ("resize", "none")
+      , ("display", "block")
       ]
-    , Html.Attributes.cols 24
+    , Html.Attributes.cols 30
     , Html.Attributes.rows 3
     ]
     [ ]
@@ -164,6 +168,7 @@ textSection address x =
     Nothing -> blank
     Just something -> textBox address
 
+
 -- Dialog box
 
 dialogCollage e =
@@ -171,10 +176,11 @@ dialogCollage e =
   [ style [ ("width", "100%") ]
   ]
   [ div
-    [ style [ ("width", "594px"), ("float", "right") ]
+    [ style [ ("width", "594px"), ("margin", "0 auto") ]
     , Html.Attributes.id "dialog" ]
     [ e ]
   ]
+
 
 dialogLine : Maybe Character.Name -> String -> Text.Text
 dialogLine c s =
@@ -183,8 +189,10 @@ dialogLine c s =
   <| Text.color (grayscale 0)
   <| Text.monospace <| Text.fromString s
 
+
 padWithBlanks : List String -> Int -> List String
 padWithBlanks l n = List.append l <| List.repeat (n - List.length l) ""
+
 
 dialogText : Maybe Character.Name -> String -> List Text.Text
 dialogText c s =
@@ -192,16 +200,20 @@ dialogText c s =
   (\line -> dialogLine c line)
   <| padWithBlanks (String.split "\n" s) 3
 
+
 dialogLineElement : Text.Text -> Element
 dialogLineElement t =
   size 416 36 <| Graphics.Element.leftAligned <| t
+
 
 dialogElement : Maybe Character.Name -> String -> Element
 dialogElement c s =
   flow down <| List.map dialogLineElement <| dialogText c s
 
+
 crunchyButton address =
   size 596 48 <| Graphics.Input.button (Signal.message address GetDownload) "MAKE IT CRUNCHY"
+
 
 dialogBox address model =
   case model.moodImg of
@@ -226,12 +238,17 @@ returnedDialogBox dialogBoxBase64 =
     , href pngData
     ]
     [ Html.img
-        [ style [ ("float", "right") ]
+        [ style
+          [ ("margin", "0 auto")
+          , ("display", "block")
+          ]
         , src pngData
         ]
         [ ]
     ]
 
+
+-- Credits modal
 
 expand : List (String, String)
 expand = [ ("width", "100%"), ("height", "100%") ]
@@ -312,16 +329,15 @@ view address model =
 
     , characterButtons address model.staticRoot model.characters
 
-    , maybeHeader model.selection
+    , maybeDivider model.selection
     , moodSection address model.staticRoot model.selection
 
-    , maybeHeader model.moodImg
+    , maybeDivider model.moodImg
+    , textSection address model.moodImg
     , Maybe.withDefault blank <|
       Maybe.oneOf
       [ Maybe.map returnedDialogBox model.imageData
       , dialogBox address model]
-
-    , textSection address model.moodImg
 
     , infoButton address model.staticRoot
     , Modal.view (Signal.forwardTo address UpdateModal) model.modal
@@ -400,6 +416,7 @@ update action model =
 
 getSubmitURL root = root ++ "/submit"
 
+
 getDialogBoxImg : Model -> Effects Action
 getDialogBoxImg model =
   case Maybe.map2 (,) model.selection model.moodImg of
@@ -420,6 +437,7 @@ getDialogBoxImg model =
 
 port scriptRoot : Signal String
 port staticRoot : Signal String
+
 
 app =
   start

@@ -18,10 +18,11 @@
 
 body {
     background-color: black;
+    margin: 0px;
 }
 
 #content {
-    max-width: 1024px; 
+    max-width: 800px; 
     margin: 0 auto;
     position: relative;
     height: 100%;
