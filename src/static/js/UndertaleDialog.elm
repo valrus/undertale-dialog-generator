@@ -141,39 +141,26 @@ moodSection address root maybeChar =
     Nothing -> blank
     Just c -> moodButtons address root c
 
--- Text section
-
-textBox : Signal.Address Action -> Maybe Character.Name -> Html
-textBox address character =
-  div
-  [ style [ ("width", "100%") ] ]
-  [ textarea
-    [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
-    , style
-      [ ("font-family", String.join ", " <| Character.fontFace character)
-      , ("font-size", (toString <| Character.fontSize character) ++ "px")
-      , ("line-height", "36px")  -- TODO: Make the "36px" a function
-      , ("margin", "30px auto")
-      , ("resize", "none")
-      , ("display", "block")
-      , ("border", "none")
-      , ("background-color", "black")
-      , ("color", "white")
-      ]
-    , Html.Attributes.cols 30
-    , Html.Attributes.rows 3
-    ]
-    [ ]
-  ]
-
-textSection : Signal.Address Action -> Maybe a -> Maybe Character.Name -> Html
-textSection address x name =
-  case x of
-    Nothing -> blank
-    Just something -> textBox address name
-
 
 -- Dialog box
+
+textBox : Signal.Address Action -> Maybe Character.Name -> String -> Element
+textBox address character text =
+  toElement 416 108 <|
+    div
+    [ style [ ("width", "100%") ] ]
+    [ textarea
+      [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
+      , style
+        [ ("font-family", String.join ", " <| Character.fontFace character)
+        , ("font-size", (toString <| Character.fontSize character) ++ "px")
+        , ("line-height", "36px")  -- TODO: Make the "36px" a function
+        ]
+      , Html.Attributes.rows 3
+      ]
+      [ Html.text text ]
+    ]
+
 
 dialogCollage e =
   div
@@ -184,35 +171,6 @@ dialogCollage e =
     , Html.Attributes.id "dialog" ]
     [ e ]
   ]
-
-
-dialogLine : Maybe Character.Name -> String -> Text.Text
-dialogLine c s =
-  Text.typeface (Character.fontFace c)
-  <| Text.height (Character.fontSize c)
-  <| Text.color (grayscale 0)
-  <| Text.monospace <| Text.fromString s
-
-
-padWithBlanks : List String -> Int -> List String
-padWithBlanks l n = List.append l <| List.repeat (n - List.length l) ""
-
-
-dialogText : Maybe Character.Name -> String -> List Text.Text
-dialogText c s =
-  List.map
-  (\line -> dialogLine c line)
-  <| padWithBlanks (String.split "\n" s) 3
-
-
-dialogLineElement : Text.Text -> Element
-dialogLineElement t =
-  size 416 36 <| Graphics.Element.leftAligned <| t
-
-
-dialogElement : Maybe Character.Name -> String -> Element
-dialogElement c s =
-  flow down <| List.map dialogLineElement <| dialogText c s
 
 
 crunchyButton address =
@@ -234,21 +192,22 @@ dialogBox address model =
         , filled (grayscale 0) (rect 580 152)  -- outer white border
         , filled (grayscale 1) (rect 568 140)  -- inner black box
         , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection) |> move (-214 + imgX, imgY)
-        , (toForm <| dialogElement model.selection model.text) |> move (64, 0) -- this is kind of a guess
+        , (toForm <| textBox address model.selection model.text) |> move (64, 32) -- this is kind of a guess
         ]
         `above` (crunchyButton address)
 
 
-returnedDialogBox dialogBoxBase64 =
+returnedDialogBox text address dialogBoxBase64 =
   let pngData = "data:image/png;base64," ++ dialogBoxBase64
   in
     Html.a
-    [ download True
-    , downloadAs "undertale-dialog.png"
-    , href pngData
+    [ --onClick targetValue (\s -> Signal.message address <| EnterText text)
+    -- , downloadAs "undertale-dialog.png"
+    -- , href pngData
     ]
     [ Html.img
-        [ style
+        [ onClick address <| EnterText text
+        , style
           [ ("margin", "0 auto")
           , ("display", "block")
           ]
@@ -343,10 +302,9 @@ view address model =
     , moodSection address model.staticRoot model.selection
 
     , maybeDivider model.moodImg
-    , textSection address model.moodImg model.selection
     , Maybe.withDefault blank <|
       Maybe.oneOf
-      [ Maybe.map returnedDialogBox model.imageData
+      [ Maybe.map (returnedDialogBox model.text address) model.imageData
       , dialogBox address model]
 
     , infoButton address model.staticRoot
