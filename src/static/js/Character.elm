@@ -6,10 +6,10 @@ type Name = Toriel | Sans | Papyrus | Undyne | Alphys | Asgore | Flowey | Napsta
 moodCount : Name -> Int
 moodCount c =
   case c of
-    Toriel -> 45
-    Sans -> 5
-    Papyrus -> 18
-    Undyne -> 25
+    Toriel -> 46
+    Sans -> 6
+    Papyrus -> 19
+    Undyne -> 26
     Alphys -> 22
     Asgore -> 14
     Napstablook -> 2

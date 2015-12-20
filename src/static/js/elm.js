@@ -11507,10 +11507,10 @@ Elm.Character.make = function (_elm) {
    var moodCount = function (c) {
       var _p4 = c;
       switch (_p4.ctor)
-      {case "Toriel": return 45;
-         case "Sans": return 5;
-         case "Papyrus": return 18;
-         case "Undyne": return 25;
+      {case "Toriel": return 46;
+         case "Sans": return 6;
+         case "Papyrus": return 19;
+         case "Undyne": return 26;
          case "Alphys": return 22;
          case "Asgore": return 14;
          case "Napstablook": return 2;
