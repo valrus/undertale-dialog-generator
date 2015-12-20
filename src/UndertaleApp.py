@@ -48,9 +48,12 @@ def dialogBox(portrait, text, fnt):
 @app.route('/submit', methods=['GET'])
 def makeDialogBox():
     character = request.args.get('character')
+    text = request.args.get('text')
+    ip_addr = request.remote_addr
+    app.logger.info('Request \'{}\' from {}'.format(text, ip_addr))
     box = dialogBox(
         Image.open(request.args.get('moodImg').lstrip('/')),
-        request.args.get('text'),
+        text,
         getFontForCharacter(character)
     )
     stream = StringIO()
