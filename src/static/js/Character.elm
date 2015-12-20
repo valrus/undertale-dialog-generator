@@ -11,7 +11,7 @@ moodCount c =
     Papyrus -> 18
     Undyne -> 25
     Alphys -> 22
-    Asgore -> 13
+    Asgore -> 14
     Napstablook -> 2
     Flowey -> 0
 
