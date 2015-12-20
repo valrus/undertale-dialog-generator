@@ -143,18 +143,22 @@ moodSection address root maybeChar =
 
 -- Text section
 
-textBox : Signal.Address Action -> Html
-textBox address =
+textBox : Signal.Address Action -> Maybe Character.Name -> Html
+textBox address character =
   div
   [ style [ ("width", "100%") ] ]
   [ textarea
     [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
     , style
-      [ ("font-family", "monospace")
-      , ("font-size", "24px")
+      [ ("font-family", String.join ", " <| Character.fontFace character)
+      , ("font-size", (toString <| Character.fontSize character) ++ "px")
+      , ("line-height", "36px")  -- TODO: Make the "36px" a function
       , ("margin", "30px auto")
       , ("resize", "none")
       , ("display", "block")
+      , ("border", "none")
+      , ("background-color", "black")
+      , ("color", "white")
       ]
     , Html.Attributes.cols 30
     , Html.Attributes.rows 3
@@ -162,11 +166,11 @@ textBox address =
     [ ]
   ]
 
-textSection : Signal.Address Action -> Maybe a -> Html
-textSection address x =
+textSection : Signal.Address Action -> Maybe a -> Maybe Character.Name -> Html
+textSection address x name =
   case x of
     Nothing -> blank
-    Just something -> textBox address
+    Just something -> textBox address name
 
 
 -- Dialog box
@@ -339,7 +343,7 @@ view address model =
     , moodSection address model.staticRoot model.selection
 
     , maybeDivider model.moodImg
-    , textSection address model.moodImg
+    , textSection address model.moodImg model.selection
     , Maybe.withDefault blank <|
       Maybe.oneOf
       [ Maybe.map returnedDialogBox model.imageData
