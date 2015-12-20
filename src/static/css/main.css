@@ -48,6 +48,19 @@ body {
     background-color: black;
 }
 
+textarea {
+    margin: 30px auto;
+    display: block;
+    border: none;
+    background-color: black;
+    color: white;
+    width: 416px;
+    resize: none;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+}
+
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */
 canvas {
     font-smooth: never;

@@ -27,7 +27,7 @@ fontFace c =
 fontSize : Maybe Name -> Float
 fontSize c =
   case c of
-    Just Papyrus ->  32.0
+    Just Papyrus ->  36.0
     Just Sans -> 26.0
     _ -> 26.0
 
