@@ -7,7 +7,7 @@ from tempfile import mkstemp
 import os
 import time
 
-from flask import Flask, render_template, request, url_for, send_from_directory, after_this_request, jsonify
+from flask import Flask, render_template, request, after_this_request, make_response
 from PIL import Image, ImageDraw, ImageFont
 
 BLACK, WHITE = (0, 0, 0), (255, 255, 255)
@@ -80,7 +80,9 @@ def makeDialogBox():
 
 @app.route('/')
 def builder():
-    return render_template('index.html')
+    response = make_response(render_template('index.html'))
+    response.headers['X-Clacks-Overhead'] = 'GNU Terry Pratchett'
+    return response
 
 
 if __name__ == '__main__':
