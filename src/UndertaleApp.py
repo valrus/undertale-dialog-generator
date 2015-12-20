@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 from base64 import b64encode
 from collections import namedtuple
@@ -19,6 +19,17 @@ UPLOAD_FOLDER = 'static/images/boxes'
 app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+BASIC_UNICODE_SANITIZER = {
+    0x2018: '\'',  # LEFT SINGLE QUOTATION MARK
+    0x2019: '\'',  # RIGHT SINGLE QUOTATION MARK
+    0x201c: '"',   # LEFT DOUBLE QUOTATION MARK
+    0x201d: '"',   # RIGHT DOUBLE QUOTATION MARK
+}
+
+
+def _clean_text(text):
+    return text.translate(BASIC_UNICODE_SANITIZER)
 
 
 def getFontForCharacter(character):
@@ -50,10 +61,10 @@ def makeDialogBox():
     character = request.args.get('character')
     text = request.args.get('text')
     ip_addr = request.remote_addr
-    app.logger.info('Request \'{}\' from {}'.format(text, ip_addr))
+    app.logger.info('Request {}: "{}" from {}'.format(character, text, ip_addr))
     box = dialogBox(
         Image.open(request.args.get('moodImg').lstrip('/')),
-        text,
+        _clean_text(text),
         getFontForCharacter(character)
     )
     stream = StringIO()
