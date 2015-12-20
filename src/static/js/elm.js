@@ -11839,20 +11839,24 @@ Elm.UndertaleDialog.make = function (_elm) {
             crunchyButton(address)))));
          }
    });
-   var textBox = function (address) {
+   var textBox = F2(function (address,character) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
       _U.list([A2($Html.textarea,
       _U.list([A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
-              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-family",_1: "monospace"}
-                                              ,{ctor: "_Tuple2",_0: "font-size",_1: "24px"}
+              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-family",_1: A2($String.join,", ",$Character.fontFace(character))}
+                                              ,{ctor: "_Tuple2",_0: "font-size",_1: A2($Basics._op["++"],$Basics.toString($Character.fontSize(character)),"px")}
+                                              ,{ctor: "_Tuple2",_0: "line-height",_1: "36px"}
                                               ,{ctor: "_Tuple2",_0: "margin",_1: "30px auto"}
                                               ,{ctor: "_Tuple2",_0: "resize",_1: "none"}
-                                              ,{ctor: "_Tuple2",_0: "display",_1: "block"}]))
+                                              ,{ctor: "_Tuple2",_0: "display",_1: "block"}
+                                              ,{ctor: "_Tuple2",_0: "border",_1: "none"}
+                                              ,{ctor: "_Tuple2",_0: "background-color",_1: "black"}
+                                              ,{ctor: "_Tuple2",_0: "color",_1: "white"}]))
               ,$Html$Attributes.cols(30)
               ,$Html$Attributes.rows(3)]),
       _U.list([]))]));
-   };
+   });
    var spriteFolder = F2(function (root,c) {    return A2($Basics._op["++"],root,A2($Basics._op["++"],"images/sprites/",$Basics.toString(c)));});
    var spriteNumber = F3(function (root,c,n) {
       return A2($Basics._op["++"],A2(spriteFolder,root,c),A2($Basics._op["++"],"/",A2($Basics._op["++"],$Basics.toString(n),".png")));
@@ -11868,7 +11872,14 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([]));
    };
    var blank = A2($Html.div,_U.list([]),_U.list([]));
-   var textSection = F2(function (address,x) {    var _p6 = x;if (_p6.ctor === "Nothing") {    return blank;} else {    return textBox(address);}});
+   var textSection = F3(function (address,x,name) {
+      var _p6 = x;
+      if (_p6.ctor === "Nothing") {
+            return blank;
+         } else {
+            return A2(textBox,address,name);
+         }
+   });
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
@@ -11919,7 +11930,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,maybeDivider(model.selection)
               ,A3(moodSection,address,model.staticRoot,model.selection)
               ,maybeDivider(model.moodImg)
-              ,A2(textSection,address,model.moodImg)
+              ,A3(textSection,address,model.moodImg,model.selection)
               ,A2($Maybe.withDefault,blank,$Maybe.oneOf(_U.list([A2($Maybe.map,returnedDialogBox,model.imageData),A2(dialogBox,address,model)])))
               ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
