@@ -25,6 +25,7 @@ BASIC_UNICODE_SANITIZER = {
     0x2019: '\'',  # RIGHT SINGLE QUOTATION MARK
     0x201c: '"',   # LEFT DOUBLE QUOTATION MARK
     0x201d: '"',   # RIGHT DOUBLE QUOTATION MARK
+    0x00a0: ' ',   # NO-BREAK SPACE
 }
 
 
@@ -45,14 +46,15 @@ def getFontForCharacter(character):
 def dialogBox(portrait, text, fnt):
     orig_size = Size(298, 84)
     # mode = '1' is black and white
-    img = Image.new('1', orig_size)
+    img = Image.new(b'1', orig_size)
     draw = ImageDraw.Draw(img)
-    draw.fontmode = '1'
+    draw.fontmode = b'1'
     draw.rectangle((4, 4, 294, 80), fill=1)
     draw.rectangle((7, 7, 291, 77), fill=0)
     img.paste(portrait, (13, 12))
     for row, line in enumerate(text.split('\n')[:3]):
-        draw.text((77, 16 + row * 18), line, fill=1, font=fnt)
+        print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
+        draw.text((77, 16 + row * 18), line.decode('ascii'), fill=1, font=fnt)
     return img.resize(Size(orig_size.x * 2, orig_size.y * 2))
 
 
