@@ -13,8 +13,18 @@
          url('fonts/DeterminationMono/dtm-mono-webfont.svg#determination_monoregular') format('svg');
     font-weight: normal;
     font-style: normal;
-
 }
+
+@font-face {
+    font-family: 'Smooth_Papyrus';
+    src: url('fonts/Smooth Papyrus/Smooth_Papyrus.eot');
+    src: url('fonts/Smooth Papyrus/Smooth_Papyrus.eot') format('embedded-opentype'),
+         url('fonts/Smooth Papyrus/Smooth_Papyrus.woff2') format('woff2'),
+         url('fonts/Smooth Papyrus/Smooth_Papyrus.woff') format('woff'),
+         url('fonts/Smooth Papyrus/Smooth_Papyrus.ttf') format('truetype'),
+         url('fonts/Smooth Papyrus/Smooth_Papyrus.svg#Smooth_Papyrus') format('svg');
+}
+
 
 body {
     background-color: black;

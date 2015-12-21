@@ -11481,7 +11481,7 @@ Elm.Character.make = function (_elm) {
       _v2_2: do {
          if (_p2.ctor === "Just") {
                switch (_p2._0.ctor)
-               {case "Papyrus": return 36.0;
+               {case "Papyrus": return 34.0;
                   case "Sans": return 26.0;
                   default: break _v2_2;}
             } else {
