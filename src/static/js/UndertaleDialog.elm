@@ -151,11 +151,9 @@ textBox address character text =
     [ style [ ("width", "100%") ] ]
     [ textarea
       [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
-      , style
-        [ ("font-family", String.join ", " <| Character.fontFace character)
-        , ("font-size", (toString <| Character.fontSize character) ++ "px")
-        , ("line-height", "36px")  -- TODO: Make the "36px" a function
-        ]
+      , style <|
+        [ ("line-height", "36px")  -- TODO: Make the "36px" a function
+        ] ++ (Character.fontStyles character)
       , Html.Attributes.rows 3
       ]
       [ Html.text text ]

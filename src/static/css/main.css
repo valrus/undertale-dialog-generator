@@ -61,7 +61,7 @@ body {
 textarea {
     margin: 30px auto;
     display: block;
-    border: none;
+    border: 1px dashed white;
     background-color: black;
     color: white;
     width: 416px;

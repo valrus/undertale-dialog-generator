@@ -16,22 +16,6 @@ moodCount c =
     Flowey -> 0
 
 
-fontFace : Maybe Name -> List String
-fontFace c =
-  case c of
-    Just Papyrus -> [ "Papyrus" ]
-    Just Sans -> [ "Comic Sans", "Comic Sans MS Regular", "Comic Sans MS" ]
-    _ -> [ "determination_monoregular" ]
-
-
-fontSize : Maybe Name -> Float
-fontSize c =
-  case c of
-    Just Papyrus ->  34.0
-    Just Sans -> 26.0
-    _ -> 26.0
-
-
 portraitSize : Maybe Name -> (Int, Int)
 portraitSize c =
   case c of
@@ -44,3 +28,23 @@ portraitOffset c =
   case c of
     Just Napstablook -> (0, -4)
     _ -> (0, 0)
+
+
+fontStyles : Maybe Name -> List (String, String)
+fontStyles c =
+  case c of
+    Just Papyrus ->
+      [ ("font-family", "Smooth_Papyrus, Papyrus")
+      , ("font-size", "28px")
+      , ("font-weight", "bold")
+      ]
+    Just Sans ->
+      [ ("font-family", "Comic Sans, Comic Sans MS Regular, Comic Sans MS")
+      , ("font-size", "30px")
+      , ("font-weight", "bold")
+      , ("letter-spacing", "1px")
+      ]
+    _ ->
+      [ ("font-family", "determination_monoregular")
+      , ("font-size", "26px")
+      ]

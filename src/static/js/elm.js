@@ -11460,53 +11460,44 @@ Elm.Character.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var portraitOffset = function (c) {
+   var fontStyles = function (c) {
       var _p0 = c;
-      if (_p0.ctor === "Just" && _p0._0.ctor === "Napstablook") {
+      _v0_2: do {
+         if (_p0.ctor === "Just") {
+               switch (_p0._0.ctor)
+               {case "Papyrus": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Smooth_Papyrus, Papyrus"}
+                                               ,{ctor: "_Tuple2",_0: "font-size",_1: "22px"}
+                                               ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}]);
+                  case "Sans": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Comic Sans, Comic Sans MS Regular, Comic Sans MS"}
+                                              ,{ctor: "_Tuple2",_0: "font-size",_1: "30px"}
+                                              ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}
+                                              ,{ctor: "_Tuple2",_0: "letter-spacing",_1: "1px"}]);
+                  default: break _v0_2;}
+            } else {
+               break _v0_2;
+            }
+      } while (false);
+      return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "determination_monoregular"},{ctor: "_Tuple2",_0: "font-size",_1: "26px"}]);
+   };
+   var portraitOffset = function (c) {
+      var _p1 = c;
+      if (_p1.ctor === "Just" && _p1._0.ctor === "Napstablook") {
             return {ctor: "_Tuple2",_0: 0,_1: -4};
          } else {
             return {ctor: "_Tuple2",_0: 0,_1: 0};
          }
    };
    var portraitSize = function (c) {
-      var _p1 = c;
-      if (_p1.ctor === "Just" && _p1._0.ctor === "Napstablook") {
+      var _p2 = c;
+      if (_p2.ctor === "Just" && _p2._0.ctor === "Napstablook") {
             return {ctor: "_Tuple2",_0: 60,_1: 66};
          } else {
             return {ctor: "_Tuple2",_0: 60,_1: 60};
          }
    };
-   var fontSize = function (c) {
-      var _p2 = c;
-      _v2_2: do {
-         if (_p2.ctor === "Just") {
-               switch (_p2._0.ctor)
-               {case "Papyrus": return 34.0;
-                  case "Sans": return 26.0;
-                  default: break _v2_2;}
-            } else {
-               break _v2_2;
-            }
-      } while (false);
-      return 26.0;
-   };
-   var fontFace = function (c) {
-      var _p3 = c;
-      _v3_2: do {
-         if (_p3.ctor === "Just") {
-               switch (_p3._0.ctor)
-               {case "Papyrus": return _U.list(["Papyrus"]);
-                  case "Sans": return _U.list(["Comic Sans","Comic Sans MS Regular","Comic Sans MS"]);
-                  default: break _v3_2;}
-            } else {
-               break _v3_2;
-            }
-      } while (false);
-      return _U.list(["determination_monoregular"]);
-   };
    var moodCount = function (c) {
-      var _p4 = c;
-      switch (_p4.ctor)
+      var _p3 = c;
+      switch (_p3.ctor)
       {case "Toriel": return 46;
          case "Sans": return 6;
          case "Papyrus": return 19;
@@ -11534,10 +11525,9 @@ Elm.Character.make = function (_elm) {
                                   ,Flowey: Flowey
                                   ,Napstablook: Napstablook
                                   ,moodCount: moodCount
-                                  ,fontFace: fontFace
-                                  ,fontSize: fontSize
                                   ,portraitSize: portraitSize
-                                  ,portraitOffset: portraitOffset};
+                                  ,portraitOffset: portraitOffset
+                                  ,fontStyles: fontStyles};
 };
 Elm.Modal = Elm.Modal || {};
 Elm.Modal.make = function (_elm) {
@@ -11814,9 +11804,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
       _U.list([A2($Html.textarea,
       _U.list([A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
-              ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "font-family",_1: A2($String.join,", ",$Character.fontFace(character))}
-                                              ,{ctor: "_Tuple2",_0: "font-size",_1: A2($Basics._op["++"],$Basics.toString($Character.fontSize(character)),"px")}
-                                              ,{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]))
+              ,$Html$Attributes.style(A2($Basics._op["++"],_U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),$Character.fontStyles(character)))
               ,$Html$Attributes.rows(3)]),
       _U.list([$Html.text(text)]))])));
    });
