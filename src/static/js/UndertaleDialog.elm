@@ -292,9 +292,9 @@ infoButton address root =
     <| UpdateModal
     <| Modal.Show (Just <| modalDialog root)
   , style <|
-    [ ("position", "absolute")
+    [ ("position", "fixed")
     , ("bottom", "10px")
-    , ("right", "10px") ] ++ flatButton
+    , ("right", "20px") ] ++ flatButton
   ]
   [ img [ src <| root ++ "images/creditsbutton.png" ] [ ] ]
 

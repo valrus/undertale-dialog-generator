@@ -11882,7 +11882,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       return A2($Html.button,
       _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just(modalDialog(root)))))
               ,$Html$Attributes.style(A2($Basics._op["++"],
-              _U.list([{ctor: "_Tuple2",_0: "position",_1: "absolute"},{ctor: "_Tuple2",_0: "bottom",_1: "10px"},{ctor: "_Tuple2",_0: "right",_1: "10px"}]),
+              _U.list([{ctor: "_Tuple2",_0: "position",_1: "fixed"},{ctor: "_Tuple2",_0: "bottom",_1: "10px"},{ctor: "_Tuple2",_0: "right",_1: "20px"}]),
               flatButton))]),
       _U.list([A2($Html.img,_U.list([$Html$Attributes.src(A2($Basics._op["++"],root,"images/creditsbutton.png"))]),_U.list([]))]));
    });
