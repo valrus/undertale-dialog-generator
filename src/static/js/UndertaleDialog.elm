@@ -144,55 +144,68 @@ moodSection address root maybeChar =
 
 -- Dialog box
 
-textBox : Signal.Address Action -> Maybe Character.Name -> String -> Element
+textBox : Signal.Address Action -> Maybe Character.Name -> String -> Html
 textBox address character text =
-  toElement 416 108 <|
-    div
-    [ style [ ("width", "100%") ] ]
-    [ textarea
-      [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
-      , style <|
-        [ ("line-height", "36px")  -- TODO: Make the "36px" a function
-        ] ++ (Character.fontStyles character)
-      , Html.Attributes.rows 3
-      ]
-      [ Html.text text ]
-    ]
-
-
-dialogCollage e =
-  div
-  [ style [ ("width", "100%") ]
+  textarea
+  [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
+  , style <|
+    [ ("line-height", "36px")  -- TODO: Make the "36px" a function
+    ] ++ (Character.fontStyles character)
+  , Html.Attributes.rows 3
   ]
-  [ div
-    [ style [ ("width", "594px"), ("margin", "0 auto") ]
-    , Html.Attributes.id "dialog" ]
-    [ e ]
+  [ Html.text text ]
+
+
+dialogCollage e address model =
+  div
+  [ style [ ("width", "100%") ] ]
+  [
+   div
+    [ style
+      [ ("width", "596px")
+      , ("position", "relative")
+      , ("margin", "0 auto") ]
+    ]
+    [ div
+      [ Html.Attributes.id "dialog" ]
+      [ e
+      , textBox address model.selection model.text
+      , crunchyButton address ]
+    ]
   ]
 
 
 crunchyButton address =
-  size 596 48 <| Graphics.Input.button (Signal.message address GetDownload) "MAKE IT CRUNCHY"
+  div
+  [ style [ ("width", "100%") ] ]
+  [
+    Html.button
+    [ onClick address <| GetDownload
+    , Html.Attributes.id "crunchybutton"
+    ]
+    [ text "MAKE IT CRUNCHY" ]
+  ]
 
 
 doubleImage imgSrc (w, h)=
   image (w * 2) (h * 2) imgSrc
 
 
+dialogBox : Signal.Address Action -> Model -> Maybe Html
 dialogBox address model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
       let (imgX, imgY) = Character.portraitOffset model.selection
       in
-        Just <| dialogCollage <| fromElement <| collage 596 168
-        [ filled (grayscale 1) (rect 596 168)  -- outer black border
-        , filled (grayscale 0) (rect 580 152)  -- outer white border
-        , filled (grayscale 1) (rect 568 140)  -- inner black box
-        , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection) |> move (-214 + imgX, imgY)
-        , (toForm <| textBox address model.selection model.text) |> move (64, 32) -- this is kind of a guess
-        ]
-        `above` (crunchyButton address)
+        Just <| dialogCollage
+        ( fromElement <| collage 596 168
+          [ filled (grayscale 1) (rect 596 168)  -- outer black border
+          , filled (grayscale 0) (rect 580 152)  -- outer white border
+          , filled (grayscale 1) (rect 568 140)  -- inner black box
+          , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection) |> move (-214 + imgX, imgY)
+          ]
+        ) address model
 
 
 returnedDialogBox text address dialogBoxBase64 =

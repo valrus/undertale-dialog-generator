@@ -11466,7 +11466,7 @@ Elm.Character.make = function (_elm) {
          if (_p0.ctor === "Just") {
                switch (_p0._0.ctor)
                {case "Papyrus": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Smooth_Papyrus, Papyrus"}
-                                               ,{ctor: "_Tuple2",_0: "font-size",_1: "22px"}
+                                               ,{ctor: "_Tuple2",_0: "font-size",_1: "26px"}
                                                ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}]);
                   case "Sans": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Comic Sans, Comic Sans MS Regular, Comic Sans MS"}
                                               ,{ctor: "_Tuple2",_0: "font-size",_1: "30px"}
@@ -11671,7 +11671,6 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Effects = Elm.Effects.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
-   $Graphics$Input = Elm.Graphics.Input.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
@@ -11786,27 +11785,27 @@ Elm.UndertaleDialog.make = function (_elm) {
    });
    var doubleImage = F2(function (imgSrc,_p2) {    var _p3 = _p2;return A3($Graphics$Element.image,_p3._0 * 2,_p3._1 * 2,imgSrc);});
    var crunchyButton = function (address) {
-      return A3($Graphics$Element.size,596,48,A2($Graphics$Input.button,A2($Signal.message,address,GetDownload),"MAKE IT CRUNCHY"));
-   };
-   var dialogCollage = function (e) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
-      _U.list([A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "594px"},{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}]))
-              ,$Html$Attributes.id("dialog")]),
-      _U.list([e]))]));
+      _U.list([A2($Html.button,
+      _U.list([A2($Html$Events.onClick,address,GetDownload),$Html$Attributes.id("crunchybutton")]),
+      _U.list([$Html.text("MAKE IT CRUNCHY")]))]));
    };
    var textBox = F3(function (address,character,text) {
-      return A3($Html.toElement,
-      416,
-      108,
-      A2($Html.div,
-      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
-      _U.list([A2($Html.textarea,
+      return A2($Html.textarea,
       _U.list([A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
               ,$Html$Attributes.style(A2($Basics._op["++"],_U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),$Character.fontStyles(character)))
               ,$Html$Attributes.rows(3)]),
-      _U.list([$Html.text(text)]))])));
+      _U.list([$Html.text(text)]));
+   });
+   var dialogCollage = F3(function (e,address,model) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "596px"}
+                                              ,{ctor: "_Tuple2",_0: "position",_1: "relative"}
+                                              ,{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}]))]),
+      _U.list([A2($Html.div,_U.list([$Html$Attributes.id("dialog")]),_U.list([e,A3(textBox,address,model.selection,model.text),crunchyButton(address)]))]))]));
    });
    var dialogBox = F2(function (address,model) {
       var _p4 = model.moodImg;
@@ -11816,8 +11815,8 @@ Elm.UndertaleDialog.make = function (_elm) {
             var _p5 = $Character.portraitOffset(model.selection);
             var imgX = _p5._0;
             var imgY = _p5._1;
-            return $Maybe.Just(dialogCollage($Html.fromElement(A2($Graphics$Element.above,
-            A3($Graphics$Collage.collage,
+            return $Maybe.Just(A3(dialogCollage,
+            $Html.fromElement(A3($Graphics$Collage.collage,
             596,
             168,
             _U.list([A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,596,168))
@@ -11825,9 +11824,9 @@ Elm.UndertaleDialog.make = function (_elm) {
                     ,A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,568,140))
                     ,A2($Graphics$Collage.move,
                     {ctor: "_Tuple2",_0: -214 + imgX,_1: imgY},
-                    $Graphics$Collage.toForm(A2(doubleImage,_p4._0,$Character.portraitSize(model.selection))))
-                    ,A2($Graphics$Collage.move,{ctor: "_Tuple2",_0: 64,_1: 32},$Graphics$Collage.toForm(A3(textBox,address,model.selection,model.text)))])),
-            crunchyButton(address)))));
+                    $Graphics$Collage.toForm(A2(doubleImage,_p4._0,$Character.portraitSize(model.selection))))]))),
+            address,
+            model));
          }
    });
    var spriteFolder = F2(function (root,c) {    return A2($Basics._op["++"],root,A2($Basics._op["++"],"images/sprites/",$Basics.toString(c)));});

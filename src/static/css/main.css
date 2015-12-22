@@ -47,19 +47,21 @@ body {
     color: white;
 }
 
-#dialog button {
+#crunchybutton {
     -webkit-font-smoothing: none;
     font-smooth: never;
     font-family: "determination_monoregular";
     font-size: 42px;
-    margin: 5px;
+    margin: 10px auto;
     color: yellow;
     border: none;
     background-color: black;
+    width: 400px;
+    display: block;
+    text-align: center;
 }
 
 textarea {
-    margin: 30px auto;
     display: block;
     border: 1px dashed white;
     background-color: black;
@@ -67,8 +69,11 @@ textarea {
     width: 416px;
     resize: none;
     overflow: hidden;
-    white-space: nowrap;
-    position: relative;
+    white-space: pre;
+    word-wrap: normal;
+    position: absolute;
+    left: 150px;
+    top: 26px;
 }
 
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */

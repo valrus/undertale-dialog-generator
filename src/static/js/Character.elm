@@ -35,7 +35,7 @@ fontStyles c =
   case c of
     Just Papyrus ->
       [ ("font-family", "Smooth_Papyrus, Papyrus")
-      , ("font-size", "28px")
+      , ("font-size", "26px")
       , ("font-weight", "bold")
       ]
     Just Sans ->
