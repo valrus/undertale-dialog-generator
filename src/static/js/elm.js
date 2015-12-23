@@ -11505,8 +11505,10 @@ Elm.Character.make = function (_elm) {
          case "Alphys": return 22;
          case "Asgore": return 14;
          case "Napstablook": return 2;
+         case "Mettaton": return 22;
          default: return 0;}
    };
+   var Mettaton = {ctor: "Mettaton"};
    var Napstablook = {ctor: "Napstablook"};
    var Flowey = {ctor: "Flowey"};
    var Asgore = {ctor: "Asgore"};
@@ -11524,6 +11526,7 @@ Elm.Character.make = function (_elm) {
                                   ,Asgore: Asgore
                                   ,Flowey: Flowey
                                   ,Napstablook: Napstablook
+                                  ,Mettaton: Mettaton
                                   ,moodCount: moodCount
                                   ,portraitSize: portraitSize
                                   ,portraitOffset: portraitOffset
@@ -11917,7 +11920,8 @@ Elm.UndertaleDialog.make = function (_elm) {
                                                       ,$Character.Undyne
                                                       ,$Character.Alphys
                                                       ,$Character.Asgore
-                                                      ,$Character.Napstablook]))
+                                                      ,$Character.Napstablook
+                                                      ,$Character.Mettaton]))
                                     ,_1: $Effects.none}
                              ,update: update
                              ,view: view

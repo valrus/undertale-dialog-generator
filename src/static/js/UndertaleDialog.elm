@@ -429,6 +429,7 @@ app =
       , Character.Alphys
       , Character.Asgore
       , Character.Napstablook
+      , Character.Mettaton
       ]
     , none
     )

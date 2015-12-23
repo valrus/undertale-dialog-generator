@@ -1,6 +1,15 @@
 module Character where
 
-type Name = Toriel | Sans | Papyrus | Undyne | Alphys | Asgore | Flowey | Napstablook
+type Name =
+  Toriel
+  | Sans
+  | Papyrus
+  | Undyne
+  | Alphys
+  | Asgore
+  | Flowey
+  | Napstablook
+  | Mettaton
 
 
 moodCount : Name -> Int
@@ -13,6 +22,7 @@ moodCount c =
     Alphys -> 22
     Asgore -> 14
     Napstablook -> 2
+    Mettaton -> 22
     Flowey -> 0
 
 
