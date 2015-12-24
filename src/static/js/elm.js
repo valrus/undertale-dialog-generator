@@ -11467,11 +11467,13 @@ Elm.Character.make = function (_elm) {
                switch (_p0._0.ctor)
                {case "Papyrus": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Smooth_Papyrus, Papyrus"}
                                                ,{ctor: "_Tuple2",_0: "font-size",_1: "26px"}
-                                               ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}]);
+                                               ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}
+                                               ,{ctor: "_Tuple2",_0: "text-transform",_1: "uppercase"}]);
                   case "Sans": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Comic Sans, Comic Sans MS Regular, Comic Sans MS"}
                                               ,{ctor: "_Tuple2",_0: "font-size",_1: "30px"}
                                               ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}
-                                              ,{ctor: "_Tuple2",_0: "letter-spacing",_1: "1px"}]);
+                                              ,{ctor: "_Tuple2",_0: "letter-spacing",_1: "1px"}
+                                              ,{ctor: "_Tuple2",_0: "text-transform",_1: "lowercase"}]);
                   default: break _v0_2;}
             } else {
                break _v0_2;

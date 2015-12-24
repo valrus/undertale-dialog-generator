@@ -29,8 +29,14 @@ BASIC_UNICODE_SANITIZER = {
 }
 
 
-def _clean_text(text):
-    return text.translate(BASIC_UNICODE_SANITIZER)
+def _clean_text(text, character):
+    sanitized = text.translate(BASIC_UNICODE_SANITIZER)
+    if character.lower() == 'sans':
+        return sanitized.lower()
+    elif character.lower() == 'papyrus':
+        return sanitized.upper()
+    else:
+        return sanitized
 
 
 def getFontForCharacter(character):
@@ -66,7 +72,7 @@ def makeDialogBox():
     app.logger.info('Request {}: "{}" from {}'.format(character, text, ip_addr))
     box = dialogBox(
         Image.open(request.args.get('moodImg').lstrip('/')),
-        _clean_text(text),
+        _clean_text(text, character),
         getFontForCharacter(character)
     )
     stream = StringIO()

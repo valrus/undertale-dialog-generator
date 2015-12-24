@@ -47,12 +47,14 @@ fontStyles c =
       [ ("font-family", "Smooth_Papyrus, Papyrus")
       , ("font-size", "26px")
       , ("font-weight", "bold")
+      , ("text-transform", "uppercase")
       ]
     Just Sans ->
       [ ("font-family", "Comic Sans, Comic Sans MS Regular, Comic Sans MS")
       , ("font-size", "30px")
       , ("font-weight", "bold")
       , ("letter-spacing", "1px")
+      , ("text-transform", "lowercase")
       ]
     _ ->
       [ ("font-family", "determination_monoregular")
