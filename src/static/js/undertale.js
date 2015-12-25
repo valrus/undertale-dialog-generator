@@ -14,6 +14,7 @@ undertale.ports.focus.subscribe(function(elementId) {
     setTimeout(function() {
         var elem = document.getElementById(elementId);
         if (elem) {
+            // A dumb trick to put the cursor at the end of the text field.
             elem.focus();
             var val = elem.value;
             elem.value = '';
