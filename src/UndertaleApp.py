@@ -10,6 +10,8 @@ import time
 from flask import Flask, render_template, request, after_this_request, make_response
 from PIL import Image, ImageDraw, ImageFont
 
+from personalities import apply_personality
+
 BLACK, WHITE = (0, 0, 0), (255, 255, 255)
 
 Size = namedtuple('Size', ['x', 'y'])
@@ -67,23 +69,27 @@ def dialogBox(portrait, text, fnt):
 @app.route('/submit', methods=['GET'])
 def makeDialogBox():
     character = request.args.get('character')
-    text = request.args.get('text')
-    ip_addr = request.remote_addr
-    app.logger.info('Request {}: "{}" from {}'.format(character, text, ip_addr))
-    box = dialogBox(
-        Image.open(request.args.get('moodImg').lstrip('/')),
-        _clean_text(text, character),
-        getFontForCharacter(character)
-    )
-    stream = StringIO()
-    box.save(stream, format='png')
+    text = _clean_text(request.args.get('text'), character)
+    imgData = apply_personality(text, character)
+    if imgData is None:
+        ip_addr = request.remote_addr
+        mood_img = request.args.get('moodImg')
+        box = dialogBox(
+            Image.open(mood_img.lstrip('/')),
+            text,
+            getFontForCharacter(character)
+        )
+        stream = StringIO()
+        box.save(stream, format='png', optimize=True)
+        imgData = b64encode(stream.getvalue())
 
-    @after_this_request
-    def cleanup(response):
-        stream.close()
-        return response
+        @after_this_request
+        def cleanup(response):
+            stream.close()
+            return response
 
-    return b64encode(stream.getvalue())
+    print(imgData)
+    return imgData
 
 
 @app.route('/')
