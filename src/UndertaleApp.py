@@ -72,7 +72,6 @@ def makeDialogBox():
     text = _clean_text(request.args.get('text'), character)
     imgData = apply_personality(text, character)
     if imgData is None:
-        ip_addr = request.remote_addr
         mood_img = request.args.get('moodImg')
         box = dialogBox(
             Image.open(mood_img.lstrip('/')),
