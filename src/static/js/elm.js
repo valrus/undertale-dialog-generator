@@ -11699,43 +11699,53 @@ Elm.UndertaleDialog.make = function (_elm) {
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
+   var focusFilter = function (action) {    var _p0 = action;if (_p0.ctor === "Focus") {    return $Maybe.Just(_p0._0);} else {    return $Maybe.Nothing;}};
+   var NoJSOp = {ctor: "NoJSOp"};
+   var toJSMailbox = $Signal.mailbox(NoJSOp);
+   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",function (v) {    return v;},A3($Signal.filterMap,focusFilter,"",toJSMailbox.signal));
+   var Focus = function (a) {    return {ctor: "Focus",_0: a};};
    var getSubmitURL = function (root) {    return A2($Basics._op["++"],root,"/submit");};
    var UpdateModal = function (a) {    return {ctor: "UpdateModal",_0: a};};
    var GotDownload = function (a) {    return {ctor: "GotDownload",_0: a};};
    var getDialogBoxImg = function (model) {
-      var _p0 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
-      if (_p0.ctor === "Nothing") {
+      var _p1 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
+      if (_p1.ctor === "Nothing") {
             return $Effects.none;
          } else {
             return $Effects.task(A2($Task.map,
             GotDownload,
             $Task.toMaybe($Http.getString(A2($Http.url,
             getSubmitURL(model.scriptRoot),
-            _U.list([{ctor: "_Tuple2",_0: "character",_1: $Basics.toString(_p0._0._0)}
-                    ,{ctor: "_Tuple2",_0: "moodImg",_1: _p0._0._1}
+            _U.list([{ctor: "_Tuple2",_0: "character",_1: $Basics.toString(_p1._0._0)}
+                    ,{ctor: "_Tuple2",_0: "moodImg",_1: _p1._0._1}
                     ,{ctor: "_Tuple2",_0: "text",_1: model.text}]))))));
          }
    };
-   var update = F2(function (action,model) {
-      var _p1 = action;
-      switch (_p1.ctor)
-      {case "ChooseCharacter": return {ctor: "_Tuple2"
-                                      ,_0: _U.update(model,{selection: $Maybe.Just(_p1._0),moodImg: $Maybe.Nothing,text: "",imageData: $Maybe.Nothing})
-                                      ,_1: $Effects.none};
-         case "ChooseMood": return {ctor: "_Tuple2",_0: _U.update(model,{moodImg: $Maybe.Just(_p1._0),imageData: $Maybe.Nothing}),_1: $Effects.none};
-         case "EnterText": return {ctor: "_Tuple2",_0: _U.update(model,{text: _p1._0,imageData: $Maybe.Nothing}),_1: $Effects.none};
-         case "SetScriptRoot": return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p1._0}),_1: $Effects.none};
-         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p1._0}),_1: $Effects.none};
-         case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
-         case "GotDownload": return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p1._0}),_1: $Effects.none};
-         default: return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p1._0,model.modal)}),_1: $Effects.none};}
-   });
    var GetDownload = {ctor: "GetDownload"};
    var SetStaticRoot = function (a) {    return {ctor: "SetStaticRoot",_0: a};};
    var SetScriptRoot = function (a) {    return {ctor: "SetScriptRoot",_0: a};};
    var EnterText = function (a) {    return {ctor: "EnterText",_0: a};};
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
+   var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
+   var toJSEffect = F2(function (address,s) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,Focus(s))));});
+   var update = F2(function (action,model) {
+      var _p2 = action;
+      switch (_p2.ctor)
+      {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+         case "ChooseCharacter": return {ctor: "_Tuple2"
+                                        ,_0: _U.update(model,{selection: $Maybe.Just(_p2._0),moodImg: $Maybe.Nothing,text: "",imageData: $Maybe.Nothing})
+                                        ,_1: $Effects.none};
+         case "ChooseMood": return {ctor: "_Tuple2"
+                                   ,_0: _U.update(model,{moodImg: $Maybe.Just(_p2._0),imageData: $Maybe.Nothing})
+                                   ,_1: A2(toJSEffect,model.jsAddress,"textBox")};
+         case "EnterText": return {ctor: "_Tuple2",_0: _U.update(model,{text: _p2._0,imageData: $Maybe.Nothing}),_1: $Effects.none};
+         case "SetScriptRoot": return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p2._0}),_1: $Effects.none};
+         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p2._0}),_1: $Effects.none};
+         case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
+         case "GotDownload": return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p2._0}),_1: $Effects.none};
+         default: return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p2._0,model.modal)}),_1: $Effects.none};}
+   });
    var creditsMapArea = F3(function (coords,caption,url) {
       return A3($Html.node,
       "area",
@@ -11788,7 +11798,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,$Html$Attributes.src(pngData)]),
       _U.list([]))]));
    });
-   var doubleImage = F2(function (imgSrc,_p2) {    var _p3 = _p2;return A3($Graphics$Element.image,_p3._0 * 2,_p3._1 * 2,imgSrc);});
+   var doubleImage = F2(function (imgSrc,_p3) {    var _p4 = _p3;return A3($Graphics$Element.image,_p4._0 * 2,_p4._1 * 2,imgSrc);});
    var crunchyButton = function (address) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
@@ -11798,7 +11808,8 @@ Elm.UndertaleDialog.make = function (_elm) {
    };
    var textBox = F3(function (address,character,text) {
       return A2($Html.textarea,
-      _U.list([A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
+      _U.list([$Html$Attributes.id("textBox")
+              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
               ,$Html$Attributes.style(A2($Basics._op["++"],_U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),$Character.fontStyles(character)))
               ,$Html$Attributes.rows(3)]),
       _U.list([$Html.text(text)]));
@@ -11813,13 +11824,13 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html.div,_U.list([$Html$Attributes.id("dialog")]),_U.list([e,A3(textBox,address,model.selection,model.text),crunchyButton(address)]))]))]));
    });
    var dialogBox = F2(function (address,model) {
-      var _p4 = model.moodImg;
-      if (_p4.ctor === "Nothing") {
+      var _p5 = model.moodImg;
+      if (_p5.ctor === "Nothing") {
             return $Maybe.Nothing;
          } else {
-            var _p5 = $Character.portraitOffset(model.selection);
-            var imgX = _p5._0;
-            var imgY = _p5._1;
+            var _p6 = $Character.portraitOffset(model.selection);
+            var imgX = _p6._0;
+            var imgY = _p6._1;
             return $Maybe.Just(A3(dialogCollage,
             $Html.fromElement(A3($Graphics$Collage.collage,
             596,
@@ -11829,7 +11840,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                     ,A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,568,140))
                     ,A2($Graphics$Collage.move,
                     {ctor: "_Tuple2",_0: -214 + imgX,_1: imgY},
-                    $Graphics$Collage.toForm(A2(doubleImage,_p4._0,$Character.portraitSize(model.selection))))]))),
+                    $Graphics$Collage.toForm(A2(doubleImage,_p5._0,$Character.portraitSize(model.selection))))]))),
             address,
             model));
          }
@@ -11852,7 +11863,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
-   var maybeDivider = function (choice) {    var _p6 = choice;if (_p6.ctor === "Nothing") {    return blank;} else {    return header;}};
+   var maybeDivider = function (choice) {    var _p7 = choice;if (_p7.ctor === "Nothing") {    return blank;} else {    return header;}};
    var flatButton = _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "transparent"},{ctor: "_Tuple2",_0: "border",_1: "none"}]);
    var characterButton = F3(function (address,staticRoot,c) {
       return A2($Html.button,
@@ -11876,11 +11887,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(1,$Character.moodCount(c))))]));
    });
    var moodSection = F3(function (address,root,maybeChar) {
-      var _p7 = maybeChar;
-      if (_p7.ctor === "Nothing") {
+      var _p8 = maybeChar;
+      if (_p8.ctor === "Nothing") {
             return blank;
          } else {
-            return A3(moodButtons,address,root,_p7._0);
+            return A3(moodButtons,address,root,_p8._0);
          }
    });
    var infoButton = F2(function (address,root) {
@@ -11905,7 +11916,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
-   var init = function (characters) {
+   var init = F2(function (characters,jsAddress) {
       return {characters: characters
              ,selection: $Maybe.Nothing
              ,moodImg: $Maybe.Nothing
@@ -11913,24 +11924,29 @@ Elm.UndertaleDialog.make = function (_elm) {
              ,staticRoot: "/static/"
              ,scriptRoot: ""
              ,imageData: $Maybe.Nothing
-             ,modal: $Modal.init($Color.grayscale(1))};
-   };
+             ,modal: $Modal.init($Color.grayscale(1))
+             ,jsAddress: jsAddress};
+   });
    var app = $StartApp.start({init: {ctor: "_Tuple2"
-                                    ,_0: init(_U.list([$Character.Toriel
-                                                      ,$Character.Sans
-                                                      ,$Character.Papyrus
-                                                      ,$Character.Undyne
-                                                      ,$Character.Alphys
-                                                      ,$Character.Asgore
-                                                      ,$Character.Napstablook
-                                                      ,$Character.Mettaton]))
+                                    ,_0: A2(init,
+                                    _U.list([$Character.Toriel
+                                            ,$Character.Sans
+                                            ,$Character.Papyrus
+                                            ,$Character.Undyne
+                                            ,$Character.Alphys
+                                            ,$Character.Asgore
+                                            ,$Character.Napstablook
+                                            ,$Character.Mettaton]),
+                                    toJSMailbox.address)
                                     ,_1: $Effects.none}
                              ,update: update
                              ,view: view
                              ,inputs: _U.list([A2($Signal.map,SetScriptRoot,scriptRoot),A2($Signal.map,SetStaticRoot,staticRoot)])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
-   var Model = F8(function (a,b,c,d,e,f,g,h) {    return {characters: a,selection: b,moodImg: c,text: d,staticRoot: e,scriptRoot: f,imageData: g,modal: h};});
+   var Model = F9(function (a,b,c,d,e,f,g,h,i) {
+      return {characters: a,selection: b,moodImg: c,text: d,staticRoot: e,scriptRoot: f,imageData: g,modal: h,jsAddress: i};
+   });
    return _elm.UndertaleDialog.values = {_op: _op
                                         ,Model: Model
                                         ,init: init
@@ -11960,6 +11976,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,modalDialog: modalDialog
                                         ,infoButton: infoButton
                                         ,view: view
+                                        ,NoOp: NoOp
                                         ,ChooseCharacter: ChooseCharacter
                                         ,ChooseMood: ChooseMood
                                         ,EnterText: EnterText
@@ -11971,6 +11988,11 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,update: update
                                         ,getSubmitURL: getSubmitURL
                                         ,getDialogBoxImg: getDialogBoxImg
+                                        ,Focus: Focus
+                                        ,NoJSOp: NoJSOp
+                                        ,toJSEffect: toJSEffect
+                                        ,toJSMailbox: toJSMailbox
+                                        ,focusFilter: focusFilter
                                         ,app: app
                                         ,main: main};
 };

@@ -32,11 +32,12 @@ type alias Model =
   , scriptRoot : String
   , imageData : Maybe String
   , modal : Modal.Model
+  , jsAddress : Signal.Address JSAction
   }
 
 
-init : List Character.Name -> Model
-init characters =
+init : List Character.Name -> Signal.Address JSAction -> Model
+init characters jsAddress =
   { characters = characters
   , selection = Nothing
   , moodImg = Nothing
@@ -45,6 +46,7 @@ init characters =
   , scriptRoot = ""
   , imageData = Nothing
   , modal = Modal.init <| grayscale 1
+  , jsAddress = jsAddress
   }
 
 
@@ -147,7 +149,8 @@ moodSection address root maybeChar =
 textBox : Signal.Address Action -> Maybe Character.Name -> String -> Html
 textBox address character text =
   textarea
-  [ on "input" targetValue (\s -> Signal.message address <| EnterText s)
+  [ Html.Attributes.id "textBox"
+  , on "input" targetValue (\s -> Signal.message address <| EnterText s)
   , style <|
     [ ("line-height", "36px")  -- TODO: Make the "36px" a function
     ] ++ (Character.fontStyles character)
@@ -326,7 +329,8 @@ view address model =
 -- Update
 
 type Action =
-      ChooseCharacter Character.Name
+      NoOp ()
+    | ChooseCharacter Character.Name
     | ChooseMood String
     | EnterText String
     | SetScriptRoot String
@@ -338,6 +342,10 @@ type Action =
 
 update action model =
   case action of
+    NoOp () ->
+      ( model
+      , none
+      )
     ChooseCharacter c ->
       ( { model
         | selection = Just c
@@ -352,7 +360,7 @@ update action model =
         | moodImg = Just s
         , imageData = Nothing
         }
-      , none
+      , toJSEffect model.jsAddress "textBox"
       )
     EnterText s ->
       ( { model
@@ -412,6 +420,32 @@ getDialogBoxImg model =
       |> Effects.task
 
 
+
+
+-- Focus (reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb)
+
+type JSAction = Focus String | NoJSOp
+
+
+toJSEffect : Signal.Address JSAction -> String -> Effects Action
+toJSEffect address s =
+  Signal.send address (Focus s) |> Task.map NoOp |> Effects.task
+
+
+toJSMailbox = Signal.mailbox NoJSOp
+
+
+focusFilter : JSAction -> Maybe String
+focusFilter action =
+  case action of
+    Focus s -> Just s
+    _ -> Nothing
+
+
+port focus : Signal String
+port focus = Signal.filterMap focusFilter "" toJSMailbox.signal
+
+
 -- Main
 
 port scriptRoot : Signal String
@@ -431,6 +465,7 @@ app =
       , Character.Napstablook
       , Character.Mettaton
       ]
+      toJSMailbox.address
     , none
     )
   , update = update
