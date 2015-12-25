@@ -11624,6 +11624,72 @@ Elm.Modal.make = function (_elm) {
                               ,wrapperDiv: wrapperDiv
                               ,view: view};
 };
+Elm.CreditsModal = Elm.CreditsModal || {};
+Elm.CreditsModal.make = function (_elm) {
+   "use strict";
+   _elm.CreditsModal = _elm.CreditsModal || {};
+   if (_elm.CreditsModal.values) return _elm.CreditsModal.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Modal = Elm.Modal.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var creditsMapArea = F3(function (coords,caption,url) {
+      return A3($Html.node,
+      "area",
+      _U.list([$Html$Attributes.shape("rect")
+              ,$Html$Attributes.title(caption)
+              ,$Html$Attributes.alt(caption)
+              ,$Html$Attributes.coords(A2($String.join,", ",A2($List.map,$Basics.toString,coords)))
+              ,$Html$Attributes.href(url)]),
+      _U.list([]));
+   });
+   var creditsImgMap = A3($Html.node,
+   "map",
+   _U.list([$Html$Attributes.id("creditsMap"),$Html$Attributes.name("creditsMap")]),
+   _U.list([A3(creditsMapArea,_U.list([331,75,441,96]),"valrus\'s Twitter!","http://twitter.com/valrus")
+           ,A3(creditsMapArea,_U.list([299,110,475,132]),"This web page\'s source code!","https://github.com/valrus/undertale-dialog-generator")
+           ,A3(creditsMapArea,
+           _U.list([448,192,523,218]),
+           "Determination, the Better Undertale Font!",
+           "https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font")
+           ,A3(creditsMapArea,
+           _U.list([152,228,264,254]),
+           "Monster Friend, the Undertale Logo Font!",
+           "https://www.behance.net/gallery/31378523/Monster-Friend-Undertale-Logo-Font")
+           ,A3(creditsMapArea,_U.list([152,264,495,291]),"JapanYoshi\'s Behance page!","https://www.behance.net/JapanYoshi")
+           ,A3(creditsMapArea,_U.list([338,359,456,391]),"The official Undertale website!","http://undertale.com")]));
+   var creditsImg = function (staticRoot) {
+      return A2($Html.img,
+      _U.list([$Html$Attributes.width(596)
+              ,$Html$Attributes.height(654)
+              ,$Html$Attributes.usemap("#creditsMap")
+              ,$Html$Attributes.src(A2($Basics._op["++"],staticRoot,"images/credits.png"))]),
+      _U.list([]));
+   };
+   var expand = _U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"},{ctor: "_Tuple2",_0: "height",_1: "100%"}]);
+   var creditsDialog = function (staticRoot) {
+      var innerDiv = A2($Html.div,
+      _U.list([$Html$Attributes.style(A2($Basics._op["++"],
+      _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]),
+      expand))]),
+      _U.list([creditsImg(staticRoot),creditsImgMap]));
+      return A3($Modal.SizedHtml,innerDiv,"596","654");
+   };
+   return _elm.CreditsModal.values = {_op: _op
+                                     ,expand: expand
+                                     ,creditsImg: creditsImg
+                                     ,creditsMapArea: creditsMapArea
+                                     ,creditsImgMap: creditsImgMap
+                                     ,creditsDialog: creditsDialog};
+};
 Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
    "use strict";
@@ -11672,6 +11738,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Basics = Elm.Basics.make(_elm),
    $Character = Elm.Character.make(_elm),
    $Color = Elm.Color.make(_elm),
+   $CreditsModal = Elm.CreditsModal.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
@@ -11686,7 +11753,6 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
-   $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
    var staticRoot = Elm.Native.Port.make(_elm).inboundSignal("staticRoot",
@@ -11746,48 +11812,6 @@ Elm.UndertaleDialog.make = function (_elm) {
          case "GotDownload": return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p2._0}),_1: $Effects.none};
          default: return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p2._0,model.modal)}),_1: $Effects.none};}
    });
-   var creditsMapArea = F3(function (coords,caption,url) {
-      return A3($Html.node,
-      "area",
-      _U.list([$Html$Attributes.shape("rect")
-              ,$Html$Attributes.title(caption)
-              ,$Html$Attributes.alt(caption)
-              ,$Html$Attributes.coords(A2($String.join,", ",A2($List.map,$Basics.toString,coords)))
-              ,$Html$Attributes.href(url)]),
-      _U.list([]));
-   });
-   var creditsImgMap = A3($Html.node,
-   "map",
-   _U.list([$Html$Attributes.id("creditsMap"),$Html$Attributes.name("creditsMap")]),
-   _U.list([A3(creditsMapArea,_U.list([331,75,441,96]),"valrus\'s Twitter!","http://twitter.com/valrus")
-           ,A3(creditsMapArea,_U.list([299,110,475,132]),"This web page\'s source code!","https://github.com/valrus/undertale-dialog-generator")
-           ,A3(creditsMapArea,
-           _U.list([448,192,523,218]),
-           "Determination, the Better Undertale Font!",
-           "https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font")
-           ,A3(creditsMapArea,
-           _U.list([152,228,264,254]),
-           "Monster Friend, the Undertale Logo Font!",
-           "https://www.behance.net/gallery/31378523/Monster-Friend-Undertale-Logo-Font")
-           ,A3(creditsMapArea,_U.list([152,264,495,291]),"JapanYoshi\'s Behance page!","https://www.behance.net/JapanYoshi")
-           ,A3(creditsMapArea,_U.list([338,359,456,391]),"The official Undertale website!","http://undertale.com")]));
-   var creditsImg = function (staticRoot) {
-      return A2($Html.img,
-      _U.list([$Html$Attributes.width(596)
-              ,$Html$Attributes.height(654)
-              ,$Html$Attributes.usemap("#creditsMap")
-              ,$Html$Attributes.src(A2($Basics._op["++"],staticRoot,"images/credits.png"))]),
-      _U.list([]));
-   };
-   var expand = _U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"},{ctor: "_Tuple2",_0: "height",_1: "100%"}]);
-   var modalDialog = function (staticRoot) {
-      var innerDiv = A2($Html.div,
-      _U.list([$Html$Attributes.style(A2($Basics._op["++"],
-      _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]),
-      expand))]),
-      _U.list([creditsImg(staticRoot),creditsImgMap]));
-      return A3($Modal.SizedHtml,innerDiv,"596","654");
-   };
    var returnedDialogBox = F3(function (text,address,dialogBoxBase64) {
       var pngData = A2($Basics._op["++"],"data:image/png;base64,",dialogBoxBase64);
       return A2($Html.a,
@@ -11896,7 +11920,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    });
    var infoButton = F2(function (address,root) {
       return A2($Html.button,
-      _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just(modalDialog(root)))))
+      _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just($CreditsModal.creditsDialog(root)))))
               ,$Html$Attributes.style(A2($Basics._op["++"],
               _U.list([{ctor: "_Tuple2",_0: "position",_1: "fixed"},{ctor: "_Tuple2",_0: "bottom",_1: "10px"},{ctor: "_Tuple2",_0: "right",_1: "20px"}]),
               flatButton))]),
@@ -11969,11 +11993,6 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,doubleImage: doubleImage
                                         ,dialogBox: dialogBox
                                         ,returnedDialogBox: returnedDialogBox
-                                        ,expand: expand
-                                        ,creditsImg: creditsImg
-                                        ,creditsMapArea: creditsMapArea
-                                        ,creditsImgMap: creditsImgMap
-                                        ,modalDialog: modalDialog
                                         ,infoButton: infoButton
                                         ,view: view
                                         ,NoOp: NoOp

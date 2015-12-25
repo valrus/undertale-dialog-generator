@@ -15,11 +15,12 @@ import Http
 import Json.Encode
 import Json.Decode
 import Maybe exposing (Maybe)
-import Modal
 import String
 import Task
 import Text
 
+import Modal
+import CreditsModal exposing (creditsDialog)
 
 -- Model
 
@@ -228,69 +229,14 @@ returnedDialogBox text address dialogBoxBase64 =
     ]
 
 
--- Credits modal
-
-expand : List (String, String)
-expand = [ ("width", "100%"), ("height", "100%") ]
-
-
-creditsImg : String -> Html
-creditsImg staticRoot =
-  img
-  [ Html.Attributes.width 596
-  , Html.Attributes.height 654
-  , Html.Attributes.usemap "#creditsMap"
-  , src <| staticRoot ++ "images/credits.png"
-  ]
-  [ ]
-
-
-creditsMapArea : List Int -> String -> String -> Html
-creditsMapArea coords caption url =
-  Html.node "area"
-  [ Html.Attributes.shape "rect"
-  , Html.Attributes.title caption
-  , Html.Attributes.alt caption
-  , Html.Attributes.coords <| String.join ", " <| List.map toString coords
-  , href url
-  ]
-  [ ]
-
-
-creditsImgMap : Html
-creditsImgMap =
-  Html.node "map"
-  [ Html.Attributes.id "creditsMap"
-  , Html.Attributes.name "creditsMap"
-  ]
-  [ creditsMapArea [331, 75, 441, 96] "valrus's Twitter!" "http://twitter.com/valrus"
-  , creditsMapArea [299, 110, 475, 132] "This web page's source code!" "https://github.com/valrus/undertale-dialog-generator"
-  , creditsMapArea [448, 192, 523, 218] "Determination, the Better Undertale Font!" "https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font"
-  , creditsMapArea [152, 228, 264, 254] "Monster Friend, the Undertale Logo Font!" "https://www.behance.net/gallery/31378523/Monster-Friend-Undertale-Logo-Font"
-  , creditsMapArea [152, 264, 495, 291] "JapanYoshi's Behance page!" "https://www.behance.net/JapanYoshi"
-  , creditsMapArea [338, 359, 456, 391] "The official Undertale website!" "http://undertale.com"
-  ]
-
-
-modalDialog : String -> Modal.SizedHtml
-modalDialog staticRoot =
-  let
-    innerDiv =
-        div [ style <| [ ("backgroundColor", "white")
-                       , ("color", "black")
-                       ] ++ expand
-            ]
-            [ creditsImg staticRoot
-            , creditsImgMap ]
-  in Modal.SizedHtml innerDiv "596" "654"
-
+-- Button for credits modal
 
 infoButton : Signal.Address Action -> String -> Html
 infoButton address root =
   button
   [ onClick address
     <| UpdateModal
-    <| Modal.Show (Just <| modalDialog root)
+    <| Modal.Show (Just <| creditsDialog root)
   , style <|
     [ ("position", "fixed")
     , ("bottom", "10px")
@@ -298,6 +244,8 @@ infoButton address root =
   ]
   [ img [ src <| root ++ "images/creditsbutton.png" ] [ ] ]
 
+
+-- Main view
 
 view : Signal.Address Action -> Model -> Html
 view address model =
