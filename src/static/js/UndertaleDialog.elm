@@ -215,10 +215,7 @@ returnedDialogBox text address dialogBoxBase64 =
   let pngData = "data:image/png;base64," ++ dialogBoxBase64
   in
     Html.a
-    [ --onClick targetValue (\s -> Signal.message address <| EnterText text)
-    -- , downloadAs "undertale-dialog.png"
-    -- , href pngData
-    ]
+    [ ]
     [ Html.img
         [ onClick address <| EnterText text
         , style
