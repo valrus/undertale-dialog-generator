@@ -62,7 +62,7 @@ def dialogBox(portrait, text, fnt):
     img.paste(portrait, (13, 12))
     for row, line in enumerate(text.split('\n')[:3]):
         print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
-        draw.text((77, 16 + row * 18), line.decode('ascii'), fill=1, font=fnt)
+        draw.text((77, 16 + row * 18), line, fill=1, font=fnt)
     return img.resize(Size(orig_size.x * 2, orig_size.y * 2))
 
 
