@@ -11739,7 +11739,7 @@ Elm.UndertaleDialog.make = function (_elm) {
          case "ChooseMood": return {ctor: "_Tuple2"
                                    ,_0: _U.update(model,{moodImg: $Maybe.Just(_p2._0),imageData: $Maybe.Nothing})
                                    ,_1: A2(toJSEffect,model.jsAddress,"textBox")};
-         case "EnterText": return {ctor: "_Tuple2",_0: _U.update(model,{text: _p2._0,imageData: $Maybe.Nothing}),_1: $Effects.none};
+         case "EnterText": return {ctor: "_Tuple2",_0: _U.update(model,{text: _p2._0,imageData: $Maybe.Nothing}),_1: A2(toJSEffect,model.jsAddress,"textBox")};
          case "SetScriptRoot": return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p2._0}),_1: $Effects.none};
          case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p2._0}),_1: $Effects.none};
          case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};

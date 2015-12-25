@@ -367,7 +367,7 @@ update action model =
         | text = s
         , imageData = Nothing
         }
-      , none
+      , toJSEffect model.jsAddress "textBox"
       )
     SetScriptRoot s ->
       ( { model
@@ -418,8 +418,6 @@ getDialogBoxImg model =
       |> Task.toMaybe
       |> Task.map GotDownload
       |> Effects.task
-
-
 
 
 -- Focus (reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb)
