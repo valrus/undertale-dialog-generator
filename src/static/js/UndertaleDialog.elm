@@ -3,17 +3,14 @@ module UndertaleDialog where
 import StartApp exposing (start)
 
 import Character
-import Color exposing (..)
+import Color exposing (grayscale)
 import Effects exposing (Effects, Never, none)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
-import Graphics.Element exposing (Element, container, image, above, flow, down, size)
-import Graphics.Input
+import Graphics.Element exposing (image)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
-import Html.Attributes exposing (class, classList, src, style, download, downloadAs, href)
+import Html.Attributes exposing (class, src, style)
 import Http
-import Json.Encode
-import Json.Decode
 import Maybe exposing (Maybe)
 import String
 import Task
