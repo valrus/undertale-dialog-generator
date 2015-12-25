@@ -15,6 +15,9 @@ undertale.ports.focus.subscribe(function(elementId) {
         var elem = document.getElementById(elementId);
         if (elem) {
             elem.focus();
+            var val = elem.value;
+            elem.value = '';
+            elem.value = val;
         }
     }, 50);
 });
