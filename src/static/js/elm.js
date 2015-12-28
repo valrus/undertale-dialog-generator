@@ -10956,11 +10956,26 @@ Elm.Character.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
+   var dialogAsterisk = function (c) {    var _p0 = c;if (_p0.ctor === "Just" && _p0._0.ctor === "Papyrus") {    return "";} else {    return "*";}};
+   var textboxStyles = function (c) {
+      var _p1 = c;
+      _v1_2: do {
+         if (_p1.ctor === "Just") {
+               switch (_p1._0.ctor)
+               {case "Papyrus": return _U.list([{ctor: "_Tuple2",_0: "width",_1: "416px"},{ctor: "_Tuple2",_0: "left",_1: "150px"}]);
+                  case "Sans": return _U.list([{ctor: "_Tuple2",_0: "width",_1: "382px"},{ctor: "_Tuple2",_0: "left",_1: "184px"}]);
+                  default: break _v1_2;}
+            } else {
+               break _v1_2;
+            }
+      } while (false);
+      return _U.list([{ctor: "_Tuple2",_0: "width",_1: "382px"},{ctor: "_Tuple2",_0: "left",_1: "184px"}]);
+   };
    var fontStyles = function (c) {
-      var _p0 = c;
-      _v0_2: do {
-         if (_p0.ctor === "Just") {
-               switch (_p0._0.ctor)
+      var _p2 = c;
+      _v2_2: do {
+         if (_p2.ctor === "Just") {
+               switch (_p2._0.ctor)
                {case "Papyrus": return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "Smooth_Papyrus, Papyrus"}
                                                ,{ctor: "_Tuple2",_0: "font-size",_1: "26px"}
                                                ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}
@@ -10970,32 +10985,32 @@ Elm.Character.make = function (_elm) {
                                               ,{ctor: "_Tuple2",_0: "font-weight",_1: "bold"}
                                               ,{ctor: "_Tuple2",_0: "letter-spacing",_1: "1px"}
                                               ,{ctor: "_Tuple2",_0: "text-transform",_1: "lowercase"}]);
-                  default: break _v0_2;}
+                  default: break _v2_2;}
             } else {
-               break _v0_2;
+               break _v2_2;
             }
       } while (false);
       return _U.list([{ctor: "_Tuple2",_0: "font-family",_1: "determination_monoregular"},{ctor: "_Tuple2",_0: "font-size",_1: "26px"}]);
    };
    var portraitOffset = function (c) {
-      var _p1 = c;
-      if (_p1.ctor === "Just" && _p1._0.ctor === "Napstablook") {
+      var _p3 = c;
+      if (_p3.ctor === "Just" && _p3._0.ctor === "Napstablook") {
             return {ctor: "_Tuple2",_0: 0,_1: -4};
          } else {
             return {ctor: "_Tuple2",_0: 0,_1: 0};
          }
    };
    var portraitSize = function (c) {
-      var _p2 = c;
-      if (_p2.ctor === "Just" && _p2._0.ctor === "Napstablook") {
+      var _p4 = c;
+      if (_p4.ctor === "Just" && _p4._0.ctor === "Napstablook") {
             return {ctor: "_Tuple2",_0: 60,_1: 66};
          } else {
             return {ctor: "_Tuple2",_0: 60,_1: 60};
          }
    };
    var moodCount = function (c) {
-      var _p3 = c;
-      switch (_p3.ctor)
+      var _p5 = c;
+      switch (_p5.ctor)
       {case "Toriel": return 40;
          case "Sans": return 6;
          case "Papyrus": return 19;
@@ -11028,7 +11043,9 @@ Elm.Character.make = function (_elm) {
                                   ,moodCount: moodCount
                                   ,portraitSize: portraitSize
                                   ,portraitOffset: portraitOffset
-                                  ,fontStyles: fontStyles};
+                                  ,fontStyles: fontStyles
+                                  ,textboxStyles: textboxStyles
+                                  ,dialogAsterisk: dialogAsterisk};
 };
 Elm.Modal = Elm.Modal || {};
 Elm.Modal.make = function (_elm) {
@@ -11330,10 +11347,17 @@ Elm.UndertaleDialog.make = function (_elm) {
       return A2($Html.textarea,
       _U.list([$Html$Attributes.id("textBox")
               ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
-              ,$Html$Attributes.style(A2($Basics._op["++"],_U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),$Character.fontStyles(character)))
+              ,$Html$Attributes.style(A2($Basics._op["++"],
+              _U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),
+              A2($Basics._op["++"],$Character.fontStyles(character),$Character.textboxStyles(character))))
               ,$Html$Attributes.rows(3)]),
       _U.list([$Html.text(text)]));
    });
+   var indentAsterisk = function (character) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.id("indent"),$Html$Attributes.style($Character.fontStyles(character))]),
+      _U.list([$Html.text($Character.dialogAsterisk(character))]));
+   };
    var dialogCollage = F3(function (e,address,model) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
@@ -11341,7 +11365,9 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "596px"}
                                               ,{ctor: "_Tuple2",_0: "position",_1: "relative"}
                                               ,{ctor: "_Tuple2",_0: "margin",_1: "0 auto"}]))]),
-      _U.list([A2($Html.div,_U.list([$Html$Attributes.id("dialog")]),_U.list([e,A3(textBox,address,model.selection,model.text),crunchyButton(address)]))]))]));
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.id("dialog")]),
+      _U.list([e,indentAsterisk(model.selection),A3(textBox,address,model.selection,model.text),crunchyButton(address)]))]))]));
    });
    var dialogBox = F2(function (address,model) {
       var _p5 = model.moodImg;
@@ -11483,6 +11509,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,moodButton: moodButton
                                         ,moodButtons: moodButtons
                                         ,moodSection: moodSection
+                                        ,indentAsterisk: indentAsterisk
                                         ,textBox: textBox
                                         ,dialogCollage: dialogCollage
                                         ,crunchyButton: crunchyButton

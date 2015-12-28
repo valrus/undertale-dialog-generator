@@ -41,6 +41,13 @@ def _clean_text(text, character):
         return sanitized
 
 
+def _indent(line_num, line):
+    if line_num:
+        return '  ' + line
+    else:
+        return '* ' + line
+
+
 def getFontForCharacter(character):
     font_dir = os.path.join(app.root_path, 'static', 'css', 'fonts')
     if character.lower() == 'sans':
@@ -51,7 +58,7 @@ def getFontForCharacter(character):
         return ImageFont.truetype(os.path.join(font_dir, 'DTM-Mono.otf'), 13)
 
 
-def dialogBox(portrait, text, fnt):
+def dialogBox(portrait, text, fnt, doIndent=True):
     orig_size = Size(298, 84)
     # mode = '1' is black and white
     img = Image.new(b'1', orig_size)
@@ -62,13 +69,15 @@ def dialogBox(portrait, text, fnt):
     img.paste(portrait, (13, 12))
     for row, line in enumerate(text.split('\n')[:3]):
         print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
-        draw.text((77, 16 + row * 18), line, fill=1, font=fnt)
+        draw.text((77, 16 + row * 18),
+                  _indent(row, line) if doIndent else line,
+                  fill=1, font=fnt)
     return img.resize(Size(orig_size.x * 2, orig_size.y * 2))
 
 
 @app.route('/submit', methods=['GET'])
 def makeDialogBox():
-    character = request.args.get('character')
+    character = request.args.get('character').lower()
     text = _clean_text(request.args.get('text'), character)
     imgData = apply_personality(text, character)
     if imgData is None:
@@ -76,7 +85,8 @@ def makeDialogBox():
         box = dialogBox(
             Image.open(mood_img.lstrip('/')),
             text,
-            getFontForCharacter(character)
+            getFontForCharacter(character),
+            doIndent=(character != 'papyrus')
         )
         stream = StringIO()
         box.save(stream, format='png', optimize=True)

@@ -12,6 +12,9 @@ type Name =
   | Mettaton
 
 
+type alias StyleList = List (String, String)
+
+
 moodCount : Name -> Int
 moodCount c =
   case c of
@@ -40,7 +43,7 @@ portraitOffset c =
     _ -> (0, 0)
 
 
-fontStyles : Maybe Name -> List (String, String)
+fontStyles : Maybe Name -> StyleList
 fontStyles c =
   case c of
     Just Papyrus ->
@@ -60,3 +63,28 @@ fontStyles c =
       [ ("font-family", "determination_monoregular")
       , ("font-size", "26px")
       ]
+
+
+textboxStyles : Maybe Name -> StyleList
+textboxStyles c =
+  case c of
+    Just Papyrus ->
+      [ ("width", "416px")
+      , ("left", "150px")
+      ]
+    Just Sans ->
+      [ ("width", "382px")
+      , ("left", "184px")
+      ]
+    _ ->
+      [ ("width", "382px")
+      , ("left", "184px")
+      ]
+
+
+dialogAsterisk : Maybe Name -> String
+dialogAsterisk c =
+  case c of
+    Just Papyrus -> ""
+    _ -> "*"
+

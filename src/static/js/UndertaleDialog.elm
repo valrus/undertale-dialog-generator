@@ -144,6 +144,15 @@ moodSection address root maybeChar =
 
 -- Dialog box
 
+indentAsterisk : Maybe Character.Name -> Html
+indentAsterisk character =
+  div
+  [ Html.Attributes.id "indent"
+  , style <| Character.fontStyles character
+  ]
+  [ Html.text <| Character.dialogAsterisk character ]
+
+
 textBox : Signal.Address Action -> Maybe Character.Name -> String -> Html
 textBox address character text =
   textarea
@@ -151,7 +160,7 @@ textBox address character text =
   , on "input" targetValue (\s -> Signal.message address <| EnterText s)
   , style <|
     [ ("line-height", "36px")  -- TODO: Make the "36px" a function
-    ] ++ (Character.fontStyles character)
+    ] ++ (Character.fontStyles character) ++ (Character.textboxStyles character)
   , Html.Attributes.rows 3
   ]
   [ Html.text text ]
@@ -170,6 +179,7 @@ dialogCollage e address model =
     [ div
       [ Html.Attributes.id "dialog" ]
       [ e
+      , indentAsterisk model.selection
       , textBox address model.selection model.text
       , crunchyButton address ]
     ]

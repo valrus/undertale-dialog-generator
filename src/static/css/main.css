@@ -61,20 +61,31 @@ body {
     text-align: center;
 }
 
-textarea {
-    display: block;
-    border: 1px dashed white;
+#dialog {
     background-color: black;
     color: white;
-    width: 416px;
+}
+
+textarea {
+    background-color: black;
+    color: white;
+    display: block;
+    border: 1px dashed white;
     resize: none;
     overflow: hidden;
     white-space: pre;
     word-wrap: normal;
     position: absolute;
-    left: 150px;
     top: 26px;
 }
+
+#indent {
+    display: block;
+    position: absolute;
+    top: 33px;
+    left: 153px;
+}
+
 
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */
 canvas {
