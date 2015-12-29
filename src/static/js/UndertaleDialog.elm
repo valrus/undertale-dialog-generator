@@ -414,6 +414,7 @@ app =
       , Character.Asgore
       , Character.Napstablook
       , Character.Mettaton
+      , Character.Flowey
       ]
       toJSMailbox.address
     , none

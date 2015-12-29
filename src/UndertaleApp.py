@@ -3,9 +3,7 @@ from __future__ import print_function, unicode_literals
 from base64 import b64encode
 from collections import namedtuple
 from cStringIO import StringIO
-from tempfile import mkstemp
 import os
-import time
 
 from flask import Flask, render_template, request, after_this_request, make_response
 from PIL import Image, ImageDraw, ImageFont
@@ -68,7 +66,8 @@ def dialogBox(portrait, text, fnt, doIndent=True):
     draw.rectangle((7, 7, 291, 77), fill=0)
     img.paste(portrait, (13, 12))
     for row, line in enumerate(text.split('\n')[:3]):
-        print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
+        if app.debug:
+            print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
         draw.text((77, 16 + row * 18),
                   _indent(row, line) if doIndent else line,
                   fill=1, font=fnt)
@@ -97,7 +96,8 @@ def makeDialogBox():
             stream.close()
             return response
 
-    print(imgData)
+    if app.debug:
+        print(imgData)
     return imgData
 
 

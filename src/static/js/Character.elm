@@ -26,7 +26,7 @@ moodCount c =
     Asgore -> 6
     Napstablook -> 2
     Mettaton -> 22
-    Flowey -> 0
+    Flowey -> 21
 
 
 portraitSize : Maybe Name -> (Int, Int)

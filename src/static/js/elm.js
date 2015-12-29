@@ -11019,7 +11019,7 @@ Elm.Character.make = function (_elm) {
          case "Asgore": return 6;
          case "Napstablook": return 2;
          case "Mettaton": return 22;
-         default: return 0;}
+         default: return 21;}
    };
    var Mettaton = {ctor: "Mettaton"};
    var Napstablook = {ctor: "Napstablook"};
@@ -11482,7 +11482,8 @@ Elm.UndertaleDialog.make = function (_elm) {
                                             ,$Character.Alphys
                                             ,$Character.Asgore
                                             ,$Character.Napstablook
-                                            ,$Character.Mettaton]),
+                                            ,$Character.Mettaton
+                                            ,$Character.Flowey]),
                                     toJSMailbox.address)
                                     ,_1: $Effects.none}
                              ,update: update
