@@ -5,6 +5,7 @@ import StartApp exposing (start)
 import Character
 import Color exposing (grayscale)
 import Effects exposing (Effects, Never, none)
+import Either exposing (Either)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (image)
 import Html exposing (..)
@@ -17,7 +18,9 @@ import Task
 import Text
 
 import Modal
-import CreditsModal exposing (creditsDialog)
+
+-- Could split the map stuff into a different module
+import CreditsModal exposing (creditsDialog, mapArea)
 
 -- Model
 
@@ -70,15 +73,36 @@ maybeDivider choice =
 blank = div [ ] [ ]
 
 
-title root =
-  img
+titleImgMap : Signal.Address Action -> Html
+titleImgMap address =
+  Html.node "map"
+  [ Html.Attributes.id "titleMap"
+  , Html.Attributes.name "titleMap"
+  ]
+  [ mapArea [606, 43, 626, 61] "hOI!"
+    <| Either.Right
+    <| (address, ChooseCharacter Character.Temmie)
+  ]
+
+
+title root address =
+  div
   [ style
-    [ ("margin", "0 auto")
-    , ("padding-top", "100px")
+    [ ("padding-top", "100px")
     , ("padding-bottom", "30px")
-    , ("display", "block") ]
-  , src <| root ++ "images/title.png" ]
-  [ ]
+    , ("display", "block")
+    ]
+  ]
+  [ img
+    [ style
+      [ ("margin", "0 auto")
+      , ("display", "block") ]
+    , src <| root ++ "images/title.png"
+    , Html.Attributes.usemap "#titleMap"
+    ]
+    [ ]
+  , titleImgMap address
+  ]
 
 
 -- Character section
@@ -98,11 +122,14 @@ defaultSprite root c = spriteNumber root c 0
 
 characterButton : Signal.Address Action -> String -> Character.Name -> Html
 characterButton address staticRoot c =
-  button
-  [ onClick address <| ChooseCharacter c
-  , style flatButton
-  ]
-  [ img [ src <| defaultSprite staticRoot c ] [] ]
+  case c of
+    Character.Temmie -> blank
+    _ ->
+      button
+      [ onClick address <| ChooseCharacter c
+      , style flatButton
+      ]
+      [ img [ src <| defaultSprite staticRoot c ] [] ]
 
 
 characterButtons : Signal.Address Action -> String -> List Character.Name -> Html
@@ -260,7 +287,7 @@ view address model =
 
     [ Html.Attributes.id "content" ]
 
-    [ title model.staticRoot
+    [ title model.staticRoot address
 
     , characterButtons address model.staticRoot model.characters
 
@@ -430,6 +457,7 @@ app =
       , Character.Napstablook
       , Character.Mettaton
       , Character.Flowey
+      , Character.Temmie
       ]
       toJSMailbox.address
     , none

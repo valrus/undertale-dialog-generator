@@ -10,6 +10,7 @@ type Name =
   | Flowey
   | Napstablook
   | Mettaton
+  | Temmie
 
 
 type alias StyleList = List (String, String)
@@ -27,6 +28,7 @@ moodCount c =
     Napstablook -> 2
     Mettaton -> 22
     Flowey -> 21
+    Temmie -> 3
 
 
 portraitSize : Maybe Name -> (Int, Int)

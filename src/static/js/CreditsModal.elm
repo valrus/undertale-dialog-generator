@@ -1,10 +1,13 @@
 module CreditsModal where
 
+import Either exposing (Either)
 import Html exposing (..)
 import Html.Attributes exposing (style)
+import Html.Events exposing (onClick)
 import String exposing (join)
 
 import Modal exposing (SizedHtml)
+
 
 expand : List (String, String)
 expand = [ ("width", "100%"), ("height", "100%") ]
@@ -21,30 +24,36 @@ creditsImg staticRoot =
   [ ]
 
 
-creditsMapArea : List Int -> String -> String -> Html
-creditsMapArea coords caption url =
-  Html.node "area"
-  [ Html.Attributes.shape "rect"
-  , Html.Attributes.title caption
-  , Html.Attributes.alt caption
-  , Html.Attributes.coords <| join ", " <| List.map toString coords
-  , Html.Attributes.href url
-  ]
-  [ ]
+mapArea : List Int -> String -> Either String (Signal.Address a, a) -> Html
+mapArea coords caption action =
+  let clickAction =
+    case action of
+      Either.Left url -> Html.Attributes.href url
+      Either.Right (address, a) -> onClick address a
+  in
+    Html.node "area"
+    [ Html.Attributes.shape "rect"
+    , Html.Attributes.title caption
+    , Html.Attributes.alt caption
+    , Html.Attributes.coords <| join ", " <| List.map toString coords
+    , clickAction
+    ]
+    [ ]
 
 
+-- TODO: use map (?) to reduce duplication of Either.Left
 creditsImgMap : Html
 creditsImgMap =
   Html.node "map"
   [ Html.Attributes.id "creditsMap"
   , Html.Attributes.name "creditsMap"
   ]
-  [ creditsMapArea [331, 75, 441, 96] "valrus's Twitter!" "http://twitter.com/valrus"
-  , creditsMapArea [299, 110, 475, 132] "This web page's source code!" "https://github.com/valrus/undertale-dialog-generator"
-  , creditsMapArea [448, 192, 523, 218] "Determination, the Better Undertale Font!" "https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font"
-  , creditsMapArea [152, 228, 264, 254] "Monster Friend, the Undertale Logo Font!" "https://www.behance.net/gallery/31378523/Monster-Friend-Undertale-Logo-Font"
-  , creditsMapArea [152, 264, 495, 291] "JapanYoshi's Behance page!" "https://www.behance.net/JapanYoshi"
-  , creditsMapArea [338, 359, 456, 391] "The official Undertale website!" "http://undertale.com"
+  [ mapArea [331, 75, 441, 96] "valrus's Twitter!" <| Either.Left "http://twitter.com/valrus"
+  , mapArea [299, 110, 475, 132] "This web page's source code!" <| Either.Left "https://github.com/valrus/undertale-dialog-generator"
+  , mapArea [448, 192, 523, 218] "Determination, the Better Undertale Font!" <| Either.Left "https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font"
+  , mapArea [152, 228, 264, 254] "Monster Friend, the Undertale Logo Font!" <| Either.Left "https://www.behance.net/gallery/31378523/Monster-Friend-Undertale-Logo-Font"
+  , mapArea [152, 264, 495, 291] "JapanYoshi's Behance page!" <| Either.Left "https://www.behance.net/JapanYoshi"
+  , mapArea [338, 359, 456, 391] "The official Undertale website!" <| Either.Left "http://undertale.com"
   ]
 
 
