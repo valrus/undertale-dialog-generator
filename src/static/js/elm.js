@@ -11281,8 +11281,14 @@ Elm.UndertaleDialog.make = function (_elm) {
    var focusFilter = function (action) {    var _p0 = action;if (_p0.ctor === "Focus") {    return $Maybe.Just(_p0._0);} else {    return $Maybe.Nothing;}};
    var NoJSOp = {ctor: "NoJSOp"};
    var toJSMailbox = $Signal.mailbox(NoJSOp);
-   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",function (v) {    return v;},A3($Signal.filterMap,focusFilter,"",toJSMailbox.signal));
    var Focus = function (a) {    return {ctor: "Focus",_0: a};};
+   var emptyParams = {elementId: "",moveCursorToEnd: false};
+   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",
+   function (v) {
+      return {elementId: v.elementId,moveCursorToEnd: v.moveCursorToEnd};
+   },
+   A3($Signal.filterMap,focusFilter,emptyParams,toJSMailbox.signal));
+   var FocusParams = F2(function (a,b) {    return {elementId: a,moveCursorToEnd: b};});
    var getSubmitURL = function (root) {    return A2($Basics._op["++"],root,"/submit");};
    var UpdateModal = function (a) {    return {ctor: "UpdateModal",_0: a};};
    var GotDownload = function (a) {    return {ctor: "GotDownload",_0: a};};
@@ -11303,11 +11309,11 @@ Elm.UndertaleDialog.make = function (_elm) {
    var GetDownload = {ctor: "GetDownload"};
    var SetStaticRoot = function (a) {    return {ctor: "SetStaticRoot",_0: a};};
    var SetScriptRoot = function (a) {    return {ctor: "SetScriptRoot",_0: a};};
-   var EnterText = function (a) {    return {ctor: "EnterText",_0: a};};
+   var EnterText = F2(function (a,b) {    return {ctor: "EnterText",_0: a,_1: b};});
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
    var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
-   var toJSEffect = F2(function (address,s) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,Focus(s))));});
+   var toJSEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,Focus(params))));});
    var update = F2(function (action,model) {
       var _p2 = action;
       switch (_p2.ctor)
@@ -11317,8 +11323,10 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,_1: $Effects.none};
          case "ChooseMood": return {ctor: "_Tuple2"
                                    ,_0: _U.update(model,{moodImg: $Maybe.Just(_p2._0),imageData: $Maybe.Nothing})
-                                   ,_1: A2(toJSEffect,model.jsAddress,"textBox")};
-         case "EnterText": return {ctor: "_Tuple2",_0: _U.update(model,{text: _p2._0,imageData: $Maybe.Nothing}),_1: A2(toJSEffect,model.jsAddress,"textBox")};
+                                   ,_1: A2(toJSEffect,model.jsAddress,{elementId: "textBox",moveCursorToEnd: false})};
+         case "EnterText": return {ctor: "_Tuple2"
+                                  ,_0: _U.update(model,{text: _p2._0,imageData: $Maybe.Nothing})
+                                  ,_1: A2(toJSEffect,model.jsAddress,{elementId: "textBox",moveCursorToEnd: _p2._1})};
          case "SetScriptRoot": return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p2._0}),_1: $Effects.none};
          case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p2._0}),_1: $Effects.none};
          case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
@@ -11330,7 +11338,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       return A2($Html.a,
       _U.list([]),
       _U.list([A2($Html.img,
-      _U.list([A2($Html$Events.onClick,address,EnterText(text))
+      _U.list([A2($Html$Events.onClick,address,A2(EnterText,text,true))
               ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin",_1: "0 auto"},{ctor: "_Tuple2",_0: "display",_1: "block"}]))
               ,$Html$Attributes.src(pngData)]),
       _U.list([]))]));
@@ -11346,7 +11354,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    var textBox = F3(function (address,character,text) {
       return A2($Html.textarea,
       _U.list([$Html$Attributes.id("textBox")
-              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,EnterText(s));})
+              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,A2(EnterText,s,false));})
               ,$Html$Attributes.style(A2($Basics._op["++"],
               _U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),
               A2($Basics._op["++"],$Character.fontStyles(character),$Character.textboxStyles(character))))
@@ -11531,6 +11539,8 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,update: update
                                         ,getSubmitURL: getSubmitURL
                                         ,getDialogBoxImg: getDialogBoxImg
+                                        ,FocusParams: FocusParams
+                                        ,emptyParams: emptyParams
                                         ,Focus: Focus
                                         ,NoJSOp: NoJSOp
                                         ,toJSEffect: toJSEffect

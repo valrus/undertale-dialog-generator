@@ -10,15 +10,16 @@ var undertale = Elm.fullscreen(
 undertale.ports.staticRoot.send($STATIC_ROOT);
 undertale.ports.scriptRoot.send($SCRIPT_ROOT);
 
-undertale.ports.focus.subscribe(function(elementId) {
+undertale.ports.focus.subscribe(function(params) {
     setTimeout(function() {
-        var elem = document.getElementById(elementId);
+        var elem = document.getElementById(params.elementId);
         if (elem) {
-            // A dumb trick to put the cursor at the end of the text field.
             elem.focus();
-            var val = elem.value;
-            elem.value = '';
-            elem.value = val;
+            if (params.moveCursorToEnd) {
+                var val = elem.value;
+                elem.value = '';
+                elem.value = val;
+            }
         }
     }, 50);
 });

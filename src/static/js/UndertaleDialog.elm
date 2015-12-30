@@ -157,7 +157,7 @@ textBox : Signal.Address Action -> Maybe Character.Name -> String -> Html
 textBox address character text =
   textarea
   [ Html.Attributes.id "textBox"
-  , on "input" targetValue (\s -> Signal.message address <| EnterText s)
+  , on "input" targetValue (\s -> Signal.message address <| EnterText s False)
   , style <|
     [ ("line-height", "36px")  -- TODO: Make the "36px" a function
     ] ++ (Character.fontStyles character) ++ (Character.textboxStyles character)
@@ -225,7 +225,7 @@ returnedDialogBox text address dialogBoxBase64 =
     Html.a
     [ ]
     [ Html.img
-        [ onClick address <| EnterText text
+        [ onClick address <| EnterText text True
         , style
           [ ("margin", "0 auto")
           , ("display", "block")
@@ -284,7 +284,7 @@ type Action =
       NoOp ()
     | ChooseCharacter Character.Name
     | ChooseMood String
-    | EnterText String
+    | EnterText String Bool
     | SetScriptRoot String
     | SetStaticRoot String
     | GetDownload
@@ -312,14 +312,20 @@ update action model =
         | moodImg = Just s
         , imageData = Nothing
         }
-      , toJSEffect model.jsAddress "textBox"
+      , toJSEffect model.jsAddress
+        { elementId = "textBox"
+        , moveCursorToEnd = False
+        }
       )
-    EnterText s ->
+    EnterText s moveCursor ->
       ( { model
         | text = s
         , imageData = Nothing
         }
-      , toJSEffect model.jsAddress "textBox"
+      , toJSEffect model.jsAddress
+        { elementId = "textBox"
+        , moveCursorToEnd = moveCursor
+        }
       )
     SetScriptRoot s ->
       ( { model
@@ -374,26 +380,35 @@ getDialogBoxImg model =
 
 -- Focus (reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb)
 
-type JSAction = Focus String | NoJSOp
+type alias FocusParams =
+  { elementId : String
+  , moveCursorToEnd : Bool
+  }
 
 
-toJSEffect : Signal.Address JSAction -> String -> Effects Action
-toJSEffect address s =
-  Signal.send address (Focus s) |> Task.map NoOp |> Effects.task
+emptyParams = { elementId = "", moveCursorToEnd = False }
+
+
+type JSAction = Focus FocusParams | NoJSOp
+
+
+toJSEffect : Signal.Address JSAction -> FocusParams -> Effects Action
+toJSEffect address params =
+  Signal.send address (Focus params) |> Task.map NoOp |> Effects.task
 
 
 toJSMailbox = Signal.mailbox NoJSOp
 
 
-focusFilter : JSAction -> Maybe String
+focusFilter : JSAction -> Maybe FocusParams
 focusFilter action =
   case action of
-    Focus s -> Just s
+    Focus params -> Just params
     _ -> Nothing
 
 
-port focus : Signal String
-port focus = Signal.filterMap focusFilter "" toJSMailbox.signal
+port focus : Signal FocusParams
+port focus = Signal.filterMap focusFilter emptyParams toJSMailbox.signal
 
 
 -- Main
