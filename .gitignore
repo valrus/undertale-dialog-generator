@@ -1,2 +1,4 @@
 resources
 .python-version
+.env
+*.acorn

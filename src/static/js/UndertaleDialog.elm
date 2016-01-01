@@ -12,11 +12,13 @@ import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
 import Html.Attributes exposing (class, src, style)
 import Http
-import Maybe exposing (Maybe)
+import Json.Decode exposing (object2, string, (:=))
+import Maybe exposing (Maybe, andThen)
 import String
 import Task
 import Text
 
+import Imgur
 import Modal
 
 -- Could split the map stuff into a different module
@@ -34,6 +36,7 @@ type alias Model =
   , imageData : Maybe String
   , modal : Modal.Model
   , jsAddress : Signal.Address JSAction
+  , imgur : Imgur.Model
   }
 
 
@@ -48,6 +51,7 @@ init characters jsAddress =
   , imageData = Nothing
   , modal = Modal.init <| grayscale 1
   , jsAddress = jsAddress
+  , imgur = Imgur.init
   }
 
 
@@ -229,38 +233,51 @@ doubleImage imgSrc (w, h)=
   image (w * 2) (h * 2) imgSrc
 
 
-dialogBox : Signal.Address Action -> Model -> Maybe Html
+dialogBox : Signal.Address Action -> Model -> Maybe (List Html)
 dialogBox address model =
   case model.moodImg of
     Nothing -> Nothing
     Just imgSrc ->
       let (imgX, imgY) = Character.portraitOffset model.selection
       in
-        Just <| dialogCollage
-        ( fromElement <| collage 596 168
-          [ filled (grayscale 1) (rect 596 168)  -- outer black border
-          , filled (grayscale 0) (rect 580 152)  -- outer white border
-          , filled (grayscale 1) (rect 568 140)  -- inner black box
-          , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection) |> move (-214 + imgX, imgY)
-          ]
-        ) address model
+        Just
+        [
+          dialogCollage
+          ( fromElement <| collage 596 168
+            [ filled (grayscale 1) (rect 596 168)  -- outer black border
+            , filled (grayscale 0) (rect 580 152)  -- outer white border
+            , filled (grayscale 1) (rect 568 140)  -- inner black box
+            , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection)
+              |> move (-214 + imgX, imgY)
+            ]
+          ) address model
+        ]
 
 
-returnedDialogBox text address dialogBoxBase64 =
-  let pngData = "data:image/png;base64," ++ dialogBoxBase64
-  in
+dialogBoxImg : String -> Signal.Address Action -> String -> Maybe (List Html)
+dialogBoxImg text address pngData =
+  Just <|
+  [
     Html.a
     [ ]
     [ Html.img
         [ onClick address <| EnterText text True
         , style
-          [ ("margin", "0 auto")
-          , ("display", "block")
-          ]
+        [ ("margin", "0 auto")
+        , ("display", "block")
+        ]
         , src pngData
         ]
         [ ]
     ]
+  ]
+
+
+returnedDialogBox : String -> Signal.Address Action -> Maybe String -> Maybe (List Html)
+returnedDialogBox text address imgData =
+  Maybe.map2 (++)
+  (Just "data:image/png;base64,") imgData
+  `andThen` dialogBoxImg text address
 
 
 -- Button for credits modal
@@ -281,6 +298,24 @@ infoButton address root =
 
 -- Main view
 
+
+imgurButtonSrc root = root ++ "images/imgur2.png"
+
+dialogBoxSection address model =
+  div
+  [ ]
+  <| Maybe.withDefault [ blank ]
+  <| Maybe.oneOf
+     [ Maybe.map2 (++)
+       (returnedDialogBox model.text address model.imageData)
+       ( Just <|
+         [ Imgur.view (Signal.forwardTo address UpdateImgur) model.imgur
+           <| imgurButtonSrc model.staticRoot
+         ]
+       )
+     , dialogBox address model]
+
+
 view : Signal.Address Action -> Model -> Html
 view address model =
   div
@@ -295,10 +330,7 @@ view address model =
     , moodSection address model.staticRoot model.selection
 
     , maybeDivider model.moodImg
-    , Maybe.withDefault blank <|
-      Maybe.oneOf
-      [ Maybe.map (returnedDialogBox model.text address) model.imageData
-      , dialogBox address model]
+    , dialogBoxSection address model
 
     , infoButton address model.staticRoot
     , Modal.view (Signal.forwardTo address UpdateModal) model.modal
@@ -317,8 +349,10 @@ type Action =
     | GetDownload
     | GotDownload (Maybe String)
     | UpdateModal Modal.Action
+    | UpdateImgur Imgur.Action
 
 
+update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
     NoOp () ->
@@ -358,7 +392,7 @@ update action model =
       ( { model
         | scriptRoot = s
         }
-      , none
+      , getImgurParams s
       )
     SetStaticRoot s ->
       ( { model
@@ -370,23 +404,34 @@ update action model =
       ( model
       , getDialogBoxImg model
       )
-    GotDownload url ->
-      ( { model
-        | imageData = url
-        }
-      , none
-      )
+    GotDownload data ->
+      let (newImgur, fx) = Imgur.update (Imgur.SetImageData data) model.imgur
+      in
+        ( { model
+          | imageData = data
+          , imgur = newImgur
+          }
+        , none
+        )
     UpdateModal action ->
       ( { model
         | modal = Modal.update action model.modal
         }
       , none
       )
+    UpdateImgur action ->
+      let (newImgur, fx) = Imgur.update action model.imgur
+      in
+        ( { model
+          | imgur = newImgur
+          }
+        , Effects.map UpdateImgur fx
+        )
 
 
 -- Tasks
 
-getSubmitURL root = root ++ "/submit"
+getSubmitUrl root = root ++ "/submit"
 
 
 getDialogBoxImg : Model -> Effects Action
@@ -394,15 +439,30 @@ getDialogBoxImg model =
   case Maybe.map2 (,) model.selection model.moodImg of
     Nothing -> none
     Just (c, img) ->
-      Http.url (getSubmitURL model.scriptRoot)
-      [ ("character", toString c)
-      , ("moodImg", img)
-      , ("text", model.text)
-      ]
+      Http.url (getSubmitUrl model.scriptRoot)
+        [ ("character", toString c)
+        , ("moodImg", img)
+        , ("text", model.text)
+        ]
       |> Http.getString
       |> Task.toMaybe
       |> Task.map GotDownload
       |> Effects.task
+
+
+getImgurParamsUrl root = root ++ "/imgur_id"
+
+
+imgurParamsDecoder = object2 (,) ("clientId" := string) ("albumId" := string)
+
+
+getImgurParams : String -> Effects Action
+getImgurParams scriptRoot =
+  getImgurParamsUrl scriptRoot
+  |> Http.get imgurParamsDecoder
+  |> Task.toMaybe
+  |> Task.map (\ms -> UpdateImgur <| Imgur.SetParams ms)
+  |> Effects.task
 
 
 -- Focus (reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb)
@@ -461,7 +521,7 @@ app =
       ]
       toJSMailbox.address
     , none
-    )
+  )
   , update = update
   , view = view
   , inputs =

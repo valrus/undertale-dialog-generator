@@ -29,7 +29,7 @@ init color =
   }
 
 
-type Action = Show (Maybe SizedHtml) | NoOp
+type Action = NoOp | Show (Maybe SizedHtml)
 
 
 update action model =

@@ -86,6 +86,35 @@ textarea {
     left: 153px;
 }
 
+#imgurUpload {
+    width: 580px;
+    height: 66px;
+    margin: 0 auto;
+    position: relative;
+    background-color: black;
+    color: white;
+    line-height: 66px;
+}
+
+#imgurButton {
+    width: 64px;
+    height: 64px;
+    padding: 0;
+    background-color: black;
+}
+
+#imgurUrl {
+    height: 66px;
+    width: 514px;
+    display: block;
+    position: absolute;
+    left: 66px;
+    top: 0px;
+    padding-left: 1ex;
+    font-family: "determination_monoregular";
+    font-size: 24px;
+}
+
 
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */
 canvas {

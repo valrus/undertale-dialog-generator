@@ -5,20 +5,28 @@ from collections import namedtuple
 from cStringIO import StringIO
 import os
 
-from flask import Flask, render_template, request, after_this_request, make_response
+from flask import Flask, render_template, request, after_this_request
+from flask import make_response, jsonify
 from PIL import Image, ImageDraw, ImageFont
 
 from personalities import apply_personality
 
-BLACK, WHITE = (0, 0, 0), (255, 255, 255)
 
+from imgurpython import ImgurClient
+IMGUR_CLIENT_ID = os.environ.get('IDTHV_IMGUR_ID')
+IMGUR_CLIENT_SECRET = os.environ.get('IDTHV_IMGUR_SECRET')
+IMGUR_ALBUM_ID = os.environ.get('IDTHV_ALBUM_ID')
+imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
+
+
+BLACK, WHITE = (0, 0, 0), (255, 255, 255)
 Size = namedtuple('Size', ['x', 'y'])
 
+
 UPLOAD_FOLDER = 'static/images/boxes'
-
 app = Flask(__name__)
-
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 
 BASIC_UNICODE_SANITIZER = {
     0x2018: '\'',  # LEFT SINGLE QUOTATION MARK
@@ -99,6 +107,11 @@ def makeDialogBox():
     if app.debug:
         print(imgData)
     return imgData
+
+
+@app.route('/imgur_id', methods=['GET'])
+def getImgurId():
+    return jsonify(clientId=IMGUR_CLIENT_ID, albumId=IMGUR_ALBUM_ID)
 
 
 @app.route('/')
