@@ -11271,23 +11271,37 @@ Elm.Imgur.make = function (_elm) {
    var _op = {};
    var albumData = function (id) {    return _U.list([{ctor: "_Tuple2",_0: "album",_1: $Json$Encode.string(id)}]);};
    var responseDecoder = A2($Json$Decode.at,_U.list(["data","link"]),$Json$Decode.string);
+   var imgurButtonSrc = F2(function (status,root) {
+      var fileName = function () {
+         var _p0 = status;
+         switch (_p0.ctor)
+         {case "NotStarted": return "upload-start.png";
+            case "InProgress": return "upload-anim.gif";
+            default: return "upload-done.png";}
+      }();
+      return A2($Basics._op["++"],root,A2($Basics._op["++"],"images/",fileName));
+   });
    var uploadField = function (state) {
       var content = function () {
-         var _p0 = state;
-         if (_p0.ctor === "Left") {
+         var _p1 = state;
+         if (_p1.ctor === "Left") {
                return A2($Html.div,_U.list([]),_U.list([]));
             } else {
-               return A2($Html.div,_U.list([]),_U.list([$Html.text(_p0._0)]));
+               var _p2 = _p1._0;
+               return A2($Html.div,_U.list([]),_U.list([A2($Html.a,_U.list([$Html$Attributes.href(_p2)]),_U.list([$Html.text(_p2)]))]));
             }
       }();
       return A2($Html.div,_U.list([$Html$Attributes.id("imgurUrl")]),_U.list([content]));
    };
-   var init = {clientId: $Maybe.Nothing,albumId: $Maybe.Nothing,imgState: $Maybe.Nothing};
-   var Model = F3(function (a,b,c) {    return {clientId: a,albumId: b,imgState: c};});
+   var Model = F4(function (a,b,c,d) {    return {clientId: a,albumId: b,imgState: c,uploadStatus: d};});
+   var Finished = {ctor: "Finished"};
+   var InProgress = {ctor: "InProgress"};
+   var NotStarted = {ctor: "NotStarted"};
+   var init = {clientId: $Maybe.Nothing,albumId: $Maybe.Nothing,imgState: $Maybe.Nothing,uploadStatus: NotStarted};
    var SetUploadUrl = function (a) {    return {ctor: "SetUploadUrl",_0: a};};
    var doUpload = function (model) {
-      var _p1 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.clientId,model.imgState);
-      if (_p1.ctor === "Just" && _p1._0.ctor === "_Tuple2" && _p1._0._1.ctor === "Left") {
+      var _p3 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.clientId,model.imgState);
+      if (_p3.ctor === "Just" && _p3._0.ctor === "_Tuple2" && _p3._0._1.ctor === "Left") {
             return $Effects.task(A2($Task.map,
             SetUploadUrl,
             $Task.toMaybe(A2($Http.fromJson,
@@ -11296,43 +11310,45 @@ Elm.Imgur.make = function (_elm) {
             $Http.defaultSettings,
             {verb: "POST"
             ,url: "https://api.imgur.com/3/upload"
-            ,headers: _U.list([{ctor: "_Tuple2",_0: "Authorization",_1: A2($Basics._op["++"],"Client-ID ",_p1._0._0)}
+            ,headers: _U.list([{ctor: "_Tuple2",_0: "Authorization",_1: A2($Basics._op["++"],"Client-ID ",_p3._0._0)}
                               ,{ctor: "_Tuple2",_0: "Content-Type",_1: "application/json"}])
             ,body: $Http.string(A2($Json$Encode.encode,
             0,
             $Json$Encode.object(A2($Basics._op["++"],
-            _U.list([{ctor: "_Tuple2",_0: "image",_1: $Json$Encode.string(_p1._0._1._0)},{ctor: "_Tuple2",_0: "type",_1: $Json$Encode.string("base64")}]),
+            _U.list([{ctor: "_Tuple2",_0: "image",_1: $Json$Encode.string(_p3._0._1._0)},{ctor: "_Tuple2",_0: "type",_1: $Json$Encode.string("base64")}]),
             A2($Maybe.withDefault,_U.list([]),A2($Maybe.map,albumData,model.albumId))))))})))));
          } else {
             return $Effects.none;
          }
    };
    var update = F2(function (action,model) {
-      var _p2 = action;
-      _v2_4: do {
-         switch (_p2.ctor)
-         {case "SetParams": if (_p2._0.ctor === "Just" && _p2._0._0.ctor === "_Tuple2") {
-                    return {ctor: "_Tuple2",_0: _U.update(model,{clientId: $Maybe.Just(_p2._0._0._0),albumId: $Maybe.Just(_p2._0._0._1)}),_1: $Effects.none};
+      var _p4 = action;
+      _v3_4: do {
+         switch (_p4.ctor)
+         {case "SetParams": if (_p4._0.ctor === "Just" && _p4._0._0.ctor === "_Tuple2") {
+                    return {ctor: "_Tuple2",_0: _U.update(model,{clientId: $Maybe.Just(_p4._0._0._0),albumId: $Maybe.Just(_p4._0._0._1)}),_1: $Effects.none};
                  } else {
-                    break _v2_4;
+                    break _v3_4;
                  }
-            case "SetImageData": return {ctor: "_Tuple2",_0: _U.update(model,{imgState: A2($Maybe.map,$Either.Left,_p2._0)}),_1: $Effects.none};
-            case "DoUpload": return {ctor: "_Tuple2",_0: model,_1: doUpload(model)};
-            case "SetUploadUrl": var _p3 = _p2._0;
-              if (_p3.ctor === "Nothing") {
+            case "SetImageData": return {ctor: "_Tuple2"
+                                        ,_0: _U.update(model,{imgState: A2($Maybe.map,$Either.Left,_p4._0),uploadStatus: NotStarted})
+                                        ,_1: $Effects.none};
+            case "DoUpload": return {ctor: "_Tuple2",_0: _U.update(model,{uploadStatus: InProgress}),_1: doUpload(model)};
+            case "SetUploadUrl": var _p5 = _p4._0;
+              if (_p5.ctor === "Nothing") {
                     return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
                  } else {
-                    return {ctor: "_Tuple2",_0: _U.update(model,{imgState: $Maybe.Just($Either.Right(_p3._0))}),_1: $Effects.none};
+                    return {ctor: "_Tuple2",_0: _U.update(model,{imgState: $Maybe.Just($Either.Right(_p5._0)),uploadStatus: Finished}),_1: $Effects.none};
                  }
-            default: break _v2_4;}
+            default: break _v3_4;}
       } while (false);
       return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
    });
    var DoUpload = {ctor: "DoUpload"};
    var uploadButton = F3(function (address,state,imgSrc) {
       var attrs = function () {
-         var _p4 = state;
-         if (_p4.ctor === "Left") {
+         var _p6 = state;
+         if (_p6.ctor === "Left") {
                return _U.list([A2($Html$Events.onClick,address,DoUpload)
                               ,$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "border",_1: "1px solid white"}]))]);
             } else {
@@ -11346,12 +11362,12 @@ Elm.Imgur.make = function (_elm) {
    var uploadView = F3(function (address,state,imgSrc) {
       return A2($Html.div,_U.list([$Html$Attributes.id("imgurUpload")]),_U.list([A3(uploadButton,address,state,imgSrc),uploadField(state)]));
    });
-   var view = F3(function (address,model,buttonImgSrc) {
-      var _p5 = model.imgState;
-      if (_p5.ctor === "Nothing") {
+   var view = F3(function (address,model,staticRoot) {
+      var _p7 = model.imgState;
+      if (_p7.ctor === "Nothing") {
             return A2($Html.div,_U.list([]),_U.list([]));
          } else {
-            return A3(uploadView,address,_p5._0,buttonImgSrc);
+            return A3(uploadView,address,_p7._0,A2(imgurButtonSrc,model.uploadStatus,staticRoot));
          }
    });
    var SetImageData = function (a) {    return {ctor: "SetImageData",_0: a};};
@@ -11363,11 +11379,15 @@ Elm.Imgur.make = function (_elm) {
                               ,SetImageData: SetImageData
                               ,DoUpload: DoUpload
                               ,SetUploadUrl: SetUploadUrl
+                              ,NotStarted: NotStarted
+                              ,InProgress: InProgress
+                              ,Finished: Finished
                               ,Model: Model
                               ,init: init
                               ,uploadButton: uploadButton
                               ,uploadField: uploadField
                               ,uploadView: uploadView
+                              ,imgurButtonSrc: imgurButtonSrc
                               ,view: view
                               ,responseDecoder: responseDecoder
                               ,albumData: albumData
@@ -11529,7 +11549,6 @@ Elm.UndertaleDialog.make = function (_elm) {
            var fx = _p6._1;
            return {ctor: "_Tuple2",_0: _U.update(model,{imgur: newImgur}),_1: A2($Effects.map,UpdateImgur,fx)};}
    });
-   var imgurButtonSrc = function (root) {    return A2($Basics._op["++"],root,"images/imgur2.png");};
    var dialogBoxImg = F3(function (text,address,pngData) {
       return $Maybe.Just(_U.list([A2($Html.a,
       _U.list([]),
@@ -11632,7 +11651,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       $Maybe.oneOf(_U.list([A3($Maybe.map2,
                            F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
                            A3(returnedDialogBox,model.text,address,model.imageData),
-                           $Maybe.Just(_U.list([A3($Imgur.view,A2($Signal.forwardTo,address,UpdateImgur),model.imgur,imgurButtonSrc(model.staticRoot))])))
+                           $Maybe.Just(_U.list([A3($Imgur.view,A2($Signal.forwardTo,address,UpdateImgur),model.imgur,model.staticRoot)])))
                            ,A2(dialogBox,address,model)]))));
    });
    var header = A2($Html.div,
@@ -11772,7 +11791,6 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,dialogBoxImg: dialogBoxImg
                                         ,returnedDialogBox: returnedDialogBox
                                         ,infoButton: infoButton
-                                        ,imgurButtonSrc: imgurButtonSrc
                                         ,dialogBoxSection: dialogBoxSection
                                         ,view: view
                                         ,NoOp: NoOp

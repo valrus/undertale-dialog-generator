@@ -3,7 +3,7 @@ module Imgur where
 import Effects exposing (Effects, none)
 import Either exposing (Either)
 import Html exposing (..)
-import Html.Attributes exposing (src, id, style)
+import Html.Attributes exposing (src, id, style, href)
 import Html.Events exposing (onClick)
 import Http exposing (send, defaultSettings, fromJson, stringData)
 import Json.Decode exposing (Decoder, at)
@@ -12,12 +12,18 @@ import Maybe exposing (Maybe, withDefault)
 import Task exposing (Task)
 
 
-type Action =
-  NoOp
+type Action
+  = NoOp
   | SetParams (Maybe (String, String))
   | SetImageData (Maybe ImgData)
   | DoUpload
   | SetUploadUrl (Maybe ImgUrl)
+
+
+type UploadStatus
+  = NotStarted
+  | InProgress
+  | Finished
 
 
 type alias ImgData = String
@@ -29,6 +35,7 @@ type alias Model =
   { clientId : Maybe String
   , albumId : Maybe String
   , imgState : Maybe ImgState
+  , uploadStatus : UploadStatus
   }
 
 
@@ -37,6 +44,7 @@ init =
   { clientId = Nothing
   , albumId = Nothing
   , imgState = Nothing
+  , uploadStatus = NotStarted
   }
 
 
@@ -64,7 +72,12 @@ uploadField state =
   let content =
     case state of
         Either.Left data -> div [ ] [ ]
-        Either.Right url -> div [ ] [ Html.text url ]
+        Either.Right url ->
+          div [ ]
+          [ Html.a
+            [ href url ]
+            [ Html.text url ]
+          ]
   in
     div
     [ id "imgurUrl" ]
@@ -79,10 +92,22 @@ uploadView address state imgSrc =
   , uploadField state]
 
 
-view address model buttonImgSrc =
+imgurButtonSrc status root =
+  let fileName =
+    case status of
+      NotStarted -> "upload-start.png"
+      InProgress -> "upload-anim.gif"
+      Finished -> "upload-done.png"
+  in
+    root ++ "images/" ++ fileName
+
+
+view address model staticRoot =
   case model.imgState of
     Nothing -> div [] []
-    Just state -> uploadView address state buttonImgSrc
+    Just state ->
+      uploadView address state
+      <| imgurButtonSrc model.uploadStatus staticRoot
 
 
 responseDecoder : Decoder String
@@ -131,11 +156,14 @@ update action model =
     SetImageData data ->
       ( { model
         | imgState = Maybe.map Either.Left data
+        , uploadStatus = NotStarted
         }
       , none
       )
     DoUpload ->
-      ( model
+      ( { model
+        | uploadStatus = InProgress
+        }
       , doUpload model
       )
     SetUploadUrl maybeUrl ->
@@ -144,6 +172,7 @@ update action model =
         Just url ->
           ( { model
             | imgState = Just <| Either.Right url
+            , uploadStatus = Finished
             }
           , none
           )

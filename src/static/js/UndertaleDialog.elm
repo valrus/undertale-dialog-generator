@@ -299,8 +299,6 @@ infoButton address root =
 -- Main view
 
 
-imgurButtonSrc root = root ++ "images/imgur2.png"
-
 dialogBoxSection address model =
   div
   [ ]
@@ -310,7 +308,7 @@ dialogBoxSection address model =
        (returnedDialogBox model.text address model.imageData)
        ( Just <|
          [ Imgur.view (Signal.forwardTo address UpdateImgur) model.imgur
-           <| imgurButtonSrc model.staticRoot
+           <| model.staticRoot
          ]
        )
      , dialogBox address model]

@@ -31,6 +31,10 @@ body {
     margin: 0px;
 }
 
+a {
+    color: yellow;
+}
+
 #content {
     max-width: 800px; 
     margin: 0 auto;
