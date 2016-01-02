@@ -24,6 +24,7 @@ type UploadStatus
   = NotStarted
   | InProgress
   | Finished
+  | Failed
 
 
 type alias ImgData = String
@@ -98,6 +99,7 @@ imgurButtonSrc status root =
       NotStarted -> "upload-start.png"
       InProgress -> "upload-anim.gif"
       Finished -> "upload-done.png"
+      Failed -> "upload-failed.png"
   in
     root ++ "images/" ++ fileName
 
@@ -168,7 +170,11 @@ update action model =
       )
     SetUploadUrl maybeUrl ->
       case maybeUrl of
-        Nothing -> (model, none) -- actually handle this error :3
+        Nothing ->
+          ( { model
+            | uploadStatus = Failed
+            }
+          , none)
         Just url ->
           ( { model
             | imgState = Just <| Either.Right url

@@ -11277,7 +11277,8 @@ Elm.Imgur.make = function (_elm) {
          switch (_p0.ctor)
          {case "NotStarted": return "upload-start.png";
             case "InProgress": return "upload-anim.gif";
-            default: return "upload-done.png";}
+            case "Finished": return "upload-done.png";
+            default: return "upload-failed.png";}
       }();
       return A2($Basics._op["++"],root,A2($Basics._op["++"],"images/",fileName));
    });
@@ -11294,6 +11295,7 @@ Elm.Imgur.make = function (_elm) {
       return A2($Html.div,_U.list([$Html$Attributes.id("imgurUrl")]),_U.list([content]));
    };
    var Model = F4(function (a,b,c,d) {    return {clientId: a,albumId: b,imgState: c,uploadStatus: d};});
+   var Failed = {ctor: "Failed"};
    var Finished = {ctor: "Finished"};
    var InProgress = {ctor: "InProgress"};
    var NotStarted = {ctor: "NotStarted"};
@@ -11336,7 +11338,7 @@ Elm.Imgur.make = function (_elm) {
             case "DoUpload": return {ctor: "_Tuple2",_0: _U.update(model,{uploadStatus: InProgress}),_1: doUpload(model)};
             case "SetUploadUrl": var _p5 = _p4._0;
               if (_p5.ctor === "Nothing") {
-                    return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+                    return {ctor: "_Tuple2",_0: _U.update(model,{uploadStatus: Failed}),_1: $Effects.none};
                  } else {
                     return {ctor: "_Tuple2",_0: _U.update(model,{imgState: $Maybe.Just($Either.Right(_p5._0)),uploadStatus: Finished}),_1: $Effects.none};
                  }
@@ -11382,6 +11384,7 @@ Elm.Imgur.make = function (_elm) {
                               ,NotStarted: NotStarted
                               ,InProgress: InProgress
                               ,Finished: Finished
+                              ,Failed: Failed
                               ,Model: Model
                               ,init: init
                               ,uploadButton: uploadButton
