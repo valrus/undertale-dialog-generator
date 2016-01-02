@@ -18,6 +18,7 @@ import String
 import Task
 import Text
 
+import Focus
 import Imgur
 import Modal
 
@@ -35,13 +36,13 @@ type alias Model =
   , scriptRoot : String
   , imageData : Maybe String
   , modal : Modal.Model
-  , jsAddress : Signal.Address JSAction
+  , focusAddress : Signal.Address Focus.Action
   , imgur : Imgur.Model
   }
 
 
-init : List Character.Name -> Signal.Address JSAction -> Model
-init characters jsAddress =
+init : List Character.Name -> Signal.Address Focus.Action -> Model
+init characters focusAddress =
   { characters = characters
   , selection = Nothing
   , moodImg = Nothing
@@ -50,7 +51,7 @@ init characters jsAddress =
   , scriptRoot = ""
   , imageData = Nothing
   , modal = Modal.init <| grayscale 1
-  , jsAddress = jsAddress
+  , focusAddress = focusAddress
   , imgur = Imgur.init
   }
 
@@ -371,7 +372,7 @@ update action model =
         | moodImg = Just s
         , imageData = Nothing
         }
-      , toJSEffect model.jsAddress
+      , toFocusEffect model.focusAddress
         { elementId = "textBox"
         , moveCursorToEnd = False
         }
@@ -381,7 +382,7 @@ update action model =
         | text = s
         , imageData = Nothing
         }
-      , toJSEffect model.jsAddress
+      , toFocusEffect model.focusAddress
         { elementId = "textBox"
         , moveCursorToEnd = moveCursor
         }
@@ -463,44 +464,12 @@ getImgurParams scriptRoot =
   |> Effects.task
 
 
--- Focus (reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb)
-
-type alias FocusParams =
-  { elementId : String
-  , moveCursorToEnd : Bool
-  }
-
-
-emptyParams = { elementId = "", moveCursorToEnd = False }
-
-
-type JSAction = Focus FocusParams | NoJSOp
-
-
-toJSEffect : Signal.Address JSAction -> FocusParams -> Effects Action
-toJSEffect address params =
-  Signal.send address (Focus params) |> Task.map NoOp |> Effects.task
-
-
-toJSMailbox = Signal.mailbox NoJSOp
-
-
-focusFilter : JSAction -> Maybe FocusParams
-focusFilter action =
-  case action of
-    Focus params -> Just params
-    _ -> Nothing
-
-
-port focus : Signal FocusParams
-port focus = Signal.filterMap focusFilter emptyParams toJSMailbox.signal
+toFocusEffect : Signal.Address Focus.Action -> Focus.Params -> Effects Action
+toFocusEffect address params =
+  Signal.send address (Focus.Focus params) |> Task.map NoOp |> Effects.task
 
 
 -- Main
-
-port scriptRoot : Signal String
-port staticRoot : Signal String
-
 
 app =
   start
@@ -517,7 +486,7 @@ app =
       , Character.Flowey
       , Character.Temmie
       ]
-      toJSMailbox.address
+      toFocusMailbox.address
     , none
   )
   , update = update
@@ -530,6 +499,20 @@ app =
 
 main =
   app.html
+
+
+-- Interop
+
+port scriptRoot : Signal String
+port staticRoot : Signal String
+
+
+port focus : Signal Focus.Params
+port focus =
+  Signal.filterMap Focus.focusFilter Focus.emptyParams toFocusMailbox.signal
+
+
+toFocusMailbox = Signal.mailbox Focus.NoOp
 
 
 port tasks : Signal (Task.Task Never ())

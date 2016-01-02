@@ -11247,6 +11247,26 @@ Elm.CreditsModal.make = function (_elm) {
                                      ,creditsImgMap: creditsImgMap
                                      ,creditsDialog: creditsDialog};
 };
+Elm.Focus = Elm.Focus || {};
+Elm.Focus.make = function (_elm) {
+   "use strict";
+   _elm.Focus = _elm.Focus || {};
+   if (_elm.Focus.values) return _elm.Focus.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var focusFilter = function (action) {    var _p0 = action;if (_p0.ctor === "Focus") {    return $Maybe.Just(_p0._0);} else {    return $Maybe.Nothing;}};
+   var NoOp = {ctor: "NoOp"};
+   var Focus = function (a) {    return {ctor: "Focus",_0: a};};
+   var emptyParams = {elementId: "",moveCursorToEnd: false};
+   var Params = F2(function (a,b) {    return {elementId: a,moveCursorToEnd: b};});
+   return _elm.Focus.values = {_op: _op,Params: Params,emptyParams: emptyParams,Focus: Focus,NoOp: NoOp,focusFilter: focusFilter};
+};
 Elm.Imgur = Elm.Imgur || {};
 Elm.Imgur.make = function (_elm) {
    "use strict";
@@ -11449,6 +11469,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Effects = Elm.Effects.make(_elm),
    $Either = Elm.Either.make(_elm),
+   $Focus = Elm.Focus.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
    $Html = Elm.Html.make(_elm),
@@ -11465,6 +11486,12 @@ Elm.UndertaleDialog.make = function (_elm) {
    $StartApp = Elm.StartApp.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
+   var toFocusMailbox = $Signal.mailbox($Focus.NoOp);
+   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",
+   function (v) {
+      return {elementId: v.elementId,moveCursorToEnd: v.moveCursorToEnd};
+   },
+   A3($Signal.filterMap,$Focus.focusFilter,$Focus.emptyParams,toFocusMailbox.signal));
    var staticRoot = Elm.Native.Port.make(_elm).inboundSignal("staticRoot",
    "String",
    function (v) {
@@ -11475,17 +11502,6 @@ Elm.UndertaleDialog.make = function (_elm) {
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
-   var focusFilter = function (action) {    var _p0 = action;if (_p0.ctor === "Focus") {    return $Maybe.Just(_p0._0);} else {    return $Maybe.Nothing;}};
-   var NoJSOp = {ctor: "NoJSOp"};
-   var toJSMailbox = $Signal.mailbox(NoJSOp);
-   var Focus = function (a) {    return {ctor: "Focus",_0: a};};
-   var emptyParams = {elementId: "",moveCursorToEnd: false};
-   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",
-   function (v) {
-      return {elementId: v.elementId,moveCursorToEnd: v.moveCursorToEnd};
-   },
-   A3($Signal.filterMap,focusFilter,emptyParams,toJSMailbox.signal));
-   var FocusParams = F2(function (a,b) {    return {elementId: a,moveCursorToEnd: b};});
    var imgurParamsDecoder = A3($Json$Decode.object2,
    F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),
    A2($Json$Decode._op[":="],"clientId",$Json$Decode.string),
@@ -11503,16 +11519,16 @@ Elm.UndertaleDialog.make = function (_elm) {
    var UpdateModal = function (a) {    return {ctor: "UpdateModal",_0: a};};
    var GotDownload = function (a) {    return {ctor: "GotDownload",_0: a};};
    var getDialogBoxImg = function (model) {
-      var _p1 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
-      if (_p1.ctor === "Nothing") {
+      var _p0 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
+      if (_p0.ctor === "Nothing") {
             return $Effects.none;
          } else {
             return $Effects.task(A2($Task.map,
             GotDownload,
             $Task.toMaybe($Http.getString(A2($Http.url,
             getSubmitUrl(model.scriptRoot),
-            _U.list([{ctor: "_Tuple2",_0: "character",_1: $Basics.toString(_p1._0._0)}
-                    ,{ctor: "_Tuple2",_0: "moodImg",_1: _p1._0._1}
+            _U.list([{ctor: "_Tuple2",_0: "character",_1: $Basics.toString(_p0._0._0)}
+                    ,{ctor: "_Tuple2",_0: "moodImg",_1: _p0._0._1}
                     ,{ctor: "_Tuple2",_0: "text",_1: model.text}]))))));
          }
    };
@@ -11523,33 +11539,33 @@ Elm.UndertaleDialog.make = function (_elm) {
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
    var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
-   var toJSEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,Focus(params))));});
+   var toFocusEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,$Focus.Focus(params))));});
    var update = F2(function (action,model) {
-      var _p2 = action;
-      switch (_p2.ctor)
+      var _p1 = action;
+      switch (_p1.ctor)
       {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "ChooseCharacter": return {ctor: "_Tuple2"
-                                        ,_0: _U.update(model,{selection: $Maybe.Just(_p2._0),moodImg: $Maybe.Nothing,text: "",imageData: $Maybe.Nothing})
+                                        ,_0: _U.update(model,{selection: $Maybe.Just(_p1._0),moodImg: $Maybe.Nothing,text: "",imageData: $Maybe.Nothing})
                                         ,_1: $Effects.none};
          case "ChooseMood": return {ctor: "_Tuple2"
-                                   ,_0: _U.update(model,{moodImg: $Maybe.Just(_p2._0),imageData: $Maybe.Nothing})
-                                   ,_1: A2(toJSEffect,model.jsAddress,{elementId: "textBox",moveCursorToEnd: false})};
+                                   ,_0: _U.update(model,{moodImg: $Maybe.Just(_p1._0),imageData: $Maybe.Nothing})
+                                   ,_1: A2(toFocusEffect,model.focusAddress,{elementId: "textBox",moveCursorToEnd: false})};
          case "EnterText": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{text: _p2._0,imageData: $Maybe.Nothing})
-                                  ,_1: A2(toJSEffect,model.jsAddress,{elementId: "textBox",moveCursorToEnd: _p2._1})};
-         case "SetScriptRoot": var _p3 = _p2._0;
-           return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p3}),_1: getImgurParams(_p3)};
-         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p2._0}),_1: $Effects.none};
+                                  ,_0: _U.update(model,{text: _p1._0,imageData: $Maybe.Nothing})
+                                  ,_1: A2(toFocusEffect,model.focusAddress,{elementId: "textBox",moveCursorToEnd: _p1._1})};
+         case "SetScriptRoot": var _p2 = _p1._0;
+           return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p2}),_1: getImgurParams(_p2)};
+         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p1._0}),_1: $Effects.none};
          case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
-         case "GotDownload": var _p5 = _p2._0;
-           var _p4 = A2($Imgur.update,$Imgur.SetImageData(_p5),model.imgur);
-           var newImgur = _p4._0;
-           var fx = _p4._1;
-           return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p5,imgur: newImgur}),_1: $Effects.none};
-         case "UpdateModal": return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p2._0,model.modal)}),_1: $Effects.none};
-         default: var _p6 = A2($Imgur.update,_p2._0,model.imgur);
-           var newImgur = _p6._0;
-           var fx = _p6._1;
+         case "GotDownload": var _p4 = _p1._0;
+           var _p3 = A2($Imgur.update,$Imgur.SetImageData(_p4),model.imgur);
+           var newImgur = _p3._0;
+           var fx = _p3._1;
+           return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p4,imgur: newImgur}),_1: $Effects.none};
+         case "UpdateModal": return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p1._0,model.modal)}),_1: $Effects.none};
+         default: var _p5 = A2($Imgur.update,_p1._0,model.imgur);
+           var newImgur = _p5._0;
+           var fx = _p5._1;
            return {ctor: "_Tuple2",_0: _U.update(model,{imgur: newImgur}),_1: A2($Effects.map,UpdateImgur,fx)};}
    });
    var dialogBoxImg = F3(function (text,address,pngData) {
@@ -11566,7 +11582,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       A3($Maybe.map2,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),$Maybe.Just("data:image/png;base64,"),imgData),
       A2(dialogBoxImg,text,address));
    });
-   var doubleImage = F2(function (imgSrc,_p7) {    var _p8 = _p7;return A3($Graphics$Element.image,_p8._0 * 2,_p8._1 * 2,imgSrc);});
+   var doubleImage = F2(function (imgSrc,_p6) {    var _p7 = _p6;return A3($Graphics$Element.image,_p7._0 * 2,_p7._1 * 2,imgSrc);});
    var crunchyButton = function (address) {
       return A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
@@ -11601,13 +11617,13 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([e,indentAsterisk(model.selection),A3(textBox,address,model.selection,model.text),crunchyButton(address)]))]))]));
    });
    var dialogBox = F2(function (address,model) {
-      var _p9 = model.moodImg;
-      if (_p9.ctor === "Nothing") {
+      var _p8 = model.moodImg;
+      if (_p8.ctor === "Nothing") {
             return $Maybe.Nothing;
          } else {
-            var _p10 = $Character.portraitOffset(model.selection);
-            var imgX = _p10._0;
-            var imgY = _p10._1;
+            var _p9 = $Character.portraitOffset(model.selection);
+            var imgX = _p9._0;
+            var imgY = _p9._1;
             return $Maybe.Just(_U.list([A3(dialogCollage,
             $Html.fromElement(A3($Graphics$Collage.collage,
             596,
@@ -11617,7 +11633,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                     ,A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,568,140))
                     ,A2($Graphics$Collage.move,
                     {ctor: "_Tuple2",_0: -214 + imgX,_1: imgY},
-                    $Graphics$Collage.toForm(A2(doubleImage,_p9._0,$Character.portraitSize(model.selection))))]))),
+                    $Graphics$Collage.toForm(A2(doubleImage,_p8._0,$Character.portraitSize(model.selection))))]))),
             address,
             model)]));
          }
@@ -11660,11 +11676,11 @@ Elm.UndertaleDialog.make = function (_elm) {
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
-   var maybeDivider = function (choice) {    var _p11 = choice;if (_p11.ctor === "Nothing") {    return blank;} else {    return header;}};
+   var maybeDivider = function (choice) {    var _p10 = choice;if (_p10.ctor === "Nothing") {    return blank;} else {    return header;}};
    var flatButton = _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "transparent"},{ctor: "_Tuple2",_0: "border",_1: "none"}]);
    var characterButton = F3(function (address,staticRoot,c) {
-      var _p12 = c;
-      if (_p12.ctor === "Temmie") {
+      var _p11 = c;
+      if (_p11.ctor === "Temmie") {
             return blank;
          } else {
             return A2($Html.button,
@@ -11689,11 +11705,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(1,$Character.moodCount(c))))]));
    });
    var moodSection = F3(function (address,root,maybeChar) {
-      var _p13 = maybeChar;
-      if (_p13.ctor === "Nothing") {
+      var _p12 = maybeChar;
+      if (_p12.ctor === "Nothing") {
             return blank;
          } else {
-            return A3(moodButtons,address,root,_p13._0);
+            return A3(moodButtons,address,root,_p12._0);
          }
    });
    var infoButton = F2(function (address,root) {
@@ -11716,7 +11732,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
-   var init = F2(function (characters,jsAddress) {
+   var init = F2(function (characters,focusAddress) {
       return {characters: characters
              ,selection: $Maybe.Nothing
              ,moodImg: $Maybe.Nothing
@@ -11725,7 +11741,7 @@ Elm.UndertaleDialog.make = function (_elm) {
              ,scriptRoot: ""
              ,imageData: $Maybe.Nothing
              ,modal: $Modal.init($Color.grayscale(1))
-             ,jsAddress: jsAddress
+             ,focusAddress: focusAddress
              ,imgur: $Imgur.init};
    });
    var app = $StartApp.start({init: {ctor: "_Tuple2"
@@ -11740,7 +11756,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                             ,$Character.Mettaton
                                             ,$Character.Flowey
                                             ,$Character.Temmie]),
-                                    toJSMailbox.address)
+                                    toFocusMailbox.address)
                                     ,_1: $Effects.none}
                              ,update: update
                              ,view: view
@@ -11757,7 +11773,16 @@ Elm.UndertaleDialog.make = function (_elm) {
                         return function (h) {
                            return function (i) {
                               return function (j) {
-                                 return {characters: a,selection: b,moodImg: c,text: d,staticRoot: e,scriptRoot: f,imageData: g,modal: h,jsAddress: i,imgur: j};
+                                 return {characters: a
+                                        ,selection: b
+                                        ,moodImg: c
+                                        ,text: d
+                                        ,staticRoot: e
+                                        ,scriptRoot: f
+                                        ,imageData: g
+                                        ,modal: h
+                                        ,focusAddress: i
+                                        ,imgur: j};
                               };
                            };
                         };
@@ -11812,13 +11837,8 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,getImgurParamsUrl: getImgurParamsUrl
                                         ,imgurParamsDecoder: imgurParamsDecoder
                                         ,getImgurParams: getImgurParams
-                                        ,FocusParams: FocusParams
-                                        ,emptyParams: emptyParams
-                                        ,Focus: Focus
-                                        ,NoJSOp: NoJSOp
-                                        ,toJSEffect: toJSEffect
-                                        ,toJSMailbox: toJSMailbox
-                                        ,focusFilter: focusFilter
+                                        ,toFocusEffect: toFocusEffect
                                         ,app: app
-                                        ,main: main};
+                                        ,main: main
+                                        ,toFocusMailbox: toFocusMailbox};
 };
