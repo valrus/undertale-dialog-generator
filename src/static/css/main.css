@@ -40,15 +40,11 @@ a {
     margin: 0 auto;
     position: relative;
     height: 100%;
+    font-family: "determination_monoregular";
 }
 
-.header {
-    -webkit-font-smoothing: none;
-    font-smooth: never;
-    font-family: "determination_monoregular";
-    font-size: 42px;
-    margin: 5px;
-    color: white;
+ul {
+    padding-left: 20px;
 }
 
 #crunchybutton {
@@ -116,7 +112,7 @@ textarea {
     top: 0px;
     padding-left: 1ex;
     font-family: "determination_monoregular";
-    font-size: 24px;
+    font-size: 21px;
 }
 
 
