@@ -1,4 +1,5 @@
-module StartApp ( start, Config, App ) where
+module StartApp (start, Config, App) where
+
 {-| This module helps you start your application in a typical Elm workflow.
 It assumes you are following [the Elm Architecture][arch] and using
 [elm-effects][]. From there it will wire everything up for you!
@@ -33,8 +34,8 @@ get values from JavaScript, they will come in through a port as a signal which
 you can pipe into your app as one of the `inputs`.
 -}
 type alias Config model action =
-    { init : (model, Effects action)
-    , update : action -> model -> (model, Effects action)
+    { init : ( model, Effects action )
+    , update : action -> model -> ( model, Effects action )
     , view : Signal.Address action -> model -> Html
     , inputs : List (Signal.Signal action)
     }
@@ -90,15 +91,15 @@ start config =
             Signal.forwardTo messages.address singleton
 
         -- updateStep : action -> (model, Effects action) -> (model, Effects action)
-        updateStep action (oldModel, accumulatedEffects) =
+        updateStep action ( oldModel, accumulatedEffects ) =
             let
-                (newModel, additionalEffects) = config.update action oldModel
+                ( newModel, additionalEffects ) = config.update action oldModel
             in
-                (newModel, Effects.batch [accumulatedEffects, additionalEffects])
+                ( newModel, Effects.batch [ accumulatedEffects, additionalEffects ] )
 
         -- update : List action -> (model, Effects action) -> (model, Effects action)
-        update actions (model, _) =
-            List.foldl updateStep (model, Effects.none) actions
+        update actions ( model, _ ) =
+            List.foldl updateStep ( model, Effects.none ) actions
 
         -- inputs : Signal (List action)
         inputs =
