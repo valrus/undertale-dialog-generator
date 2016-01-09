@@ -1,22 +1,24 @@
 module UndertaleDialog (..) where
 
 import StartApp exposing (start)
+import Array exposing (Array, toList)
 import Character
 import Color exposing (grayscale)
 import Effects exposing (Effects, Never, none)
 import Either exposing (Either)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
-import Graphics.Element exposing (image)
+import Graphics.Element exposing (image, Element)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick)
 import Html.Attributes exposing (class, src, style)
 import Http
 import Json.Decode exposing (object2, string, (:=))
 import Maybe exposing (Maybe, andThen)
-import String
+import Maybe.Extra exposing (combine, isJust, join, maybeToList)
+import String exposing (lines)
 import Task
-import Text
 import Focus
+import Helpers exposing (..)
 import Imgur
 import Modal
 
@@ -33,12 +35,13 @@ type alias Model =
     { characters : List Character.Name
     , selection : Maybe Character.Name
     , moodImg : Maybe String
-    , text : String
+    , text : Array (Maybe String)
     , staticRoot : String
     , scriptRoot : String
     , imageData : Maybe String
     , modal : Modal.Model
     , focusAddress : Signal.Address Focus.Action
+    , lastBoxCount : Int
     , imgur : Imgur.Model
     }
 
@@ -48,12 +51,13 @@ init characters focusAddress =
     { characters = characters
     , selection = Nothing
     , moodImg = Nothing
-    , text = ""
+    , text = Array.fromList [Just "", Nothing, Nothing]
     , staticRoot = "/static/"
     , scriptRoot = ""
     , imageData = Nothing
     , modal = Modal.init <| grayscale 1
     , focusAddress = focusAddress
+    , lastBoxCount = 1
     , imgur = Imgur.init
     }
 
@@ -214,11 +218,12 @@ indentAsterisk character =
         [ Html.text <| Character.dialogAsterisk character ]
 
 
-textBox : Signal.Address Action -> Maybe Character.Name -> String -> Html
-textBox address character text =
+textBox : Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
+textBox address character num text =
     textarea
-        [ Html.Attributes.id "textBox"
-        , on "input" targetValue (\s -> Signal.message address <| EnterText s False)
+        [ Html.Attributes.id <| "textBox" ++ (toString (num + 1))
+        , on "input" targetValue
+          (\s -> Signal.message address <| UpdateText num s False)
         , style
             <| [ ( "line-height", "36px" )
                  -- TODO: Make the "36px" a function
@@ -230,7 +235,8 @@ textBox address character text =
         [ Html.text text ]
 
 
-dialogCollage e address model =
+dialogCollage : Html -> Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
+dialogCollage e address character num text =
     div
         [ style [ ( "width", "100%" ) ] ]
         [ div
@@ -241,18 +247,42 @@ dialogCollage e address model =
                 ]
             ]
             [ div
-                [ Html.Attributes.id "dialog" ]
+                [ Html.Attributes.class "dialog" ]
                 [ e
-                , indentAsterisk model.selection
-                , textBox address model.selection model.text
-                , crunchyButton address
+                , indentAsterisk character
+                , textBox address character num text
                 ]
             ]
         ]
 
 
+dialogFrame : String -> Character.Name -> Html
+dialogFrame imgSrc character =
+    let
+        ( imgX, imgY ) = Character.portraitOffset (Just character)
+    in
+        (fromElement
+            <| collage
+                596
+                168
+                [ filled (grayscale 1) (rect 596 168)
+                  -- outer black border
+                , filled (grayscale 0) (rect 580 152)
+                  -- outer white border
+                , filled (grayscale 1) (rect 568 140)
+                  -- inner black box
+                , (toForm
+                    <| doubleImage imgSrc
+                    <| Character.portraitSize (Just character)
+                  )
+                    |> move ( -214 + imgX, imgY )
+                ]
+        )
+
+
+crunchyButton : Signal.Address Action -> List Html
 crunchyButton address =
-    div
+    [ div
         [ style [ ( "width", "100%" ) ] ]
         [ Html.button
             [ onClick address <| GetDownload
@@ -260,68 +290,85 @@ crunchyButton address =
             ]
             [ text "MAKE IT CRUNCHY" ]
         ]
+    ]
 
 
+doubleImage : String -> ( Int, Int ) -> Graphics.Element.Element
 doubleImage imgSrc ( w, h ) =
     image (w * 2) (h * 2) imgSrc
 
 
-dialogBox : Signal.Address Action -> Model -> Maybe (List Html)
-dialogBox address model =
-    case model.moodImg of
+dialogBox : Signal.Address Action -> Character.Name -> String -> Int -> String -> Maybe Html
+dialogBox address character imgSrc num text =
+    Just
+        <| dialogCollage
+            (dialogFrame imgSrc character)
+            address
+            (Just character)
+            num
+            text
+
+
+dialogBoxTexts : Array (Maybe String) -> List String
+dialogBoxTexts arr =
+    case join (Array.get 0 arr) of
+        Nothing ->
+            [ "" ]
+
+        Just first ->
+            [ first ] ++ takeJusts (Array.slice 1 3 arr)
+
+
+dialogBoxes : Signal.Address Action -> Model -> Maybe (List Html)
+dialogBoxes address model =
+    case Maybe.map2 (,) model.selection model.moodImg of
         Nothing ->
             Nothing
 
-        Just imgSrc ->
-            let
-                ( imgX, imgY ) = Character.portraitOffset model.selection
-            in
-                Just
-                    [ dialogCollage
-                        (fromElement
-                            <| collage
-                                596
-                                168
-                                [ filled (grayscale 1) (rect 596 168)
-                                  -- outer black border
-                                , filled (grayscale 0) (rect 580 152)
-                                  -- outer white border
-                                , filled (grayscale 1) (rect 568 140)
-                                  -- inner black box
-                                , (toForm <| doubleImage imgSrc <| Character.portraitSize model.selection)
-                                    |> move ( -214 + imgX, imgY )
-                                ]
-                        )
-                        address
-                        model
-                    ]
+        Just ( character, imgSrc ) ->
+            combine
+                <| List.indexedMap (dialogBox address character imgSrc)
+                <| dialogBoxTexts model.text
 
 
-dialogBoxImg : String -> Signal.Address Action -> String -> Maybe (List Html)
-dialogBoxImg text address pngData =
-    Just
-        <| [ Html.a
-                []
-                [ Html.img
-                    [ onClick address <| EnterText text True
-                    , style
-                        [ ( "margin", "0 auto" )
-                        , ( "display", "block" )
-                        ]
-                    , src pngData
-                    ]
+numBoxes : Array (Maybe String) -> Int
+numBoxes texts =
+    List.length <| dialogBoxTexts texts
+
+
+dialogBoxImg : Array (Maybe String) -> Signal.Address Action -> String -> Maybe (List Html)
+dialogBoxImg texts address pngData =
+    let
+        boxCount =
+            numBoxes texts
+    in
+        Just
+            <| [ Html.a
                     []
-                ]
-           ]
+                    [ Html.img
+                        [ onClick address
+                            <| UpdateText
+                                (numBoxes texts)
+                                (Maybe.withDefault "" <| join <| Array.get boxCount texts)
+                                True
+                        , style
+                            [ ( "margin", "0 auto" )
+                            , ( "display", "block" )
+                            ]
+                        , src pngData
+                        ]
+                        []
+                    ]
+               ]
 
 
-returnedDialogBox : String -> Signal.Address Action -> Maybe String -> Maybe (List Html)
-returnedDialogBox text address imgData =
+returnedDialogBox : Array (Maybe String) -> Signal.Address Action -> Maybe String -> Maybe (List Html)
+returnedDialogBox texts address imgData =
     Maybe.map2
         (++)
         (Just "data:image/png;base64,")
         imgData
-        `andThen` dialogBoxImg text address
+        `andThen` dialogBoxImg texts address
 
 
 
@@ -348,6 +395,12 @@ infoButton address root =
 -- Main view
 
 
+textBoxId : Int -> String
+textBoxId n =
+    "textBox" ++ (toString n)
+
+
+dialogBoxSection : Signal.Address Action -> Model -> Html
 dialogBoxSection address model =
     div
         []
@@ -361,7 +414,10 @@ dialogBoxSection address model =
                             <| model.staticRoot
                        ]
                 )
-            , dialogBox address model
+            , Maybe.map2
+                (++)
+                (dialogBoxes address model)
+                (Just <| crunchyButton address)
             ]
 
 
@@ -384,11 +440,28 @@ view address model =
 -- Update
 
 
+textsToString : Array (Maybe String) -> String
+textsToString texts =
+    String.join "\n" <| takeJusts texts
+
+
+updateText : Int -> Int -> String -> Array (Maybe String) -> ( Int, Array (Maybe String) )
+updateText lastBoxCount entryBoxNum newBoxText oldTextArray =
+    let
+        newText =
+            Array.fromList
+                <| splitLinesEvery 3 3
+                <| textsToString
+                <| Array.set entryBoxNum (Just newBoxText) oldTextArray
+    in
+        ( List.length <| dialogBoxTexts newText, newText )
+
+
 type Action
     = NoOp ()
     | ChooseCharacter Character.Name
     | ChooseMood String
-    | EnterText String Bool
+    | UpdateText Int String Bool
     | SetScriptRoot String
     | SetStaticRoot String
     | GetDownload
@@ -409,7 +482,7 @@ update action model =
             ( { model
                 | selection = Just c
                 , moodImg = Nothing
-                , text = ""
+                , text = Array.fromList [ Just "" ]
                 , imageData = Nothing
               }
             , none
@@ -422,22 +495,26 @@ update action model =
               }
             , toFocusEffect
                 model.focusAddress
-                { elementId = "textBox"
+                { elementId = textBoxId 1
                 , moveCursorToEnd = False
                 }
             )
 
-        EnterText s moveCursor ->
-            ( { model
-                | text = s
-                , imageData = Nothing
-              }
-            , toFocusEffect
-                model.focusAddress
-                { elementId = "textBox"
-                , moveCursorToEnd = moveCursor
-                }
-            )
+        UpdateText boxNum s moveCursor ->
+            let
+                ( boxCount, newText ) = updateText model.lastBoxCount boxNum s model.text
+            in
+                ( { model
+                    | text = newText
+                    , imageData = Nothing
+                    , lastBoxCount = boxCount
+                  }
+                , toFocusEffect
+                    model.focusAddress
+                    { elementId = textBoxId boxCount
+                    , moveCursorToEnd = moveCursor
+                    }
+                )
 
         SetScriptRoot s ->
             ( { model
@@ -506,7 +583,7 @@ getDialogBoxImg model =
                 (getSubmitUrl model.scriptRoot)
                 [ ( "character", toString c )
                 , ( "moodImg", img )
-                , ( "text", model.text )
+                , ( "text", String.join "\n" <| takeJusts model.text )
                 ]
                 |> Http.getString
                 |> Task.toMaybe

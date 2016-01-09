@@ -61,7 +61,7 @@ ul {
     text-align: center;
 }
 
-#dialog {
+.dialog {
     background-color: black;
     color: white;
 }
