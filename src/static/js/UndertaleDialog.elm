@@ -41,7 +41,6 @@ type alias Model =
     , imageData : Maybe String
     , modal : Modal.Model
     , focusAddress : Signal.Address Focus.Action
-    , lastBoxCount : Int
     , imgur : Imgur.Model
     }
 
@@ -51,13 +50,12 @@ init characters focusAddress =
     { characters = characters
     , selection = Nothing
     , moodImg = Nothing
-    , text = Array.fromList [Just "", Nothing, Nothing]
+    , text = Array.fromList [ Just "", Nothing, Nothing ]
     , staticRoot = "/static/"
     , scriptRoot = ""
     , imageData = Nothing
     , modal = Modal.init <| grayscale 1
     , focusAddress = focusAddress
-    , lastBoxCount = 1
     , imgur = Imgur.init
     }
 
@@ -67,18 +65,21 @@ init characters focusAddress =
 -- General styles
 
 
+flatButton : List (String, String)
 flatButton =
     [ ( "backgroundColor", "transparent" )
     , ( "border", "none" )
     ]
 
 
+header : Html
 header =
     div
         []
         [ hr [ style [ ( "margin-bottom", "30px" ) ] ] [] ]
 
 
+maybeDivider : Maybe a -> Html
 maybeDivider choice =
     case choice of
         Nothing ->
@@ -88,6 +89,7 @@ maybeDivider choice =
             header
 
 
+blank : Html
 blank =
     div [] []
 
@@ -222,8 +224,10 @@ textBox : Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
 textBox address character num text =
     textarea
         [ Html.Attributes.id <| "textBox" ++ (toString (num + 1))
-        , on "input" targetValue
-          (\s -> Signal.message address <| UpdateText num s False)
+        , on
+            "input"
+            targetValue
+            (\s -> Signal.message address <| UpdateText num s False)
         , style
             <| [ ( "line-height", "36px" )
                  -- TODO: Make the "36px" a function
@@ -311,12 +315,20 @@ dialogBox address character imgSrc num text =
 
 dialogBoxTexts : Array (Maybe String) -> List String
 dialogBoxTexts arr =
-    case join (Array.get 0 arr) of
-        Nothing ->
-            [ "" ]
+      case join (Array.get 0 arr) of
+          Nothing ->
+              [ "" ]
 
-        Just first ->
-            [ first ] ++ takeJusts (Array.slice 1 3 arr)
+          Just first ->
+              [ first ] ++ takeJusts (Array.slice 1 3 arr)
+
+
+dialogStringTexts : Bool -> String -> Array String
+dialogStringTexts skipBlanks s =
+    let filterFunc =
+        if skipBlanks then takeNonEmpty else takeJusts
+    in
+        Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 3 s
 
 
 dialogBoxes : Signal.Address Action -> Model -> Maybe (List Html)
@@ -445,16 +457,22 @@ textsToString texts =
     String.join "\n" <| takeJusts texts
 
 
-updateText : Int -> Int -> String -> Array (Maybe String) -> ( Int, Array (Maybe String) )
-updateText lastBoxCount entryBoxNum newBoxText oldTextArray =
+textWithUpdate : Int -> String -> Array (Maybe String) -> String
+textWithUpdate entryBoxNum newBoxText oldText =
+    textsToString
+    <| Array.set entryBoxNum (Just newBoxText) oldText
+
+
+updateText : String -> String -> ( Int, Array (Maybe String) )
+updateText oldText newText =
     let
-        newText =
-            Array.fromList
-                <| splitLinesEvery 3 3
-                <| textsToString
-                <| Array.set entryBoxNum (Just newBoxText) oldTextArray
+        skipBlanks =
+            (String.length newText) < (String.length oldText)
+        newTexts =
+            dialogStringTexts skipBlanks newText
     in
-        ( List.length <| dialogBoxTexts newText, newText )
+        ( Array.length <| newTexts
+        , Array.map (Just << takeLines 3) newTexts)
 
 
 type Action
@@ -502,12 +520,14 @@ update action model =
 
         UpdateText boxNum s moveCursor ->
             let
-                ( boxCount, newText ) = updateText model.lastBoxCount boxNum s model.text
+                ( boxCount, newText ) =
+                    updateText
+                    (textsToString model.text)
+                    (textWithUpdate boxNum s model.text)
             in
                 ( { model
                     | text = newText
                     , imageData = Nothing
-                    , lastBoxCount = boxCount
                   }
                 , toFocusEffect
                     model.focusAddress
@@ -568,6 +588,7 @@ update action model =
 -- Tasks
 
 
+getSubmitUrl : String -> String
 getSubmitUrl root =
     root ++ "/submit"
 
@@ -591,10 +612,12 @@ getDialogBoxImg model =
                 |> Effects.task
 
 
+getImgurParamsUrl : String -> String
 getImgurParamsUrl root =
     root ++ "/imgur_id"
 
 
+imgurParamsDecoder : Json.Decode.Decoder ( String, String )
 imgurParamsDecoder =
     object2 (,) ("clientId" := string) ("albumId" := string)
 
@@ -617,6 +640,7 @@ toFocusEffect address params =
 -- Main
 
 
+app : StartApp.App Model
 app =
     start
         { init =
@@ -644,6 +668,7 @@ app =
         }
 
 
+main : Signal Html
 main =
     app.html
 
