@@ -495,13 +495,14 @@ textWithUpdate entryBoxNum newBoxText oldTexts =
 updateText : String -> String -> ( Int, Array (Maybe String) )
 updateText oldText newText =
     let
+        -- if we're removing text, wipe out empty dialog boxes
         skipBlanks =
             (String.length newText) < (String.length oldText)
 
         newTexts =
             dialogStringTexts skipBlanks (log "newText" newText)
     in
-        ( Array.length <| newTexts
+        ( Array.length newTexts
         , Array.map (Just << takeLines 3) (log "newTexts" newTexts)
         )
 
@@ -557,7 +558,7 @@ update action model =
 
         UpdateText boxNum s moveCursor ->
             let
-                ( boxCount, newText ) =
+                ( focusBoxNum, newText ) =
                     updateText
                         (textsToString model.text)
                         (textWithUpdate boxNum s model.text)
@@ -568,7 +569,7 @@ update action model =
                   }
                 , toFocusEffect
                     model.focusAddress
-                    { elementId = textBoxId boxCount
+                    { elementId = textBoxId focusBoxNum
                     , moveCursorToEnd = moveCursor
                     }
                 )
