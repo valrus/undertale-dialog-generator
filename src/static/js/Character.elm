@@ -11,6 +11,7 @@ type Name
     | Flowey
     | Napstablook
     | Mettaton
+    | Asriel
     | Temmie
 
 
@@ -47,6 +48,9 @@ moodCount c =
 
         Flowey ->
             21
+
+        Asriel ->
+            19
 
         Temmie ->
             3

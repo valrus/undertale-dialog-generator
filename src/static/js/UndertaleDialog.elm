@@ -553,6 +553,7 @@ app =
                 , Character.Napstablook
                 , Character.Mettaton
                 , Character.Flowey
+                , Character.Asriel
                 , Character.Temmie
                 ]
                 toFocusMailbox.address
