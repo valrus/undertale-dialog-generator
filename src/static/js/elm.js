@@ -12143,62 +12143,70 @@ Elm.UndertaleDialog.make = function (_elm) {
    var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
    var toFocusEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,$Focus.Focus(params))));});
    var textsToString = function (texts) {    return A2($String.join,"\n",$Helpers.takeJusts(texts));};
-   var textWithUpdate = F3(function (entryBoxNum,newBoxText,oldTexts) {    return textsToString(A3($Array.set,entryBoxNum,$Maybe.Just(newBoxText),oldTexts));});
+   var textWithUpdate = F3(function (entryBoxNum,newBoxText,oldTexts) {
+      return textsToString(A3($Array.set,entryBoxNum,$Maybe.Just(newBoxText),A2($Debug.log,"oldTexts",oldTexts)));
+   });
    var dialogStringTexts = F2(function (skipBlanks,s) {
       var filterFunc = skipBlanks ? $Helpers.takeNonEmpty : $Helpers.takeJusts;
-      return $Array.fromList(filterFunc($Array.fromList(A3($Helpers.splitLinesEvery,3,2,s))));
+      var newTexts = $Array.fromList(filterFunc($Array.fromList(A3($Helpers.splitLinesEvery,3,2,s))));
+      var _p1 = $Array.toList(newTexts);
+      if (_p1.ctor === "[]") {
+            return $Array.fromList(_U.list([""]));
+         } else {
+            return newTexts;
+         }
    });
    var updateText = F2(function (oldText,newText) {
       var skipBlanks = _U.cmp($String.length(newText),$String.length(oldText)) < 0;
       var newTexts = A2(dialogStringTexts,skipBlanks,A2($Debug.log,"newText",newText));
       return {ctor: "_Tuple2"
              ,_0: $Array.length(newTexts)
-             ,_1: A2($Array.map,function (_p1) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p1));},A2($Debug.log,"newTexts",newTexts))};
+             ,_1: A2($Array.map,function (_p2) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p2));},A2($Debug.log,"newTexts",newTexts))};
    });
    var debugString = function (texts) {    return A2($String.join,"\n|",$Helpers.takeJusts(texts));};
    var textBoxId = function (n) {    return A2($Basics._op["++"],"textBox",$Basics.toString(n));};
    var update = F2(function (action,model) {
-      var _p2 = action;
-      switch (_p2.ctor)
+      var _p3 = action;
+      switch (_p3.ctor)
       {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "ChooseCharacter": return {ctor: "_Tuple2"
                                         ,_0: _U.update(model,
-                                        {selection: $Maybe.Just(_p2._0)
+                                        {selection: $Maybe.Just(_p3._0)
                                         ,moodImg: $Maybe.Nothing
                                         ,text: $Array.fromList(_U.list([$Maybe.Just("")]))
                                         ,imageData: $Maybe.Nothing})
                                         ,_1: $Effects.none};
          case "ChooseMood": return {ctor: "_Tuple2"
-                                   ,_0: _U.update(model,{moodImg: $Maybe.Just(_p2._0),imageData: $Maybe.Nothing})
+                                   ,_0: _U.update(model,{moodImg: $Maybe.Just(_p3._0),imageData: $Maybe.Nothing})
                                    ,_1: A2(toFocusEffect,model.focusAddress,{elementId: textBoxId(1),moveCursorToEnd: false})};
          case "HandleKeypress": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "UpdateText": var _p3 = A2(updateText,textsToString(model.text),A3(textWithUpdate,_p2._0,_p2._1,model.text));
-           var boxCount = _p3._0;
-           var newText = _p3._1;
+         case "UpdateText": var _p4 = A2(updateText,textsToString(model.text),A3(textWithUpdate,_p3._0,_p3._1,model.text));
+           var boxCount = _p4._0;
+           var newText = _p4._1;
            return {ctor: "_Tuple2"
                   ,_0: _U.update(model,{text: newText,imageData: $Maybe.Nothing})
-                  ,_1: A2(toFocusEffect,model.focusAddress,{elementId: textBoxId(boxCount),moveCursorToEnd: _p2._2})};
-         case "SetScriptRoot": var _p4 = _p2._0;
-           return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p4}),_1: getImgurParams(_p4)};
-         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p2._0}),_1: $Effects.none};
+                  ,_1: A2(toFocusEffect,model.focusAddress,{elementId: textBoxId(boxCount),moveCursorToEnd: _p3._2})};
+         case "SetScriptRoot": var _p5 = _p3._0;
+           return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p5}),_1: getImgurParams(_p5)};
+         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p3._0}),_1: $Effects.none};
          case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
-         case "GotDownload": var _p6 = _p2._0;
-           var _p5 = A2($Imgur.update,$Imgur.SetImageData(_p6),model.imgur);
-           var newImgur = _p5._0;
-           var fx = _p5._1;
-           return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p6,imgur: newImgur}),_1: $Effects.none};
-         case "UpdateModal": return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p2._0,model.modal)}),_1: $Effects.none};
-         default: var _p7 = A2($Imgur.update,_p2._0,model.imgur);
-           var newImgur = _p7._0;
-           var fx = _p7._1;
+         case "GotDownload": var _p7 = _p3._0;
+           var _p6 = A2($Imgur.update,$Imgur.SetImageData(_p7),model.imgur);
+           var newImgur = _p6._0;
+           var fx = _p6._1;
+           return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p7,imgur: newImgur}),_1: $Effects.none};
+         case "UpdateModal": return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p3._0,model.modal)}),_1: $Effects.none};
+         default: var _p8 = A2($Imgur.update,_p3._0,model.imgur);
+           var newImgur = _p8._0;
+           var fx = _p8._1;
            return {ctor: "_Tuple2",_0: _U.update(model,{imgur: newImgur}),_1: A2($Effects.map,UpdateImgur,fx)};}
    });
    var dialogBoxTexts = function (arr) {
-      var _p8 = $Maybe$Extra.join(A2($Array.get,0,arr));
-      if (_p8.ctor === "Nothing") {
+      var _p9 = $Maybe$Extra.join(A2($Array.get,0,arr));
+      if (_p9.ctor === "Nothing") {
             return _U.list([""]);
          } else {
-            return A2($Basics._op["++"],_U.list([_p8._0]),$Helpers.takeJusts(A3($Array.slice,1,3,arr)));
+            return A2($Basics._op["++"],_U.list([_p9._0]),$Helpers.takeJusts(A3($Array.slice,1,3,arr)));
          }
    };
    var numBoxes = function (texts) {    return $List.length(dialogBoxTexts(texts));};
@@ -12217,7 +12225,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       A3($Maybe.map2,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),$Maybe.Just("data:image/png;base64,"),imgData),
       A2(dialogBoxImg,texts,address));
    });
-   var doubleImage = F2(function (imgSrc,_p9) {    var _p10 = _p9;return A3($Graphics$Element.image,_p10._0 * 2,_p10._1 * 2,imgSrc);});
+   var doubleImage = F2(function (imgSrc,_p10) {    var _p11 = _p10;return A3($Graphics$Element.image,_p11._0 * 2,_p11._1 * 2,imgSrc);});
    var crunchyButton = function (address) {
       return _U.list([A2($Html.div,
       _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"}]))]),
@@ -12226,9 +12234,9 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([$Html.text("MAKE IT CRUNCHY")]))]))]);
    };
    var dialogFrame = F2(function (imgSrc,character) {
-      var _p11 = $Character.portraitOffset($Maybe.Just(character));
-      var imgX = _p11._0;
-      var imgY = _p11._1;
+      var _p12 = $Character.portraitOffset($Maybe.Just(character));
+      var imgX = _p12._0;
+      var imgY = _p12._1;
       return $Html.fromElement(A3($Graphics$Collage.collage,
       596,
       168,
@@ -12268,11 +12276,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       return $Maybe.Just(A5(dialogCollage,A2(dialogFrame,imgSrc,character),address,$Maybe.Just(character),num,text));
    });
    var dialogBoxes = F2(function (address,model) {
-      var _p12 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
-      if (_p12.ctor === "Nothing") {
+      var _p13 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.selection,model.moodImg);
+      if (_p13.ctor === "Nothing") {
             return $Maybe.Nothing;
          } else {
-            return $Maybe$Extra.combine(A2($List.indexedMap,A3(dialogBox,address,_p12._0._0,_p12._0._1),dialogBoxTexts(model.text)));
+            return $Maybe$Extra.combine(A2($List.indexedMap,A3(dialogBox,address,_p13._0._0,_p13._0._1),dialogBoxTexts(model.text)));
          }
    });
    var spriteFolder = F2(function (root,c) {    return A2($Basics._op["++"],root,A2($Basics._op["++"],"images/sprites/",$Basics.toString(c)));});
@@ -12316,11 +12324,11 @@ Elm.UndertaleDialog.make = function (_elm) {
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
-   var maybeDivider = function (choice) {    var _p13 = choice;if (_p13.ctor === "Nothing") {    return blank;} else {    return header;}};
+   var maybeDivider = function (choice) {    var _p14 = choice;if (_p14.ctor === "Nothing") {    return blank;} else {    return header;}};
    var flatButton = _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "transparent"},{ctor: "_Tuple2",_0: "border",_1: "none"}]);
    var characterButton = F3(function (address,staticRoot,c) {
-      var _p14 = c;
-      if (_p14.ctor === "Temmie") {
+      var _p15 = c;
+      if (_p15.ctor === "Temmie") {
             return blank;
          } else {
             return A2($Html.button,
@@ -12345,11 +12353,11 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(1,$Character.moodCount(c))))]));
    });
    var moodSection = F3(function (address,root,maybeChar) {
-      var _p15 = maybeChar;
-      if (_p15.ctor === "Nothing") {
+      var _p16 = maybeChar;
+      if (_p16.ctor === "Nothing") {
             return blank;
          } else {
-            return A3(moodButtons,address,root,_p15._0);
+            return A3(moodButtons,address,root,_p16._0);
          }
    });
    var infoButton = F2(function (address,root) {

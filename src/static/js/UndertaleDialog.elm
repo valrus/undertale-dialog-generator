@@ -471,8 +471,14 @@ dialogStringTexts skipBlanks s =
                 takeNonEmpty
             else
                 takeJusts
+
+        newTexts =
+            Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 2 s
+
     in
-        Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 2 s
+        case Array.toList newTexts of
+          [ ] -> Array.fromList [""]
+          something -> newTexts
 
 
 textsToString : Array (Maybe String) -> String
@@ -483,7 +489,7 @@ textsToString texts =
 textWithUpdate : Int -> String -> Array (Maybe String) -> String
 textWithUpdate entryBoxNum newBoxText oldTexts =
     textsToString
-        <| Array.set entryBoxNum (Just newBoxText) oldTexts
+        <| Array.set entryBoxNum (Just newBoxText) (log "oldTexts" oldTexts)
 
 
 updateText : String -> String -> ( Int, Array (Maybe String) )
