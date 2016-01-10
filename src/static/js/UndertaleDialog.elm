@@ -1,5 +1,7 @@
 module UndertaleDialog (..) where
 
+import Debug exposing (log)
+
 import StartApp exposing (start)
 import Array exposing (Array, toList)
 import Character
@@ -9,7 +11,7 @@ import Either exposing (Either)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (image, Element)
 import Html exposing (..)
-import Html.Events exposing (on, targetValue, onClick)
+import Html.Events exposing (on, targetValue, onClick, onKeyPress)
 import Html.Attributes exposing (class, src, style)
 import Http
 import Json.Decode exposing (object2, string, (:=))
@@ -65,7 +67,7 @@ init characters focusAddress =
 -- General styles
 
 
-flatButton : List (String, String)
+flatButton : List ( String, String )
 flatButton =
     [ ( "backgroundColor", "transparent" )
     , ( "border", "none" )
@@ -235,8 +237,9 @@ textBox address character num text =
             ++ (Character.fontStyles character)
             ++ (Character.textboxStyles character)
         , Html.Attributes.rows 3
+        , Html.Attributes.value (takeLines 3 text)
         ]
-        [ Html.text text ]
+        []
 
 
 dialogCollage : Html -> Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
@@ -315,20 +318,12 @@ dialogBox address character imgSrc num text =
 
 dialogBoxTexts : Array (Maybe String) -> List String
 dialogBoxTexts arr =
-      case join (Array.get 0 arr) of
-          Nothing ->
-              [ "" ]
+    case join (Array.get 0 arr) of
+        Nothing ->
+            [ "" ]
 
-          Just first ->
-              [ first ] ++ takeJusts (Array.slice 1 3 arr)
-
-
-dialogStringTexts : Bool -> String -> Array String
-dialogStringTexts skipBlanks s =
-    let filterFunc =
-        if skipBlanks then takeNonEmpty else takeJusts
-    in
-        Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 3 s
+        Just first ->
+            [ first ] ++ takeJusts (Array.slice 1 3 arr)
 
 
 dialogBoxes : Signal.Address Action -> Model -> Maybe (List Html)
@@ -433,6 +428,10 @@ dialogBoxSection address model =
             ]
 
 
+debugString texts =
+    String.join "\n|" <| takeJusts texts
+
+
 view : Signal.Address Action -> Model -> Html
 view address model =
     div
@@ -443,6 +442,18 @@ view address model =
         , moodSection address model.staticRoot model.selection
         , maybeDivider model.moodImg
         , dialogBoxSection address model
+        , div
+            [ style [ ( "color", "white" ) ] ]
+            [ Html.text
+                <| String.map
+                    (\c ->
+                        if c == '\n' then
+                            '+'
+                        else
+                            c
+                    )
+                <| debugString model.text
+            ]
         , infoButton address model.staticRoot
         , Modal.view (Signal.forwardTo address UpdateModal) model.modal
         ]
@@ -452,15 +463,27 @@ view address model =
 -- Update
 
 
+dialogStringTexts : Bool -> String -> Array String
+dialogStringTexts skipBlanks s =
+    let
+        filterFunc =
+            if skipBlanks then
+                takeNonEmpty
+            else
+                takeJusts
+    in
+        Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 2 s
+
+
 textsToString : Array (Maybe String) -> String
 textsToString texts =
     String.join "\n" <| takeJusts texts
 
 
 textWithUpdate : Int -> String -> Array (Maybe String) -> String
-textWithUpdate entryBoxNum newBoxText oldText =
+textWithUpdate entryBoxNum newBoxText oldTexts =
     textsToString
-    <| Array.set entryBoxNum (Just newBoxText) oldText
+        <| Array.set entryBoxNum (Just newBoxText) oldTexts
 
 
 updateText : String -> String -> ( Int, Array (Maybe String) )
@@ -468,17 +491,20 @@ updateText oldText newText =
     let
         skipBlanks =
             (String.length newText) < (String.length oldText)
+
         newTexts =
-            dialogStringTexts skipBlanks newText
+            dialogStringTexts skipBlanks (log "newText" newText)
     in
         ( Array.length <| newTexts
-        , Array.map (Just << takeLines 3) newTexts)
+        , Array.map (Just << takeLines 3) (log "newTexts" newTexts)
+        )
 
 
 type Action
     = NoOp ()
     | ChooseCharacter Character.Name
     | ChooseMood String
+    | HandleKeypress Int
     | UpdateText Int String Bool
     | SetScriptRoot String
     | SetStaticRoot String
@@ -518,12 +544,17 @@ update action model =
                 }
             )
 
+        HandleKeypress k ->
+            ( model
+            , none
+            )
+
         UpdateText boxNum s moveCursor ->
             let
                 ( boxCount, newText ) =
                     updateText
-                    (textsToString model.text)
-                    (textWithUpdate boxNum s model.text)
+                        (textsToString model.text)
+                        (textWithUpdate boxNum s model.text)
             in
                 ( { model
                     | text = newText

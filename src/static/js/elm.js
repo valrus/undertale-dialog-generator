@@ -11830,18 +11830,18 @@ Elm.Helpers.make = function (_elm) {
    $String = Elm.String.make(_elm);
    var _op = {};
    var takeLines = F2(function (n,s) {    return A2($String.join,"\n",A2($List.take,n,$String.lines(s)));});
-   var splitEvery = F3(function (n,max,xs) {
-      var _p0 = {ctor: "_Tuple2",_0: max,_1: xs};
-      if (_p0._0 === 0) {
-            return _U.list([$Maybe.Just(_p0._1)]);
+   var splitEvery = F3(function (n,times,xs) {
+      var _p0 = {ctor: "_Tuple2",_0: times,_1: xs};
+      if (_p0._1.ctor === "[]") {
+            return _U.list([$Maybe.Nothing]);
          } else {
-            if (_p0._1.ctor === "[]") {
-                  return _U.list([$Maybe.Nothing]);
+            if (_p0._0 === 0) {
+                  return _U.list([$Maybe.Just(_p0._1)]);
                } else {
                   var _p1 = A2($List$Extra.splitAt,n,_p0._1);
                   var first = _p1._0;
                   var rest = _p1._1;
-                  return A2($List._op["::"],$Maybe.Just(first),A3(splitEvery,n,max - 1,rest));
+                  return A2($List._op["::"],$Maybe.Just(first),A3(splitEvery,n,times - 1,rest));
                }
          }
    });
@@ -11850,12 +11850,12 @@ Elm.Helpers.make = function (_elm) {
       return A3($List.foldr,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),_U.list([]),A2($List.map,$Maybe$Extra.maybeToList,$Array.toList(justs)));
    };
    var takeNonEmpty = function (arr) {    var justs = takeJusts(arr);return A2($List.filter,F2(function (x,y) {    return !_U.eq(x,y);})(""),justs);};
-   var splitLinesEvery = F3(function (n,max,s) {
+   var splitLinesEvery = F3(function (n,times,s) {
       return A2($List.map,
       function (_p2) {
          return $Maybe.Just(A2($String.join,"\n",_p2));
       },
-      takeJusts($Array.fromList(A3(splitEvery,n,max,$String.lines(s)))));
+      takeJusts($Array.fromList(A3(splitEvery,n,times,$String.lines(s)))));
    });
    return _elm.Helpers.values = {_op: _op
                                 ,takeJusts: takeJusts
@@ -12137,22 +12137,26 @@ Elm.UndertaleDialog.make = function (_elm) {
    var SetStaticRoot = function (a) {    return {ctor: "SetStaticRoot",_0: a};};
    var SetScriptRoot = function (a) {    return {ctor: "SetScriptRoot",_0: a};};
    var UpdateText = F3(function (a,b,c) {    return {ctor: "UpdateText",_0: a,_1: b,_2: c};});
+   var HandleKeypress = function (a) {    return {ctor: "HandleKeypress",_0: a};};
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
    var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
    var toFocusEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,$Focus.Focus(params))));});
    var textsToString = function (texts) {    return A2($String.join,"\n",$Helpers.takeJusts(texts));};
-   var textWithUpdate = F3(function (entryBoxNum,newBoxText,oldText) {    return textsToString(A3($Array.set,entryBoxNum,$Maybe.Just(newBoxText),oldText));});
-   var textBoxId = function (n) {    return A2($Basics._op["++"],"textBox",$Basics.toString(n));};
+   var textWithUpdate = F3(function (entryBoxNum,newBoxText,oldTexts) {    return textsToString(A3($Array.set,entryBoxNum,$Maybe.Just(newBoxText),oldTexts));});
    var dialogStringTexts = F2(function (skipBlanks,s) {
       var filterFunc = skipBlanks ? $Helpers.takeNonEmpty : $Helpers.takeJusts;
-      return $Array.fromList(filterFunc($Array.fromList(A3($Helpers.splitLinesEvery,3,3,s))));
+      return $Array.fromList(filterFunc($Array.fromList(A3($Helpers.splitLinesEvery,3,2,s))));
    });
    var updateText = F2(function (oldText,newText) {
       var skipBlanks = _U.cmp($String.length(newText),$String.length(oldText)) < 0;
-      var newTexts = A2(dialogStringTexts,skipBlanks,newText);
-      return {ctor: "_Tuple2",_0: $Array.length(newTexts),_1: A2($Array.map,function (_p1) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p1));},newTexts)};
+      var newTexts = A2(dialogStringTexts,skipBlanks,A2($Debug.log,"newText",newText));
+      return {ctor: "_Tuple2"
+             ,_0: $Array.length(newTexts)
+             ,_1: A2($Array.map,function (_p1) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p1));},A2($Debug.log,"newTexts",newTexts))};
    });
+   var debugString = function (texts) {    return A2($String.join,"\n|",$Helpers.takeJusts(texts));};
+   var textBoxId = function (n) {    return A2($Basics._op["++"],"textBox",$Basics.toString(n));};
    var update = F2(function (action,model) {
       var _p2 = action;
       switch (_p2.ctor)
@@ -12167,6 +12171,7 @@ Elm.UndertaleDialog.make = function (_elm) {
          case "ChooseMood": return {ctor: "_Tuple2"
                                    ,_0: _U.update(model,{moodImg: $Maybe.Just(_p2._0),imageData: $Maybe.Nothing})
                                    ,_1: A2(toFocusEffect,model.focusAddress,{elementId: textBoxId(1),moveCursorToEnd: false})};
+         case "HandleKeypress": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
          case "UpdateText": var _p3 = A2(updateText,textsToString(model.text),A3(textWithUpdate,_p2._0,_p2._1,model.text));
            var boxCount = _p3._0;
            var newText = _p3._1;
@@ -12241,8 +12246,9 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,$Html$Attributes.style(A2($Basics._op["++"],
               _U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),
               A2($Basics._op["++"],$Character.fontStyles(character),$Character.textboxStyles(character))))
-              ,$Html$Attributes.rows(3)]),
-      _U.list([$Html.text(text)]));
+              ,$Html$Attributes.rows(3)
+              ,$Html$Attributes.value(A2($Helpers.takeLines,3,text))]),
+      _U.list([]));
    });
    var indentAsterisk = function (character) {
       return A2($Html.div,
@@ -12363,6 +12369,9 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,A3(moodSection,address,model.staticRoot,model.selection)
               ,maybeDivider(model.moodImg)
               ,A2(dialogBoxSection,address,model)
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "color",_1: "white"}]))]),
+              _U.list([$Html.text(A2($String.map,function (c) {    return _U.eq(c,_U.chr("\n")) ? _U.chr("+") : c;},debugString(model.text)))]))
               ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
@@ -12452,7 +12461,6 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,doubleImage: doubleImage
                                         ,dialogBox: dialogBox
                                         ,dialogBoxTexts: dialogBoxTexts
-                                        ,dialogStringTexts: dialogStringTexts
                                         ,dialogBoxes: dialogBoxes
                                         ,numBoxes: numBoxes
                                         ,dialogBoxImg: dialogBoxImg
@@ -12460,13 +12468,16 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,infoButton: infoButton
                                         ,textBoxId: textBoxId
                                         ,dialogBoxSection: dialogBoxSection
+                                        ,debugString: debugString
                                         ,view: view
+                                        ,dialogStringTexts: dialogStringTexts
                                         ,textsToString: textsToString
                                         ,textWithUpdate: textWithUpdate
                                         ,updateText: updateText
                                         ,NoOp: NoOp
                                         ,ChooseCharacter: ChooseCharacter
                                         ,ChooseMood: ChooseMood
+                                        ,HandleKeypress: HandleKeypress
                                         ,UpdateText: UpdateText
                                         ,SetScriptRoot: SetScriptRoot
                                         ,SetStaticRoot: SetStaticRoot
