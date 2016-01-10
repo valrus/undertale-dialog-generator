@@ -1,7 +1,6 @@
 module UndertaleDialog (..) where
 
 import Debug exposing (log)
-
 import StartApp exposing (start)
 import Array exposing (Array, toList)
 import Character
@@ -225,7 +224,7 @@ indentAsterisk character =
 textBox : Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
 textBox address character num text =
     textarea
-        [ Html.Attributes.id <| "textBox" ++ (toString (num + 1))
+        [ Html.Attributes.id <| "textBox" ++ (toString num)
         , on
             "input"
             targetValue
@@ -312,7 +311,7 @@ dialogBox address character imgSrc num text =
             (dialogFrame imgSrc character)
             address
             (Just character)
-            num
+            (num + 1)
             text
 
 
@@ -474,11 +473,13 @@ dialogStringTexts skipBlanks s =
 
         newTexts =
             Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 2 s
-
     in
         case Array.toList newTexts of
-          [ ] -> Array.fromList [""]
-          something -> newTexts
+            [] ->
+                Array.fromList [ "" ]
+
+            something ->
+                newTexts
 
 
 textsToString : Array (Maybe String) -> String
@@ -487,22 +488,28 @@ textsToString texts =
 
 
 textWithUpdate : Int -> String -> Array (Maybe String) -> String
-textWithUpdate entryBoxNum newBoxText oldTexts =
+textWithUpdate entryBoxIndex newBoxText oldTexts =
     textsToString
-        <| Array.set entryBoxNum (Just newBoxText) (log "oldTexts" oldTexts)
+        <| Array.set entryBoxIndex (Just newBoxText) (log "oldTexts" oldTexts)
 
 
-updateText : String -> String -> ( Int, Array (Maybe String) )
-updateText oldText newText =
+updateText : Int -> String -> Array (Maybe String) -> ( Int, Array (Maybe String) )
+updateText boxIndex newBoxText oldTexts =
     let
+        prevBoxText =
+            Maybe.withDefault "" <| join <| Array.get boxIndex oldTexts
+
         -- if we're removing text, wipe out empty dialog boxes
         skipBlanks =
-            (String.length newText) < (String.length oldText)
+            (String.length newBoxText) < (String.length (log "prev" prevBoxText))
 
         newTexts =
-            dialogStringTexts skipBlanks (log "newText" newText)
+            dialogStringTexts skipBlanks <| textWithUpdate boxIndex (log "newBoxText" newBoxText) oldTexts
     in
-        ( Array.length newTexts
+        ( if Array.length newTexts /= Array.length oldTexts then
+            Array.length newTexts
+          else
+            (boxIndex + 1)
         , Array.map (Just << takeLines 3) (log "newTexts" newTexts)
         )
 
@@ -556,15 +563,16 @@ update action model =
             , none
             )
 
-        UpdateText boxNum s moveCursor ->
+        UpdateText boxNum newText moveCursor ->
             let
-                ( focusBoxNum, newText ) =
+                ( focusBoxNum, newTexts ) =
                     updateText
-                        (textsToString model.text)
-                        (textWithUpdate boxNum s model.text)
+                        (boxNum - 1)  -- used for array indexing in here
+                        newText
+                        model.text
             in
                 ( { model
-                    | text = newText
+                    | text = newTexts
                     , imageData = Nothing
                   }
                 , toFocusEffect
