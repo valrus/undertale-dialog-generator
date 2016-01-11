@@ -1,14 +1,11 @@
 module UndertaleDialog (..) where
 
-import Debug exposing (log)
 import StartApp exposing (start)
-import Array exposing (Array, toList)
+import Array exposing (Array, toList, fromList)
 import Character
 import Color exposing (grayscale)
 import Effects exposing (Effects, Never, none)
 import Either exposing (Either)
-import Graphics.Collage exposing (collage, move, filled, rect, toForm)
-import Graphics.Element exposing (image, Element)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick, onKeyPress)
 import Html.Attributes exposing (class, src, style)
@@ -24,9 +21,11 @@ import Imgur
 import Modal
 
 
--- Could split the map stuff into a different module
+-- Local modules
+-- Could split the image map stuff into a different module
 
 import CreditsModal exposing (creditsDialog, mapArea)
+import DialogBoxes
 
 
 -- Model
@@ -35,8 +34,7 @@ import CreditsModal exposing (creditsDialog, mapArea)
 type alias Model =
     { characters : List Character.Name
     , selection : Maybe Character.Name
-    , moodImg : Maybe String
-    , text : Array (Maybe String)
+    , dialogs : DialogBoxes.Model
     , staticRoot : String
     , scriptRoot : String
     , imageData : Maybe String
@@ -50,8 +48,7 @@ init : List Character.Name -> Signal.Address Focus.Action -> Model
 init characters focusAddress =
     { characters = characters
     , selection = Nothing
-    , moodImg = Nothing
-    , text = Array.fromList [ Just "", Nothing, Nothing ]
+    , dialogs = DialogBoxes.init
     , staticRoot = "/static/"
     , scriptRoot = ""
     , imageData = Nothing
@@ -209,81 +206,7 @@ moodSection address root maybeChar =
 
 
 
--- Dialog box
-
-
-indentAsterisk : Maybe Character.Name -> Html
-indentAsterisk character =
-    div
-        [ Html.Attributes.id "indent"
-        , style <| Character.fontStyles character
-        ]
-        [ Html.text <| Character.dialogAsterisk character ]
-
-
-textBox : Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
-textBox address character num text =
-    textarea
-        [ Html.Attributes.id <| "textBox" ++ (toString num)
-        , on
-            "input"
-            targetValue
-            (\s -> Signal.message address <| UpdateText num s False)
-        , style
-            <| [ ( "line-height", "36px" )
-                 -- TODO: Make the "36px" a function
-               ]
-            ++ (Character.fontStyles character)
-            ++ (Character.textboxStyles character)
-        , Html.Attributes.rows 3
-        , Html.Attributes.value (takeLines 3 text)
-        ]
-        []
-
-
-dialogCollage : Html -> Signal.Address Action -> Maybe Character.Name -> Int -> String -> Html
-dialogCollage e address character num text =
-    div
-        [ style [ ( "width", "100%" ) ] ]
-        [ div
-            [ style
-                [ ( "width", "596px" )
-                , ( "position", "relative" )
-                , ( "margin", "0 auto" )
-                ]
-            ]
-            [ div
-                [ Html.Attributes.class "dialog" ]
-                [ e
-                , indentAsterisk character
-                , textBox address character num text
-                ]
-            ]
-        ]
-
-
-dialogFrame : String -> Character.Name -> Html
-dialogFrame imgSrc character =
-    let
-        ( imgX, imgY ) = Character.portraitOffset (Just character)
-    in
-        (fromElement
-            <| collage
-                596
-                168
-                [ filled (grayscale 1) (rect 596 168)
-                  -- outer black border
-                , filled (grayscale 0) (rect 580 152)
-                  -- outer white border
-                , filled (grayscale 1) (rect 568 140)
-                  -- inner black box
-                , (toForm
-                    <| doubleImage imgSrc
-                    <| Character.portraitSize (Just character)
-                  )
-                    |> move ( -214 + imgX, imgY )
-                ]
-        )
+-- Dialog boxes
 
 
 crunchyButton : Signal.Address Action -> List Html
@@ -299,22 +222,6 @@ crunchyButton address =
     ]
 
 
-doubleImage : String -> ( Int, Int ) -> Graphics.Element.Element
-doubleImage imgSrc ( w, h ) =
-    image (w * 2) (h * 2) imgSrc
-
-
-dialogBox : Signal.Address Action -> Character.Name -> String -> Int -> String -> Maybe Html
-dialogBox address character imgSrc num text =
-    Just
-        <| dialogCollage
-            (dialogFrame imgSrc character)
-            address
-            (Just character)
-            (num + 1)
-            text
-
-
 dialogBoxTexts : Array (Maybe String) -> List String
 dialogBoxTexts arr =
     case join (Array.get 0 arr) of
@@ -325,56 +232,40 @@ dialogBoxTexts arr =
             [ first ] ++ takeJusts (Array.slice 1 3 arr)
 
 
-dialogBoxes : Signal.Address Action -> Model -> Maybe (List Html)
-dialogBoxes address model =
-    case Maybe.map2 (,) model.selection model.moodImg of
-        Nothing ->
-            Nothing
-
-        Just ( character, imgSrc ) ->
-            combine
-                <| List.indexedMap (dialogBox address character imgSrc)
-                <| dialogBoxTexts model.text
-
-
 numBoxes : Array (Maybe String) -> Int
 numBoxes texts =
     List.length <| dialogBoxTexts texts
 
 
-dialogBoxImg : Array (Maybe String) -> Signal.Address Action -> String -> Maybe (List Html)
-dialogBoxImg texts address pngData =
+dialogBoxImg : DialogBoxes.Model -> Signal.Address Action -> String -> List Html
+dialogBoxImg boxes address pngData =
     let
         boxCount =
-            numBoxes texts
+            DialogBoxes.count boxes
     in
-        Just
-            <| [ Html.a
-                    []
-                    [ Html.img
-                        [ onClick address
-                            <| UpdateText
-                                (numBoxes texts)
-                                (Maybe.withDefault "" <| join <| Array.get boxCount texts)
-                                True
-                        , style
-                            [ ( "margin", "0 auto" )
-                            , ( "display", "block" )
-                            ]
-                        , src pngData
-                        ]
-                        []
+        [ Html.a
+            []
+            [ Html.img
+                [ onClick address
+                    <| UpdateDialogs (DialogBoxes.UpdateText boxCount (DialogBoxes.getText boxCount boxes))
+                , style
+                    [ ( "margin", "0 auto" )
+                    , ( "display", "block" )
                     ]
-               ]
+                , src pngData
+                ]
+                []
+            ]
+        ]
 
 
-returnedDialogBox : Array (Maybe String) -> Signal.Address Action -> Maybe String -> Maybe (List Html)
-returnedDialogBox texts address imgData =
+returnedDialogBox : DialogBoxes.Model -> Signal.Address Action -> Maybe String -> Maybe (List Html)
+returnedDialogBox boxes address imgData =
     Maybe.map2
         (++)
         (Just "data:image/png;base64,")
         imgData
-        `andThen` dialogBoxImg texts address
+        `andThen` (Just << dialogBoxImg boxes address)
 
 
 
@@ -414,21 +305,16 @@ dialogBoxSection address model =
         <| Maybe.oneOf
             [ Maybe.map2
                 (++)
-                (returnedDialogBox model.text address model.imageData)
+                (returnedDialogBox model.dialogs address model.imageData)
                 (Just
                     <| [ Imgur.view (Signal.forwardTo address UpdateImgur) model.imgur
                             <| model.staticRoot
                        ]
                 )
-            , Maybe.map2
-                (++)
-                (dialogBoxes address model)
-                (Just <| crunchyButton address)
+            , Just
+                <| (DialogBoxes.view (Signal.forwardTo address UpdateDialogs) model.dialogs)
+                ++ if DialogBoxes.viewable model.dialogs then (crunchyButton address) else []
             ]
-
-
-debugString texts =
-    String.join "\n|" <| takeJusts texts
 
 
 view : Signal.Address Action -> Model -> Html
@@ -439,87 +325,20 @@ view address model =
         , characterButtons address model.staticRoot model.characters
         , maybeDivider model.selection
         , moodSection address model.staticRoot model.selection
-        , maybeDivider model.moodImg
         , dialogBoxSection address model
-        , div
-            [ style [ ( "color", "white" ) ] ]
-            [ Html.text
-                <| String.map
-                    (\c ->
-                        if c == '\n' then
-                            '+'
-                        else
-                            c
-                    )
-                <| debugString model.text
-            ]
         , infoButton address model.staticRoot
         , Modal.view (Signal.forwardTo address UpdateModal) model.modal
         ]
 
 
-
 -- Update
-
-
-dialogStringTexts : Bool -> String -> Array String
-dialogStringTexts skipBlanks s =
-    let
-        filterFunc =
-            if skipBlanks then
-                takeNonEmpty
-            else
-                takeJusts
-
-        newTexts =
-            Array.fromList <| filterFunc <| Array.fromList <| splitLinesEvery 3 2 s
-    in
-        case Array.toList newTexts of
-            [] ->
-                Array.fromList [ "" ]
-
-            something ->
-                newTexts
-
-
-textsToString : Array (Maybe String) -> String
-textsToString texts =
-    String.join "\n" <| takeJusts texts
-
-
-textWithUpdate : Int -> String -> Array (Maybe String) -> String
-textWithUpdate entryBoxIndex newBoxText oldTexts =
-    textsToString
-        <| Array.set entryBoxIndex (Just newBoxText) (log "oldTexts" oldTexts)
-
-
-updateText : Int -> String -> Array (Maybe String) -> ( Int, Array (Maybe String) )
-updateText boxIndex newBoxText oldTexts =
-    let
-        prevBoxText =
-            Maybe.withDefault "" <| join <| Array.get boxIndex oldTexts
-
-        -- if we're removing text, wipe out empty dialog boxes
-        skipBlanks =
-            (String.length newBoxText) < (String.length (log "prev" prevBoxText))
-
-        newTexts =
-            dialogStringTexts skipBlanks <| textWithUpdate boxIndex (log "newBoxText" newBoxText) oldTexts
-    in
-        ( if Array.length newTexts /= Array.length oldTexts then
-            Array.length newTexts
-          else
-            (boxIndex + 1)
-        , Array.map (Just << takeLines 3) (log "newTexts" newTexts)
-        )
 
 
 type Action
     = NoOp ()
     | ChooseCharacter Character.Name
     | ChooseMood String
-    | HandleKeypress Int
-    | UpdateText Int String Bool
+    | UpdateDialogs DialogBoxes.Action
     | SetScriptRoot String
     | SetStaticRoot String
     | GetDownload
@@ -537,47 +356,43 @@ update action model =
             )
 
         ChooseCharacter c ->
-            ( { model
-                | selection = Just c
-                , moodImg = Nothing
-                , text = Array.fromList [ Just "" ]
-                , imageData = Nothing
-              }
-            , none
-            )
+            let
+                ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetCharacter c) model.dialogs
+            in
+              ( { model
+                  | selection = Just c
+                  , dialogs = newBoxes
+                  , imageData = Nothing
+                }
+              , none
+              )
 
         ChooseMood s ->
-            ( { model
-                | moodImg = Just s
-                , imageData = Nothing
-              }
-            , toFocusEffect
-                model.focusAddress
-                { elementId = textBoxId 1
-                , moveCursorToEnd = False
-                }
-            )
-
-        HandleKeypress k ->
-            ( model
-            , none
-            )
-
-        UpdateText boxNum newText moveCursor ->
             let
-                ( focusBoxNum, newTexts ) =
-                    updateText
-                        (boxNum - 1)  -- used for array indexing in here
-                        newText
-                        model.text
+                ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetImages s) model.dialogs
+            in
+              ( { model
+                  | dialogs = newBoxes
+                  , imageData = Nothing
+                }
+              , toFocusEffect
+                  model.focusAddress
+                  { elementId = textBoxId 1
+                  , moveCursorToEnd = moveCursor
+                  }
+              )
+
+        UpdateDialogs action ->
+            let
+                ( newBoxes, moveCursor ) = DialogBoxes.update action model.dialogs
             in
                 ( { model
-                    | text = newTexts
+                    | dialogs = newBoxes
                     , imageData = Nothing
                   }
                 , toFocusEffect
                     model.focusAddress
-                    { elementId = textBoxId focusBoxNum
+                    { elementId = textBoxId newBoxes.focusIndex
                     , moveCursorToEnd = moveCursor
                     }
                 )
@@ -641,17 +456,18 @@ getSubmitUrl root =
 
 getDialogBoxImg : Model -> Effects Action
 getDialogBoxImg model =
-    case Maybe.map2 (,) model.selection model.moodImg of
+    case model.selection of
         Nothing ->
             none
 
-        Just ( c, img ) ->
+        Just c ->
             Http.url
                 (getSubmitUrl model.scriptRoot)
-                [ ( "character", toString c )
-                , ( "moodImg", img )
-                , ( "text", String.join "\n" <| takeJusts model.text )
-                ]
+                ([ ( "character", toString c )
+                 , ( "text", DialogBoxes.concat model.dialogs )
+                 ]
+                    ++ (List.map ((,) "moodImg") <| DialogBoxes.getImgSrcs model.dialogs)
+                )
                 |> Http.getString
                 |> Task.toMaybe
                 |> Task.map GotDownload

@@ -52,37 +52,37 @@ moodCount c =
             3
 
 
-portraitSize : Maybe Name -> ( Int, Int )
+portraitSize : Name -> ( Int, Int )
 portraitSize c =
     case c of
-        Just Napstablook ->
+        Napstablook ->
             ( 60, 66 )
 
         _ ->
             ( 60, 60 )
 
 
-portraitOffset : Maybe Name -> ( Float, Float )
+portraitOffset : Name -> ( Float, Float )
 portraitOffset c =
     case c of
-        Just Napstablook ->
+        Napstablook ->
             ( 0, -4 )
 
         _ ->
             ( 0, 0 )
 
 
-fontStyles : Maybe Name -> StyleList
+fontStyles : Name -> StyleList
 fontStyles c =
     case c of
-        Just Papyrus ->
+        Papyrus ->
             [ ( "font-family", "Smooth_Papyrus, Papyrus" )
             , ( "font-size", "26px" )
             , ( "font-weight", "bold" )
             , ( "text-transform", "uppercase" )
             ]
 
-        Just Sans ->
+        Sans ->
             [ ( "font-family", "Comic Sans, Comic Sans MS Regular, Comic Sans MS" )
             , ( "font-size", "30px" )
             , ( "font-weight", "bold" )
@@ -96,15 +96,15 @@ fontStyles c =
             ]
 
 
-textboxStyles : Maybe Name -> StyleList
+textboxStyles : Name -> StyleList
 textboxStyles c =
     case c of
-        Just Papyrus ->
+        Papyrus ->
             [ ( "width", "416px" )
             , ( "left", "150px" )
             ]
 
-        Just Sans ->
+        Sans ->
             [ ( "width", "382px" )
             , ( "left", "184px" )
             ]
@@ -115,10 +115,10 @@ textboxStyles c =
             ]
 
 
-dialogAsterisk : Maybe Name -> String
+dialogAsterisk : Name -> String
 dialogAsterisk c =
     case c of
-        Just Papyrus ->
+        Papyrus ->
             ""
 
         _ ->
