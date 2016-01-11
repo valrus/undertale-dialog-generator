@@ -1,6 +1,5 @@
 module DialogBox (..) where
 
-import Debug exposing (log)
 import Color exposing (grayscale)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (image)
@@ -139,7 +138,7 @@ certifyModel model =
 
 view : Signal.Address String -> Character.Name -> Model -> Html
 view address chara model =
-    case certifyModel (log "box" model) of
+    case certifyModel model of
         Nothing ->
             div [ Html.Attributes.class ("emptyDialog" ++ toString model.index) ] []
 

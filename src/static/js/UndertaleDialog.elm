@@ -13,7 +13,6 @@ import Http
 import Json.Decode exposing (object2, string, (:=))
 import Maybe exposing (Maybe, andThen)
 import Maybe.Extra exposing (combine, isJust, join, maybeToList)
-import String exposing (lines)
 import Task
 import Focus
 import Helpers exposing (..)

@@ -1,6 +1,5 @@
 module DialogBoxes (..) where
 
-import Debug exposing (log)
 import Array exposing (Array, toList, fromList)
 import Html exposing (Html)
 import Maybe.Extra exposing (isJust, join)
@@ -67,20 +66,22 @@ viewable model =
     List.any isJust (toList <| Array.map DialogBox.certifyModel model.boxes)
 
 
+
 -- View
 
 
 view : Signal.Address Action -> Model -> List Html
 view address model =
     case model.character of
-      Nothing ->
-          [ ]
+        Nothing ->
+            []
 
-      Just chara ->
-        Array.toList
-            <| Array.indexedMap
-                (\i -> DialogBox.view (Signal.forwardTo address (UpdateText i)) chara)
-                model.boxes
+        Just chara ->
+            Array.toList
+                <| Array.indexedMap
+                    (\i -> DialogBox.view (Signal.forwardTo address (UpdateText i)) chara)
+                    model.boxes
+
 
 
 -- Update
@@ -114,7 +115,7 @@ textsToString texts =
 textWithUpdate : Int -> String -> Array (Maybe String) -> String
 textWithUpdate entryBoxIndex newBoxText oldTexts =
     textsToString
-        <| Array.set entryBoxIndex (Just newBoxText) (log "oldTexts" oldTexts)
+        <| Array.set entryBoxIndex (Just newBoxText) oldTexts
 
 
 pad : Int -> a -> List a -> List a
@@ -139,7 +140,7 @@ updateText boxIndex newBoxText oldTexts =
             Array.length newTexts
           else
             (boxIndex + 1)
-        , pad 3 Nothing <| List.map (Just << takeLines 3) (log "newTexts" (toList newTexts))
+        , pad 3 Nothing <| List.map (Just << takeLines 3) (toList newTexts)
         )
 
 

@@ -11910,7 +11910,7 @@ Elm.DialogBox.make = function (_elm) {
       _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("dialog")]),_U.list([elem,indentAsterisk(chara),A3(textBox,address,model,chara)]))]))]));
    });
    var view = F3(function (address,chara,model) {
-      var _p5 = certifyModel(A2($Debug.log,"box",model));
+      var _p5 = certifyModel(model);
       if (_p5.ctor === "Nothing") {
             return A2($Html.div,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"emptyDialog",$Basics.toString(model.index)))]),_U.list([]));
          } else {
@@ -11963,7 +11963,7 @@ Elm.DialogBoxes.make = function (_elm) {
    var pad = F3(function (len,item,xs) {    return A2($Basics._op["++"],xs,A2($List.repeat,len - $List.length(xs),item));});
    var textsToString = function (texts) {    return A2($String.join,"\n",$Helpers.takeJusts(texts));};
    var textWithUpdate = F3(function (entryBoxIndex,newBoxText,oldTexts) {
-      return textsToString(A3($Array.set,entryBoxIndex,$Maybe.Just(newBoxText),A2($Debug.log,"oldTexts",oldTexts)));
+      return textsToString(A3($Array.set,entryBoxIndex,$Maybe.Just(newBoxText),oldTexts));
    });
    var dialogStringTexts = F2(function (skipBlanks,s) {
       var filterFunc = skipBlanks ? $Helpers.takeNonEmpty : $Helpers.takeJusts;
@@ -11981,10 +11981,7 @@ Elm.DialogBoxes.make = function (_elm) {
       var newTexts = A2(dialogStringTexts,skipBlanks,A3(textWithUpdate,boxIndex,newBoxText,oldTexts));
       return {ctor: "_Tuple2"
              ,_0: !_U.eq($Array.length(newTexts),$List.length($Helpers.takeJusts(oldTexts))) ? $Array.length(newTexts) : boxIndex + 1
-             ,_1: A3(pad,
-             3,
-             $Maybe.Nothing,
-             A2($List.map,function (_p1) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p1));},A2($Debug.log,"newTexts",$Array.toList(newTexts))))};
+             ,_1: A3(pad,3,$Maybe.Nothing,A2($List.map,function (_p1) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p1));},$Array.toList(newTexts)))};
    });
    var view = F2(function (address,model) {
       var _p2 = model.character;
