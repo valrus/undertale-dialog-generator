@@ -12022,7 +12022,7 @@ Elm.DialogBoxes.make = function (_elm) {
    });
    var concat = function (model) {
       return A2($String.join,
-      "",
+      "\n",
       $Array.toList(A2($Array.map,function (_p7) {    return A2($Maybe.withDefault,"",function (_) {    return _.text;}(_p7));},model.boxes)));
    };
    var count = function (model) {

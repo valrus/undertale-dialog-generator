@@ -43,7 +43,7 @@ count model =
 
 concat : Model -> String
 concat model =
-    String.join "" <| Array.toList <| Array.map (Maybe.withDefault "" << .text) model.boxes
+    String.join "\n" <| Array.toList <| Array.map (Maybe.withDefault "" << .text) model.boxes
 
 
 getText : Int -> Model -> String
