@@ -64,21 +64,34 @@ def getFontForCharacter(character):
         return ImageFont.truetype(os.path.join(font_dir, 'DTM-Mono.otf'), 13)
 
 
+def chunks(lst, length, max_chunks=3):
+    left = max_chunks
+    for i in xrange(0, len(lst), length):
+        if left == 0:
+            yield lst[i:]
+            break
+        yield lst[i:i + length]
+        left -= 1
+
+
 def dialogBox(portrait, text, fnt, doIndent=True):
-    orig_size = Size(298, 84)
+    textChunks = list(chunks(text.split('\n'), 3))
+    orig_size = Size(298, 4 + 84 * len(textChunks))
     # mode = '1' is black and white
     img = Image.new(b'1', orig_size)
     draw = ImageDraw.Draw(img)
     draw.fontmode = b'1'
-    draw.rectangle((4, 4, 294, 80), fill=1)
-    draw.rectangle((7, 7, 291, 77), fill=0)
-    img.paste(portrait, (13, 12))
-    for row, line in enumerate(text.split('\n')[:3]):
-        if app.debug:
-            print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
-        draw.text((77, 16 + row * 18),
-                  _indent(row, line) if doIndent else line,
-                  fill=1, font=fnt)
+    for boxNum, textChunk in enumerate(textChunks):
+        y_offset = 84 * boxNum
+        draw.rectangle((4, 4 + y_offset, 294, 80 + y_offset), fill=1)
+        draw.rectangle((7, 7 + y_offset, 291, 77 + y_offset), fill=0)
+        img.paste(portrait, (13, 12 + y_offset))
+        for row, line in enumerate(textChunk[:3]):
+            if app.debug:
+                print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
+            draw.text((77, y_offset + 16 + row * 18),
+                    _indent(row, line) if doIndent else line,
+                    fill=1, font=fnt)
     return img.resize(Size(orig_size.x * 2, orig_size.y * 2))
 
 
