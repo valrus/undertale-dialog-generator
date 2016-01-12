@@ -43,12 +43,12 @@ count model =
 
 concat : Model -> String
 concat model =
-    String.join "\n" <| Array.toList <| Array.map (Maybe.withDefault "" << .text) model.boxes
+    String.join "\n" <| takeJusts <| Array.map .text model.boxes
 
 
-getText : Int -> Model -> String
+getText : Int -> Model -> Maybe String
 getText i model =
-    Maybe.withDefault "" <| (Array.get i model.boxes `Maybe.andThen` .text)
+    Array.get i model.boxes `Maybe.andThen` .text
 
 
 getTexts : Model -> Array (Maybe String)

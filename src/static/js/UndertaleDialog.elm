@@ -1,5 +1,7 @@
 module UndertaleDialog (..) where
 
+import Debug exposing (log)
+
 import StartApp exposing (start)
 import Array exposing (Array, toList, fromList)
 import Character
@@ -240,7 +242,7 @@ dialogBoxImg : DialogBoxes.Model -> Signal.Address Action -> String -> List Html
 dialogBoxImg boxes address pngData =
     let
         boxCount =
-            DialogBoxes.count boxes
+            log "boxCount" <| DialogBoxes.count boxes
     in
         [ Html.a
             []

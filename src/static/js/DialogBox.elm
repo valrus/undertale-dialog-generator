@@ -1,6 +1,5 @@
 module DialogBox (..) where
 
-import Debug exposing (log)
 import Color exposing (grayscale)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (image)
@@ -55,10 +54,10 @@ indentAsterisk character =
 
 deleteEmptyBox : String -> Int -> Maybe String
 deleteEmptyBox text keyCode =
-    case (log "keycode" keyCode) of
-      8 -> if text == "" then (log "delete" Nothing) else Just text
+    case keyCode of
+      8 -> if text == "" then Nothing else Just text
 
-      _ -> Just (log "not delete?" text)
+      _ -> Just text
 
 
 textBox : Signal.Address (Maybe String) -> FullModel -> Character.Name -> Html

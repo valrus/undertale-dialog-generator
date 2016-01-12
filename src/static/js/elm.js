@@ -11885,11 +11885,11 @@ Elm.DialogBox.make = function (_elm) {
               $Graphics$Collage.toForm(A2(doubleImage,model.imgSrc,$Character.portraitSize(chara))))])));
    });
    var deleteEmptyBox = F2(function (text,keyCode) {
-      var _p5 = A2($Debug.log,"keycode",keyCode);
+      var _p5 = keyCode;
       if (_p5 === 8) {
-            return _U.eq(text,"") ? A2($Debug.log,"delete",$Maybe.Nothing) : $Maybe.Just(text);
+            return _U.eq(text,"") ? $Maybe.Nothing : $Maybe.Just(text);
          } else {
-            return $Maybe.Just(A2($Debug.log,"not delete?",text));
+            return $Maybe.Just(text);
          }
    });
    var textBox = F3(function (address,model,chara) {
@@ -12032,16 +12032,10 @@ Elm.DialogBoxes.make = function (_elm) {
                   ,focusIndex: focusBoxNum})
                   ,_1: true};}
    });
-   var getText = F2(function (i,model) {
-      return A2($Maybe.withDefault,"",A2($Maybe.andThen,A2($Array.get,i,model.boxes),function (_) {    return _.text;}));
-   });
-   var concat = function (model) {
-      return A2($String.join,
-      "\n",
-      $Array.toList(A2($Array.map,function (_p8) {    return A2($Maybe.withDefault,"",function (_) {    return _.text;}(_p8));},model.boxes)));
-   };
+   var getText = F2(function (i,model) {    return A2($Maybe.andThen,A2($Array.get,i,model.boxes),function (_) {    return _.text;});});
+   var concat = function (model) {    return A2($String.join,"\n",$Helpers.takeJusts(A2($Array.map,function (_) {    return _.text;},model.boxes)));};
    var count = function (model) {
-      return $Array.length(A2($Array.filter,function (_p9) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p9));},model.boxes));
+      return $Array.length(A2($Array.filter,function (_p8) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p8));},model.boxes));
    };
    var init = {boxes: $Array.fromList(_U.list([A2($DialogBox.init,$Maybe.Just(""),1)
                                               ,A2($DialogBox.init,$Maybe.Nothing,2)
@@ -12403,7 +12397,7 @@ Elm.UndertaleDialog.make = function (_elm) {
            return {ctor: "_Tuple2",_0: _U.update(model,{imgur: newImgur}),_1: A2($Effects.map,UpdateImgur,fx)};}
    });
    var dialogBoxImg = F3(function (boxes,address,pngData) {
-      var boxCount = $DialogBoxes.count(boxes);
+      var boxCount = A2($Debug.log,"boxCount",$DialogBoxes.count(boxes));
       return _U.list([A2($Html.a,
       _U.list([]),
       _U.list([A2($Html.img,
