@@ -12030,7 +12030,7 @@ Elm.DialogBoxes.make = function (_elm) {
                   },
                   A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),newTexts,$Array.toList(model.boxes))))
                   ,focusIndex: focusBoxNum})
-                  ,_1: true};}
+                  ,_1: !_U.eq(model.focusIndex,focusBoxNum)};}
    });
    var getText = F2(function (i,model) {    return A2($Maybe.andThen,A2($Array.get,i,model.boxes),function (_) {    return _.text;});});
    var concat = function (model) {    return A2($String.join,"\n",$Helpers.takeJusts(A2($Array.map,function (_) {    return _.text;},model.boxes)));};

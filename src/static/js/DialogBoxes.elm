@@ -193,5 +193,5 @@ update action model =
                             <| List.map2 (,) newTexts (toList model.boxes)
                     , focusIndex = focusBoxNum
                   }
-                , True
+                , (model.focusIndex /= focusBoxNum)
                 )
