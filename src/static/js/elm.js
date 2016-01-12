@@ -11884,10 +11884,19 @@ Elm.DialogBox.make = function (_elm) {
               {ctor: "_Tuple2",_0: -214 + imgX,_1: imgY},
               $Graphics$Collage.toForm(A2(doubleImage,model.imgSrc,$Character.portraitSize(chara))))])));
    });
+   var deleteEmptyBox = F2(function (text,keyCode) {
+      var _p5 = A2($Debug.log,"keycode",keyCode);
+      if (_p5 === 8) {
+            return _U.eq(text,"") ? A2($Debug.log,"delete",$Maybe.Nothing) : $Maybe.Just(text);
+         } else {
+            return $Maybe.Just(A2($Debug.log,"not delete?",text));
+         }
+   });
    var textBox = F3(function (address,model,chara) {
       return A2($Html.textarea,
       _U.list([$Html$Attributes.id(A2($Basics._op["++"],"textBox",$Basics.toString(model.index)))
-              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,s);})
+              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,$Maybe.Just(s));})
+              ,A2($Html$Events.onKeyDown,address,deleteEmptyBox(model.text))
               ,$Html$Attributes.style(A2($Basics._op["++"],
               _U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),
               A2($Basics._op["++"],$Character.fontStyles(chara),$Character.textboxStyles(chara))))
@@ -11910,12 +11919,12 @@ Elm.DialogBox.make = function (_elm) {
       _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("dialog")]),_U.list([elem,indentAsterisk(chara),A3(textBox,address,model,chara)]))]))]));
    });
    var view = F3(function (address,chara,model) {
-      var _p5 = certifyModel(model);
-      if (_p5.ctor === "Nothing") {
+      var _p6 = certifyModel(model);
+      if (_p6.ctor === "Nothing") {
             return A2($Html.div,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"emptyDialog",$Basics.toString(model.index)))]),_U.list([]));
          } else {
-            var _p6 = _p5._0;
-            return A4(dialogCollage,A2(dialogFrame,_p6,chara),address,_p6,chara);
+            var _p7 = _p6._0;
+            return A4(dialogCollage,A2(dialogFrame,_p7,chara),address,_p7,chara);
          }
    });
    var init = F2(function (s,i) {    return {imgSrc: $Maybe.Nothing,text: s,index: i};});
@@ -11926,6 +11935,7 @@ Elm.DialogBox.make = function (_elm) {
                                   ,FullModel: FullModel
                                   ,init: init
                                   ,indentAsterisk: indentAsterisk
+                                  ,deleteEmptyBox: deleteEmptyBox
                                   ,textBox: textBox
                                   ,dialogCollage: dialogCollage
                                   ,dialogFrame: dialogFrame
@@ -11962,9 +11972,7 @@ Elm.DialogBoxes.make = function (_elm) {
    var updateMany = F2(function (action,model) {    return _U.update(model,{boxes: A2($Array.map,$DialogBox.update(action),model.boxes)});});
    var pad = F3(function (len,item,xs) {    return A2($Basics._op["++"],xs,A2($List.repeat,len - $List.length(xs),item));});
    var textsToString = function (texts) {    return A2($String.join,"\n",$Helpers.takeJusts(texts));};
-   var textWithUpdate = F3(function (entryBoxIndex,newBoxText,oldTexts) {
-      return textsToString(A3($Array.set,entryBoxIndex,$Maybe.Just(newBoxText),oldTexts));
-   });
+   var textWithUpdate = F3(function (entryBoxIndex,newBoxText,oldTexts) {    return textsToString(A3($Array.set,entryBoxIndex,newBoxText,oldTexts));});
    var dialogStringTexts = F2(function (skipBlanks,s) {
       var filterFunc = skipBlanks ? $Helpers.takeNonEmpty : $Helpers.takeJusts;
       var newTexts = $Array.fromList(filterFunc($Array.fromList(A3($Helpers.splitLinesEvery,3,2,s))));
@@ -11977,20 +11985,27 @@ Elm.DialogBoxes.make = function (_elm) {
    });
    var updateText = F3(function (boxIndex,newBoxText,oldTexts) {
       var prevBoxText = A2($Maybe.withDefault,"",$Maybe$Extra.join(A2($Array.get,boxIndex,oldTexts)));
-      var skipBlanks = _U.cmp($String.length(newBoxText),$String.length(prevBoxText)) < 0;
+      var skipBlanks = function () {
+         var _p1 = newBoxText;
+         if (_p1.ctor === "Nothing") {
+               return true;
+            } else {
+               return _U.cmp($String.length(_p1._0),$String.length(prevBoxText)) < 0;
+            }
+      }();
       var newTexts = A2(dialogStringTexts,skipBlanks,A3(textWithUpdate,boxIndex,newBoxText,oldTexts));
       return {ctor: "_Tuple2"
              ,_0: !_U.eq($Array.length(newTexts),$List.length($Helpers.takeJusts(oldTexts))) ? $Array.length(newTexts) : boxIndex + 1
-             ,_1: A3(pad,3,$Maybe.Nothing,A2($List.map,function (_p1) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p1));},$Array.toList(newTexts)))};
+             ,_1: A3(pad,3,$Maybe.Nothing,A2($List.map,function (_p2) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p2));},$Array.toList(newTexts)))};
    });
    var view = F2(function (address,model) {
-      var _p2 = model.character;
-      if (_p2.ctor === "Nothing") {
+      var _p3 = model.character;
+      if (_p3.ctor === "Nothing") {
             return _U.list([]);
          } else {
             return $Array.toList(A2($Array.indexedMap,
             function (i) {
-               return A2($DialogBox.view,A2($Signal.forwardTo,address,UpdateText(i)),_p2._0);
+               return A2($DialogBox.view,A2($Signal.forwardTo,address,UpdateText(i)),_p3._0);
             },
             model.boxes));
          }
@@ -11999,19 +12014,19 @@ Elm.DialogBoxes.make = function (_elm) {
    var getImgSrcs = function (model) {    return $Helpers.takeJusts(A2($Array.map,function (_) {    return _.imgSrc;},model.boxes));};
    var getTexts = function (model) {    return A2($Array.map,function (_) {    return _.text;},model.boxes);};
    var update = F2(function (action,model) {
-      var _p3 = action;
-      switch (_p3.ctor)
-      {case "SetCharacter": return {ctor: "_Tuple2",_0: _U.update(model,{character: $Maybe.Just(_p3._0)}),_1: false};
-         case "SetImages": return {ctor: "_Tuple2",_0: A2(updateMany,$DialogBox.SetImage(_p3._0),model),_1: false};
-         default: var _p4 = A3(updateText,_p3._0,_p3._1,getTexts(model));
-           var focusBoxNum = _p4._0;
-           var newTexts = _p4._1;
+      var _p4 = action;
+      switch (_p4.ctor)
+      {case "SetCharacter": return {ctor: "_Tuple2",_0: _U.update(model,{character: $Maybe.Just(_p4._0)}),_1: false};
+         case "SetImages": return {ctor: "_Tuple2",_0: A2(updateMany,$DialogBox.SetImage(_p4._0),model),_1: false};
+         default: var _p5 = A3(updateText,_p4._0,_p4._1,getTexts(model));
+           var focusBoxNum = _p5._0;
+           var newTexts = _p5._1;
            return {ctor: "_Tuple2"
                   ,_0: _U.update(model,
                   {boxes: $Array.fromList(A2($List.map,
-                  function (_p5) {
-                     var _p6 = _p5;
-                     return A2($DialogBox.update,$DialogBox.SetText(_p6._0),_p6._1);
+                  function (_p6) {
+                     var _p7 = _p6;
+                     return A2($DialogBox.update,$DialogBox.SetText(_p7._0),_p7._1);
                   },
                   A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),newTexts,$Array.toList(model.boxes))))
                   ,focusIndex: focusBoxNum})
@@ -12023,10 +12038,10 @@ Elm.DialogBoxes.make = function (_elm) {
    var concat = function (model) {
       return A2($String.join,
       "\n",
-      $Array.toList(A2($Array.map,function (_p7) {    return A2($Maybe.withDefault,"",function (_) {    return _.text;}(_p7));},model.boxes)));
+      $Array.toList(A2($Array.map,function (_p8) {    return A2($Maybe.withDefault,"",function (_) {    return _.text;}(_p8));},model.boxes)));
    };
    var count = function (model) {
-      return $Array.length(A2($Array.filter,function (_p8) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p8));},model.boxes));
+      return $Array.length(A2($Array.filter,function (_p9) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p9));},model.boxes));
    };
    var init = {boxes: $Array.fromList(_U.list([A2($DialogBox.init,$Maybe.Just(""),1)
                                               ,A2($DialogBox.init,$Maybe.Nothing,2)

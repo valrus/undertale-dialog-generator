@@ -112,10 +112,10 @@ textsToString texts =
     String.join "\n" <| takeJusts texts
 
 
-textWithUpdate : Int -> String -> Array (Maybe String) -> String
+textWithUpdate : Int -> Maybe String -> Array (Maybe String) -> String
 textWithUpdate entryBoxIndex newBoxText oldTexts =
     textsToString
-        <| Array.set entryBoxIndex (Just newBoxText) oldTexts
+        <| Array.set entryBoxIndex newBoxText oldTexts
 
 
 pad : Int -> a -> List a -> List a
@@ -123,7 +123,7 @@ pad len item xs =
     xs ++ List.repeat (len - List.length xs) item
 
 
-updateText : Int -> String -> Array (Maybe String) -> ( Int, List (Maybe String) )
+updateText : Int -> Maybe String -> Array (Maybe String) -> ( Int, List (Maybe String) )
 updateText boxIndex newBoxText oldTexts =
     let
         prevBoxText =
@@ -131,7 +131,12 @@ updateText boxIndex newBoxText oldTexts =
 
         -- if we're removing text, wipe out empty dialog boxes
         skipBlanks =
-            (String.length newBoxText) < (String.length prevBoxText)
+            case newBoxText of
+              Nothing ->
+                  True
+
+              Just s ->
+                  (String.length s) < (String.length prevBoxText)
 
         newTexts =
             dialogStringTexts skipBlanks <| textWithUpdate boxIndex newBoxText oldTexts
@@ -154,7 +159,7 @@ updateMany action model =
 type Action
     = SetCharacter Character.Name
     | SetImages String
-    | UpdateText Int String
+    | UpdateText Int (Maybe String)
 
 
 update : Action -> Model -> ( Model, Bool )

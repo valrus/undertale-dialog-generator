@@ -1,11 +1,12 @@
 module DialogBox (..) where
 
+import Debug exposing (log)
 import Color exposing (grayscale)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm)
 import Graphics.Element exposing (image)
 import Html exposing (..)
 import Html.Attributes exposing (style)
-import Html.Events exposing (on, targetValue)
+import Html.Events exposing (on, targetValue, onKeyDown)
 import Maybe
 
 
@@ -52,14 +53,25 @@ indentAsterisk character =
         [ Html.text <| Character.dialogAsterisk character ]
 
 
-textBox : Signal.Address String -> FullModel -> Character.Name -> Html
+deleteEmptyBox : String -> Int -> Maybe String
+deleteEmptyBox text keyCode =
+    case (log "keycode" keyCode) of
+      8 -> if text == "" then (log "delete" Nothing) else Just text
+
+      _ -> Just (log "not delete?" text)
+
+
+textBox : Signal.Address (Maybe String) -> FullModel -> Character.Name -> Html
 textBox address model chara =
     textarea
         [ Html.Attributes.id <| "textBox" ++ (toString model.index)
         , on
             "input"
             targetValue
-            (\s -> Signal.message address s)
+            (\s -> Signal.message address (Just s))
+        , onKeyDown
+            address
+            (deleteEmptyBox model.text)
         , style
             <| [ ( "line-height", "36px" )
                  -- TODO: Make the "36px" a function
@@ -72,7 +84,7 @@ textBox address model chara =
         []
 
 
-dialogCollage : Html -> Signal.Address String -> FullModel -> Character.Name -> Html
+dialogCollage : Html -> Signal.Address (Maybe String) -> FullModel -> Character.Name -> Html
 dialogCollage elem address model chara =
     div
         [ style [ ( "width", "100%" ) ] ]
@@ -136,7 +148,7 @@ certifyModel model =
                 }
 
 
-view : Signal.Address String -> Character.Name -> Model -> Html
+view : Signal.Address (Maybe String) -> Character.Name -> Model -> Html
 view address chara model =
     case certifyModel model of
         Nothing ->
