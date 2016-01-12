@@ -90,8 +90,8 @@ def dialogBox(portrait, text, fnt, doIndent=True):
             if app.debug:
                 print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
             draw.text((77, y_offset + 16 + row * 18),
-                    _indent(row, line) if doIndent else line,
-                    fill=1, font=fnt)
+                      _indent(row, line) if doIndent else line,
+                      fill=1, font=fnt)
     return img.resize(Size(orig_size.x * 2, orig_size.y * 2))
 
 
