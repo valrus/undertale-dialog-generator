@@ -23,3 +23,15 @@ undertale.ports.focus.subscribe(function(params) {
         }
     }, 50);
 });
+
+/*
+function sendCursorPosition(params) {
+    var ctl = document.getElementById(params.elementId);
+    var endPos = ctl.selectionEnd;
+    undertale.ports.cursorPos.send(endPos);
+}
+
+undertale.ports.input.subscribe(function(params) {
+    sendCursorPosition(params);
+})
+*/
