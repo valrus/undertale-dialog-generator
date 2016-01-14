@@ -1,5 +1,6 @@
 module DialogBoxes (..) where
 
+import Debug exposing (log)
 import Array exposing (Array, toList, fromList)
 import Html exposing (Html)
 import Maybe.Extra exposing (isJust, join)
@@ -70,6 +71,19 @@ viewable model =
 -- View
 
 
+convertViewMessage : Int -> DialogBox.Action -> Action
+convertViewMessage boxNum boxAction =
+    case boxAction of
+        DialogBox.SetImage s ->
+            SetImages s
+
+        DialogBox.SetText s ->
+            UpdateText boxNum s
+
+        DialogBox.ExpectImage b ->
+            ExpectImage boxNum b
+
+
 view : Signal.Address Action -> Model -> List Html
 view address model =
     case model.character of
@@ -79,7 +93,7 @@ view address model =
         Just chara ->
             Array.toList
                 <| Array.indexedMap
-                    (\i -> DialogBox.view (Signal.forwardTo address (UpdateText i)) chara)
+                    (\i -> DialogBox.view (Signal.forwardTo address (convertViewMessage i)) chara)
                     model.boxes
 
 
@@ -132,11 +146,11 @@ updateText boxIndex newBoxText oldTexts =
         -- if we're removing text, wipe out empty dialog boxes
         skipBlanks =
             case newBoxText of
-              Nothing ->
-                  True
+                Nothing ->
+                    True
 
-              Just s ->
-                  (String.length s) < (String.length prevBoxText)
+                Just s ->
+                    (String.length s) < (String.length prevBoxText)
 
         newTexts =
             dialogStringTexts skipBlanks <| textWithUpdate boxIndex newBoxText oldTexts
@@ -157,14 +171,19 @@ updateMany action model =
 
 
 type Action
-    = SetCharacter Character.Name
+    = NoOp
+    | SetCharacter Character.Name
     | SetImages String
     | UpdateText Int (Maybe String)
+    | ExpectImage Int Bool
 
 
 update : Action -> Model -> ( Model, Bool )
 update action model =
     case action of
+        NoOp ->
+            ( model, False )
+
         SetCharacter chara ->
             ( { model
                 | character = Just chara
@@ -195,3 +214,16 @@ update action model =
                   }
                 , (model.focusIndex /= focusBoxNum)
                 )
+
+        ExpectImage index b ->
+            let
+                box = Array.get (log "boxIndex" index) model.boxes
+            in
+                case box of
+                    Nothing -> ( model, False )
+
+                    Just oldBox ->
+                      ( { model
+                        | boxes = Array.set index (DialogBox.update (DialogBox.ExpectImage b) oldBox) model.boxes
+                        }, False
+                      )

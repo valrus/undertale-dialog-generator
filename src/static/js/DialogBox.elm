@@ -1,8 +1,11 @@
 module DialogBox (..) where
 
+import Debug exposing (log)
+
 import Color exposing (grayscale)
-import Graphics.Collage exposing (collage, move, filled, rect, toForm)
-import Graphics.Element exposing (image)
+import Graphics.Collage exposing (collage, move, filled, rect, toForm, alpha)
+import Graphics.Element exposing (Element, image)
+import Graphics.Input exposing (customButton)
 import Html exposing (..)
 import Html.Attributes exposing (style)
 import Html.Events exposing (on, targetValue, onKeyDown)
@@ -22,6 +25,7 @@ type alias Model =
     { imgSrc : Maybe String
     , text : Maybe String
     , index : Int
+    , expectingImage : Bool
     }
 
 
@@ -29,6 +33,7 @@ type alias FullModel =
     { imgSrc : String
     , text : String
     , index : Int
+    , expectingImage : Bool
     }
 
 
@@ -37,7 +42,9 @@ init s i =
     { imgSrc = Nothing
     , text = s
     , index = i
+    , expectingImage = False
     }
+
 
 
 -- View
@@ -52,22 +59,27 @@ indentAsterisk character =
         [ Html.text <| Character.dialogAsterisk character ]
 
 
-deleteEmptyBox : String -> Int -> Maybe String
+deleteEmptyBox : String -> Int -> Action
 deleteEmptyBox text keyCode =
     case keyCode of
-      8 -> if text == "" then Nothing else Just text
+        8 ->
+            if text == "" then
+                SetText Nothing
+            else
+                (SetText (Just text))
 
-      _ -> Just text
+        _ ->
+            SetText (Just text)
 
 
-textBox : Signal.Address (Maybe String) -> FullModel -> Character.Name -> Html
+textBox : Signal.Address Action -> FullModel -> Character.Name -> Html
 textBox address model chara =
     textarea
         [ Html.Attributes.id <| "textBox" ++ (toString model.index)
         , on
             "input"
             targetValue
-            (\s -> Signal.message address (Just s))
+            (\s -> Signal.message address <| SetText <| Just s)
         , onKeyDown
             address
             (deleteEmptyBox model.text)
@@ -83,7 +95,7 @@ textBox address model chara =
         []
 
 
-dialogCollage : Html -> Signal.Address (Maybe String) -> FullModel -> Character.Name -> Html
+dialogCollage : Html -> Signal.Address Action -> FullModel -> Character.Name -> Html
 dialogCollage elem address model chara =
     div
         [ style [ ( "width", "100%" ) ] ]
@@ -104,8 +116,20 @@ dialogCollage elem address model chara =
         ]
 
 
-dialogFrame : FullModel -> Character.Name -> Html
-dialogFrame model chara =
+portraitButton : Signal.Address Action -> String -> Character.Name -> Element
+portraitButton address src chara =
+    let
+        img = doubleImage src (Character.portraitSize chara)
+    in
+        customButton
+            (Signal.message address (ExpectImage True))
+            img
+            img
+            img
+
+
+dialogFrame : Signal.Address Action -> FullModel -> Character.Name -> Html
+dialogFrame address model chara =
     let
         ( imgX, imgY ) = Character.portraitOffset chara
     in
@@ -119,16 +143,14 @@ dialogFrame model chara =
                   -- outer white border
                 , filled (grayscale 1) (rect 568 140)
                   -- inner black box
-                , (toForm
-                    <| doubleImage model.imgSrc
-                    <| Character.portraitSize chara
-                  )
+                , (toForm <| portraitButton address model.imgSrc chara)
+                    |> alpha (if model.expectingImage then 0.5 else 1)
                     |> move ( -214 + imgX, imgY )
                 ]
         )
 
 
-doubleImage : String -> ( Int, Int ) -> Graphics.Element.Element
+doubleImage : String -> ( Int, Int ) -> Element
 doubleImage imgSrc ( w, h ) =
     image (w * 2) (h * 2) imgSrc
 
@@ -144,10 +166,11 @@ certifyModel model =
                 { imgSrc = src
                 , text = txt
                 , index = model.index
+                , expectingImage = model.expectingImage
                 }
 
 
-view : Signal.Address (Maybe String) -> Character.Name -> Model -> Html
+view : Signal.Address Action -> Character.Name -> Model -> Html
 view address chara model =
     case certifyModel model of
         Nothing ->
@@ -155,15 +178,21 @@ view address chara model =
 
         Just fullModel ->
             dialogCollage
-                (dialogFrame fullModel chara)
+                (dialogFrame address fullModel chara)
                 address
                 fullModel
                 chara
 
 
+updateSrc : Maybe String -> String -> Bool -> Maybe String
+updateSrc old new expecting =
+    if ((old == Nothing) || expecting) then (Just new) else old
+
+
 type Action
     = SetImage String
     | SetText (Maybe String)
+    | ExpectImage Bool
 
 
 update : Action -> Model -> Model
@@ -171,10 +200,16 @@ update action model =
     case action of
         SetImage src ->
             { model
-              | imgSrc = Just src
+                | imgSrc = updateSrc model.imgSrc src model.expectingImage
+                , expectingImage = False
             }
 
         SetText text ->
             { model
-              | text = text
+                | text = text
+            }
+
+        ExpectImage b ->
+            { model
+                | expectingImage = (log "expect" b)
             }

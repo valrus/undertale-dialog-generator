@@ -8212,6 +8212,510 @@ Elm.Time.make = function (_elm) {
                              ,delay: delay
                              ,since: since};
 };
+// setup
+Elm.Native = Elm.Native || {};
+Elm.Native.Graphics = Elm.Native.Graphics || {};
+Elm.Native.Graphics.Input = Elm.Native.Graphics.Input || {};
+
+// definition
+Elm.Native.Graphics.Input.make = function(localRuntime) {
+	'use strict';
+
+	// attempt to short-circuit
+	if ('values' in Elm.Native.Graphics.Input) {
+		return Elm.Native.Graphics.Input.values;
+	}
+
+	var Color = Elm.Native.Color.make(localRuntime);
+	var List = Elm.Native.List.make(localRuntime);
+	var Signal = Elm.Native.Signal.make(localRuntime);
+	var Text = Elm.Native.Text.make(localRuntime);
+	var Utils = Elm.Native.Utils.make(localRuntime);
+
+	var Element = Elm.Native.Graphics.Element.make(localRuntime);
+
+
+	function renderDropDown(model)
+	{
+		var drop = Element.createNode('select');
+		drop.style.border = '0 solid';
+		drop.style.pointerEvents = 'auto';
+		drop.style.display = 'block';
+
+		drop.elm_values = List.toArray(model.values);
+		drop.elm_handler = model.handler;
+		var values = drop.elm_values;
+
+		for (var i = 0; i < values.length; ++i)
+		{
+			var option = Element.createNode('option');
+			var name = values[i]._0;
+			option.value = name;
+			option.innerHTML = name;
+			drop.appendChild(option);
+		}
+		drop.addEventListener('change', function() {
+			Signal.sendMessage(drop.elm_handler(drop.elm_values[drop.selectedIndex]._1));
+		});
+
+		return drop;
+	}
+
+	function updateDropDown(node, oldModel, newModel)
+	{
+		node.elm_values = List.toArray(newModel.values);
+		node.elm_handler = newModel.handler;
+
+		var values = node.elm_values;
+		var kids = node.childNodes;
+		var kidsLength = kids.length;
+
+		var i = 0;
+		for (; i < kidsLength && i < values.length; ++i)
+		{
+			var option = kids[i];
+			var name = values[i]._0;
+			option.value = name;
+			option.innerHTML = name;
+		}
+		for (; i < kidsLength; ++i)
+		{
+			node.removeChild(node.lastChild);
+		}
+		for (; i < values.length; ++i)
+		{
+			var option = Element.createNode('option');
+			var name = values[i]._0;
+			option.value = name;
+			option.innerHTML = name;
+			node.appendChild(option);
+		}
+		return node;
+	}
+
+	function dropDown(handler, values)
+	{
+		return A3(Element.newElement, 100, 24, {
+			ctor: 'Custom',
+			type: 'DropDown',
+			render: renderDropDown,
+			update: updateDropDown,
+			model: {
+				values: values,
+				handler: handler
+			}
+		});
+	}
+
+	function renderButton(model)
+	{
+		var node = Element.createNode('button');
+		node.style.display = 'block';
+		node.style.pointerEvents = 'auto';
+		node.elm_message = model.message;
+		function click()
+		{
+			Signal.sendMessage(node.elm_message);
+		}
+		node.addEventListener('click', click);
+		node.innerHTML = model.text;
+		return node;
+	}
+
+	function updateButton(node, oldModel, newModel)
+	{
+		node.elm_message = newModel.message;
+		var txt = newModel.text;
+		if (oldModel.text !== txt)
+		{
+			node.innerHTML = txt;
+		}
+		return node;
+	}
+
+	function button(message, text)
+	{
+		return A3(Element.newElement, 100, 40, {
+			ctor: 'Custom',
+			type: 'Button',
+			render: renderButton,
+			update: updateButton,
+			model: {
+				message: message,
+				text: text
+			}
+		});
+	}
+
+	function renderCustomButton(model)
+	{
+		var btn = Element.createNode('div');
+		btn.style.pointerEvents = 'auto';
+		btn.elm_message = model.message;
+
+		btn.elm_up    = Element.render(model.up);
+		btn.elm_hover = Element.render(model.hover);
+		btn.elm_down  = Element.render(model.down);
+
+		btn.elm_up.style.display = 'block';
+		btn.elm_hover.style.display = 'none';
+		btn.elm_down.style.display = 'none';
+
+		btn.appendChild(btn.elm_up);
+		btn.appendChild(btn.elm_hover);
+		btn.appendChild(btn.elm_down);
+
+		function swap(visibleNode, hiddenNode1, hiddenNode2)
+		{
+			visibleNode.style.display = 'block';
+			hiddenNode1.style.display = 'none';
+			hiddenNode2.style.display = 'none';
+		}
+
+		var overCount = 0;
+		function over(e)
+		{
+			if (overCount++ > 0) return;
+			swap(btn.elm_hover, btn.elm_down, btn.elm_up);
+		}
+		function out(e)
+		{
+			if (btn.contains(e.toElement || e.relatedTarget)) return;
+			overCount = 0;
+			swap(btn.elm_up, btn.elm_down, btn.elm_hover);
+		}
+		function up()
+		{
+			swap(btn.elm_hover, btn.elm_down, btn.elm_up);
+			Signal.sendMessage(btn.elm_message);
+		}
+		function down()
+		{
+			swap(btn.elm_down, btn.elm_hover, btn.elm_up);
+		}
+
+		btn.addEventListener('mouseover', over);
+		btn.addEventListener('mouseout', out);
+		btn.addEventListener('mousedown', down);
+		btn.addEventListener('mouseup', up);
+
+		return btn;
+	}
+
+	function updateCustomButton(node, oldModel, newModel)
+	{
+		node.elm_message = newModel.message;
+
+		var kids = node.childNodes;
+		var styleUp    = kids[0].style.display;
+		var styleHover = kids[1].style.display;
+		var styleDown  = kids[2].style.display;
+
+		Element.updateAndReplace(kids[0], oldModel.up, newModel.up);
+		Element.updateAndReplace(kids[1], oldModel.hover, newModel.hover);
+		Element.updateAndReplace(kids[2], oldModel.down, newModel.down);
+
+		var kids = node.childNodes;
+		kids[0].style.display = styleUp;
+		kids[1].style.display = styleHover;
+		kids[2].style.display = styleDown;
+
+		return node;
+	}
+
+	function max3(a, b, c)
+	{
+		var ab = a > b ? a : b;
+		return ab > c ? ab : c;
+	}
+
+	function customButton(message, up, hover, down)
+	{
+		return A3(Element.newElement,
+				  max3(up._0.props.width, hover._0.props.width, down._0.props.width),
+				  max3(up._0.props.height, hover._0.props.height, down._0.props.height),
+				  { ctor: 'Custom',
+					type: 'CustomButton',
+					render: renderCustomButton,
+					update: updateCustomButton,
+					model: {
+						message: message,
+						up: up,
+						hover: hover,
+						down: down
+					}
+				  });
+	}
+
+	function renderCheckbox(model)
+	{
+		var node = Element.createNode('input');
+		node.type = 'checkbox';
+		node.checked = model.checked;
+		node.style.display = 'block';
+		node.style.pointerEvents = 'auto';
+		node.elm_handler = model.handler;
+		function change()
+		{
+			Signal.sendMessage(node.elm_handler(node.checked));
+		}
+		node.addEventListener('change', change);
+		return node;
+	}
+
+	function updateCheckbox(node, oldModel, newModel)
+	{
+		node.elm_handler = newModel.handler;
+		node.checked = newModel.checked;
+		return node;
+	}
+
+	function checkbox(handler, checked)
+	{
+		return A3(Element.newElement, 13, 13, {
+			ctor: 'Custom',
+			type: 'CheckBox',
+			render: renderCheckbox,
+			update: updateCheckbox,
+			model: { handler: handler, checked: checked }
+		});
+	}
+
+	function setRange(node, start, end, dir)
+	{
+		if (node.parentNode)
+		{
+			node.setSelectionRange(start, end, dir);
+		}
+		else
+		{
+			setTimeout(function() {node.setSelectionRange(start, end, dir); }, 0);
+		}
+	}
+
+	function updateIfNeeded(css, attribute, latestAttribute)
+	{
+		if (css[attribute] !== latestAttribute)
+		{
+			css[attribute] = latestAttribute;
+		}
+	}
+	function cssDimensions(dimensions)
+	{
+		return dimensions.top    + 'px ' +
+			   dimensions.right  + 'px ' +
+			   dimensions.bottom + 'px ' +
+			   dimensions.left   + 'px';
+	}
+	function updateFieldStyle(css, style)
+	{
+		updateIfNeeded(css, 'padding', cssDimensions(style.padding));
+
+		var outline = style.outline;
+		updateIfNeeded(css, 'border-width', cssDimensions(outline.width));
+		updateIfNeeded(css, 'border-color', Color.toCss(outline.color));
+		updateIfNeeded(css, 'border-radius', outline.radius + 'px');
+
+		var highlight = style.highlight;
+		if (highlight.width === 0)
+		{
+			css.outline = 'none';
+		}
+		else
+		{
+			updateIfNeeded(css, 'outline-width', highlight.width + 'px');
+			updateIfNeeded(css, 'outline-color', Color.toCss(highlight.color));
+		}
+
+		var textStyle = style.style;
+		updateIfNeeded(css, 'color', Color.toCss(textStyle.color));
+		if (textStyle.typeface.ctor !== '[]')
+		{
+			updateIfNeeded(css, 'font-family', Text.toTypefaces(textStyle.typeface));
+		}
+		if (textStyle.height.ctor !== 'Nothing')
+		{
+			updateIfNeeded(css, 'font-size', textStyle.height._0 + 'px');
+		}
+		updateIfNeeded(css, 'font-weight', textStyle.bold ? 'bold' : 'normal');
+		updateIfNeeded(css, 'font-style', textStyle.italic ? 'italic' : 'normal');
+		if (textStyle.line.ctor !== 'Nothing')
+		{
+			updateIfNeeded(css, 'text-decoration', Text.toLine(textStyle.line._0));
+		}
+	}
+
+	function renderField(model)
+	{
+		var field = Element.createNode('input');
+		updateFieldStyle(field.style, model.style);
+		field.style.borderStyle = 'solid';
+		field.style.pointerEvents = 'auto';
+
+		field.type = model.type;
+		field.placeholder = model.placeHolder;
+		field.value = model.content.string;
+
+		field.elm_handler = model.handler;
+		field.elm_old_value = field.value;
+
+		function inputUpdate(event)
+		{
+			var curr = field.elm_old_value;
+			var next = field.value;
+			if (curr === next)
+			{
+				return;
+			}
+
+			var direction = field.selectionDirection === 'forward' ? 'Forward' : 'Backward';
+			var start = field.selectionStart;
+			var end = field.selectionEnd;
+			field.value = field.elm_old_value;
+
+			Signal.sendMessage(field.elm_handler({
+				string: next,
+				selection: {
+					start: start,
+					end: end,
+					direction: { ctor: direction }
+				}
+			}));
+		}
+
+		field.addEventListener('input', inputUpdate);
+		field.addEventListener('focus', function() {
+			field.elm_hasFocus = true;
+		});
+		field.addEventListener('blur', function() {
+			field.elm_hasFocus = false;
+		});
+
+		return field;
+	}
+
+	function updateField(field, oldModel, newModel)
+	{
+		if (oldModel.style !== newModel.style)
+		{
+			updateFieldStyle(field.style, newModel.style);
+		}
+		field.elm_handler = newModel.handler;
+
+		field.type = newModel.type;
+		field.placeholder = newModel.placeHolder;
+		var value = newModel.content.string;
+		field.value = value;
+		field.elm_old_value = value;
+		if (field.elm_hasFocus)
+		{
+			var selection = newModel.content.selection;
+			var direction = selection.direction.ctor === 'Forward' ? 'forward' : 'backward';
+			setRange(field, selection.start, selection.end, direction);
+		}
+		return field;
+	}
+
+	function mkField(type)
+	{
+		function field(style, handler, placeHolder, content)
+		{
+			var padding = style.padding;
+			var outline = style.outline.width;
+			var adjustWidth = padding.left + padding.right + outline.left + outline.right;
+			var adjustHeight = padding.top + padding.bottom + outline.top + outline.bottom;
+			return A3(Element.newElement, 200, 30, {
+				ctor: 'Custom',
+				type: type + 'Field',
+				adjustWidth: adjustWidth,
+				adjustHeight: adjustHeight,
+				render: renderField,
+				update: updateField,
+				model: {
+					handler: handler,
+					placeHolder: placeHolder,
+					content: content,
+					style: style,
+					type: type
+				}
+			});
+		}
+		return F4(field);
+	}
+
+	function hoverable(handler, wrappedElement)
+	{
+		function onHover(bool)
+		{
+			Signal.sendMessage(handler(bool));
+		}
+		var element = wrappedElement._0;
+		var newProps = Utils.update(element.props, { hover: onHover });
+		return {
+			ctor: wrappedElement.ctor,
+			_0: {
+				props: newProps,
+				element: element.element
+			}
+		};
+	}
+
+	function clickable(message, wrappedElement)
+	{
+		function onClick()
+		{
+			Signal.sendMessage(message);
+		}
+		var element = wrappedElement._0;
+		var newProps = Utils.update(element.props, { click: onClick });
+		return {
+			ctor: wrappedElement.ctor,
+			_0: {
+				props: newProps,
+				element: element.element
+			}
+		};
+	}
+
+	return Elm.Native.Graphics.Input.values = {
+		button: F2(button),
+		customButton: F4(customButton),
+		checkbox: F2(checkbox),
+		dropDown: F2(dropDown),
+		field: mkField('text'),
+		email: mkField('email'),
+		password: mkField('password'),
+		hoverable: F2(hoverable),
+		clickable: F2(clickable)
+	};
+};
+
+Elm.Graphics = Elm.Graphics || {};
+Elm.Graphics.Input = Elm.Graphics.Input || {};
+Elm.Graphics.Input.make = function (_elm) {
+   "use strict";
+   _elm.Graphics = _elm.Graphics || {};
+   _elm.Graphics.Input = _elm.Graphics.Input || {};
+   if (_elm.Graphics.Input.values) return _elm.Graphics.Input.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Native$Graphics$Input = Elm.Native.Graphics.Input.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var clickable = $Native$Graphics$Input.clickable;
+   var hoverable = $Native$Graphics$Input.hoverable;
+   var dropDown = $Native$Graphics$Input.dropDown;
+   var checkbox = $Native$Graphics$Input.checkbox;
+   var customButton = $Native$Graphics$Input.customButton;
+   var button = $Native$Graphics$Input.button;
+   return _elm.Graphics.Input.values = {_op: _op
+                                       ,button: button
+                                       ,customButton: customButton
+                                       ,checkbox: checkbox
+                                       ,dropDown: dropDown
+                                       ,hoverable: hoverable
+                                       ,clickable: clickable};
+};
 Elm.Native.Json = {};
 
 Elm.Native.Json.make = function(localRuntime) {
@@ -11842,6 +12346,7 @@ Elm.DialogBox.make = function (_elm) {
    $Debug = Elm.Debug.make(_elm),
    $Graphics$Collage = Elm.Graphics.Collage.make(_elm),
    $Graphics$Element = Elm.Graphics.Element.make(_elm),
+   $Graphics$Input = Elm.Graphics.Input.make(_elm),
    $Helpers = Elm.Helpers.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
@@ -11851,26 +12356,31 @@ Elm.DialogBox.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var update = F2(function (action,model) {
-      var _p0 = action;
-      if (_p0.ctor === "SetImage") {
-            return _U.update(model,{imgSrc: $Maybe.Just(_p0._0)});
-         } else {
-            return _U.update(model,{text: _p0._0});
-         }
-   });
+   var ExpectImage = function (a) {    return {ctor: "ExpectImage",_0: a};};
    var SetText = function (a) {    return {ctor: "SetText",_0: a};};
    var SetImage = function (a) {    return {ctor: "SetImage",_0: a};};
+   var updateSrc = F3(function (old,$new,expecting) {    return _U.eq(old,$Maybe.Nothing) || expecting ? $Maybe.Just($new) : old;});
+   var update = F2(function (action,model) {
+      var _p0 = action;
+      switch (_p0.ctor)
+      {case "SetImage": return _U.update(model,{imgSrc: A3(updateSrc,model.imgSrc,_p0._0,model.expectingImage),expectingImage: false});
+         case "SetText": return _U.update(model,{text: _p0._0});
+         default: return _U.update(model,{expectingImage: A2($Debug.log,"expect",_p0._0)});}
+   });
    var certifyModel = function (model) {
       var _p1 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.imgSrc,model.text);
       if (_p1.ctor === "Nothing") {
             return $Maybe.Nothing;
          } else {
-            return $Maybe.Just({imgSrc: _p1._0._0,text: _p1._0._1,index: model.index});
+            return $Maybe.Just({imgSrc: _p1._0._0,text: _p1._0._1,index: model.index,expectingImage: model.expectingImage});
          }
    };
    var doubleImage = F2(function (imgSrc,_p2) {    var _p3 = _p2;return A3($Graphics$Element.image,_p3._0 * 2,_p3._1 * 2,imgSrc);});
-   var dialogFrame = F2(function (model,chara) {
+   var portraitButton = F3(function (address,src,chara) {
+      var img = A2(doubleImage,src,$Character.portraitSize(chara));
+      return A4($Graphics$Input.customButton,A2($Signal.message,address,ExpectImage(true)),img,img,img);
+   });
+   var dialogFrame = F3(function (address,model,chara) {
       var _p4 = $Character.portraitOffset(chara);
       var imgX = _p4._0;
       var imgY = _p4._1;
@@ -11882,20 +12392,20 @@ Elm.DialogBox.make = function (_elm) {
               ,A2($Graphics$Collage.filled,$Color.grayscale(1),A2($Graphics$Collage.rect,568,140))
               ,A2($Graphics$Collage.move,
               {ctor: "_Tuple2",_0: -214 + imgX,_1: imgY},
-              $Graphics$Collage.toForm(A2(doubleImage,model.imgSrc,$Character.portraitSize(chara))))])));
+              A2($Graphics$Collage.alpha,model.expectingImage ? 0.5 : 1,$Graphics$Collage.toForm(A3(portraitButton,address,model.imgSrc,chara))))])));
    });
    var deleteEmptyBox = F2(function (text,keyCode) {
       var _p5 = keyCode;
       if (_p5 === 8) {
-            return _U.eq(text,"") ? $Maybe.Nothing : $Maybe.Just(text);
+            return _U.eq(text,"") ? SetText($Maybe.Nothing) : SetText($Maybe.Just(text));
          } else {
-            return $Maybe.Just(text);
+            return SetText($Maybe.Just(text));
          }
    });
    var textBox = F3(function (address,model,chara) {
       return A2($Html.textarea,
       _U.list([$Html$Attributes.id(A2($Basics._op["++"],"textBox",$Basics.toString(model.index)))
-              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,$Maybe.Just(s));})
+              ,A3($Html$Events.on,"input",$Html$Events.targetValue,function (s) {    return A2($Signal.message,address,SetText($Maybe.Just(s)));})
               ,A2($Html$Events.onKeyDown,address,deleteEmptyBox(model.text))
               ,$Html$Attributes.style(A2($Basics._op["++"],
               _U.list([{ctor: "_Tuple2",_0: "line-height",_1: "36px"}]),
@@ -11924,12 +12434,12 @@ Elm.DialogBox.make = function (_elm) {
             return A2($Html.div,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"emptyDialog",$Basics.toString(model.index)))]),_U.list([]));
          } else {
             var _p7 = _p6._0;
-            return A4(dialogCollage,A2(dialogFrame,_p7,chara),address,_p7,chara);
+            return A4(dialogCollage,A3(dialogFrame,address,_p7,chara),address,_p7,chara);
          }
    });
-   var init = F2(function (s,i) {    return {imgSrc: $Maybe.Nothing,text: s,index: i};});
-   var FullModel = F3(function (a,b,c) {    return {imgSrc: a,text: b,index: c};});
-   var Model = F3(function (a,b,c) {    return {imgSrc: a,text: b,index: c};});
+   var init = F2(function (s,i) {    return {imgSrc: $Maybe.Nothing,text: s,index: i,expectingImage: false};});
+   var FullModel = F4(function (a,b,c,d) {    return {imgSrc: a,text: b,index: c,expectingImage: d};});
+   var Model = F4(function (a,b,c,d) {    return {imgSrc: a,text: b,index: c,expectingImage: d};});
    return _elm.DialogBox.values = {_op: _op
                                   ,Model: Model
                                   ,FullModel: FullModel
@@ -11938,12 +12448,15 @@ Elm.DialogBox.make = function (_elm) {
                                   ,deleteEmptyBox: deleteEmptyBox
                                   ,textBox: textBox
                                   ,dialogCollage: dialogCollage
+                                  ,portraitButton: portraitButton
                                   ,dialogFrame: dialogFrame
                                   ,doubleImage: doubleImage
                                   ,certifyModel: certifyModel
                                   ,view: view
+                                  ,updateSrc: updateSrc
                                   ,SetImage: SetImage
                                   ,SetText: SetText
+                                  ,ExpectImage: ExpectImage
                                   ,update: update};
 };
 Elm.DialogBoxes = Elm.DialogBoxes || {};
@@ -11966,9 +12479,11 @@ Elm.DialogBoxes.make = function (_elm) {
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
+   var ExpectImage = F2(function (a,b) {    return {ctor: "ExpectImage",_0: a,_1: b};});
    var UpdateText = F2(function (a,b) {    return {ctor: "UpdateText",_0: a,_1: b};});
    var SetImages = function (a) {    return {ctor: "SetImages",_0: a};};
    var SetCharacter = function (a) {    return {ctor: "SetCharacter",_0: a};};
+   var NoOp = {ctor: "NoOp"};
    var updateMany = F2(function (action,model) {    return _U.update(model,{boxes: A2($Array.map,$DialogBox.update(action),model.boxes)});});
    var pad = F3(function (len,item,xs) {    return A2($Basics._op["++"],xs,A2($List.repeat,len - $List.length(xs),item));});
    var textsToString = function (texts) {    return A2($String.join,"\n",$Helpers.takeJusts(texts));};
@@ -11998,14 +12513,21 @@ Elm.DialogBoxes.make = function (_elm) {
              ,_0: !_U.eq($Array.length(newTexts),$List.length($Helpers.takeJusts(oldTexts))) ? $Array.length(newTexts) : boxIndex + 1
              ,_1: A3(pad,3,$Maybe.Nothing,A2($List.map,function (_p2) {    return $Maybe.Just(A2($Helpers.takeLines,3,_p2));},$Array.toList(newTexts)))};
    });
+   var convertViewMessage = F2(function (boxNum,boxAction) {
+      var _p3 = boxAction;
+      switch (_p3.ctor)
+      {case "SetImage": return SetImages(_p3._0);
+         case "SetText": return A2(UpdateText,boxNum,_p3._0);
+         default: return A2(ExpectImage,boxNum,_p3._0);}
+   });
    var view = F2(function (address,model) {
-      var _p3 = model.character;
-      if (_p3.ctor === "Nothing") {
+      var _p4 = model.character;
+      if (_p4.ctor === "Nothing") {
             return _U.list([]);
          } else {
             return $Array.toList(A2($Array.indexedMap,
             function (i) {
-               return A2($DialogBox.view,A2($Signal.forwardTo,address,UpdateText(i)),_p3._0);
+               return A2($DialogBox.view,A2($Signal.forwardTo,address,convertViewMessage(i)),_p4._0);
             },
             model.boxes));
          }
@@ -12014,28 +12536,39 @@ Elm.DialogBoxes.make = function (_elm) {
    var getImgSrcs = function (model) {    return $Helpers.takeJusts(A2($Array.map,function (_) {    return _.imgSrc;},model.boxes));};
    var getTexts = function (model) {    return A2($Array.map,function (_) {    return _.text;},model.boxes);};
    var update = F2(function (action,model) {
-      var _p4 = action;
-      switch (_p4.ctor)
-      {case "SetCharacter": return {ctor: "_Tuple2",_0: _U.update(model,{character: $Maybe.Just(_p4._0)}),_1: false};
-         case "SetImages": return {ctor: "_Tuple2",_0: A2(updateMany,$DialogBox.SetImage(_p4._0),model),_1: false};
-         default: var _p5 = A3(updateText,_p4._0,_p4._1,getTexts(model));
-           var focusBoxNum = _p5._0;
-           var newTexts = _p5._1;
+      var _p5 = action;
+      switch (_p5.ctor)
+      {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: false};
+         case "SetCharacter": return {ctor: "_Tuple2",_0: _U.update(model,{character: $Maybe.Just(_p5._0)}),_1: false};
+         case "SetImages": return {ctor: "_Tuple2",_0: A2(updateMany,$DialogBox.SetImage(_p5._0),model),_1: false};
+         case "UpdateText": var _p6 = A3(updateText,_p5._0,_p5._1,getTexts(model));
+           var focusBoxNum = _p6._0;
+           var newTexts = _p6._1;
            return {ctor: "_Tuple2"
                   ,_0: _U.update(model,
                   {boxes: $Array.fromList(A2($List.map,
-                  function (_p6) {
-                     var _p7 = _p6;
-                     return A2($DialogBox.update,$DialogBox.SetText(_p7._0),_p7._1);
+                  function (_p7) {
+                     var _p8 = _p7;
+                     return A2($DialogBox.update,$DialogBox.SetText(_p8._0),_p8._1);
                   },
                   A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),newTexts,$Array.toList(model.boxes))))
                   ,focusIndex: focusBoxNum})
-                  ,_1: !_U.eq(model.focusIndex,focusBoxNum)};}
+                  ,_1: !_U.eq(model.focusIndex,focusBoxNum)};
+         default: var _p10 = _p5._0;
+           var box = A2($Array.get,A2($Debug.log,"boxIndex",_p10),model.boxes);
+           var _p9 = box;
+           if (_p9.ctor === "Nothing") {
+                 return {ctor: "_Tuple2",_0: model,_1: false};
+              } else {
+                 return {ctor: "_Tuple2"
+                        ,_0: _U.update(model,{boxes: A3($Array.set,_p10,A2($DialogBox.update,$DialogBox.ExpectImage(_p5._1),_p9._0),model.boxes)})
+                        ,_1: false};
+              }}
    });
    var getText = F2(function (i,model) {    return A2($Maybe.andThen,A2($Array.get,i,model.boxes),function (_) {    return _.text;});});
    var concat = function (model) {    return A2($String.join,"\n",$Helpers.takeJusts(A2($Array.map,function (_) {    return _.text;},model.boxes)));};
    var count = function (model) {
-      return $Array.length(A2($Array.filter,function (_p8) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p8));},model.boxes));
+      return $Array.length(A2($Array.filter,function (_p11) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p11));},model.boxes));
    };
    var init = {boxes: $Array.fromList(_U.list([A2($DialogBox.init,$Maybe.Just(""),1)
                                               ,A2($DialogBox.init,$Maybe.Nothing,2)
@@ -12052,6 +12585,7 @@ Elm.DialogBoxes.make = function (_elm) {
                                     ,getTexts: getTexts
                                     ,getImgSrcs: getImgSrcs
                                     ,viewable: viewable
+                                    ,convertViewMessage: convertViewMessage
                                     ,view: view
                                     ,dialogStringTexts: dialogStringTexts
                                     ,textsToString: textsToString
@@ -12059,9 +12593,11 @@ Elm.DialogBoxes.make = function (_elm) {
                                     ,pad: pad
                                     ,updateText: updateText
                                     ,updateMany: updateMany
+                                    ,NoOp: NoOp
                                     ,SetCharacter: SetCharacter
                                     ,SetImages: SetImages
                                     ,UpdateText: UpdateText
+                                    ,ExpectImage: ExpectImage
                                     ,update: update};
 };
 Elm.Focus = Elm.Focus || {};
