@@ -142,7 +142,12 @@ dialogFrame address model chara =
                 , filled (grayscale 1) (rect 568 140)
                   -- inner black box
                 , (toForm <| portraitButton address model.imgSrc chara)
-                    |> alpha (if model.expectingImage then 0.5 else 1)
+                    |> alpha
+                        (if model.expectingImage then
+                            0.5
+                         else
+                            1
+                        )
                     |> move ( -214 + imgX, imgY )
                 ]
         )
@@ -184,7 +189,10 @@ view address chara model =
 
 updateSrc : Maybe String -> Maybe String -> Bool -> Maybe String
 updateSrc old new expecting =
-    if ((old == Nothing) || (new == Nothing) || expecting) then new else old
+    if ((old == Nothing) || (new == Nothing) || expecting) then
+        new
+    else
+        old
 
 
 type Action

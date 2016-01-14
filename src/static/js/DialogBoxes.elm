@@ -24,7 +24,8 @@ type alias Model =
 
 
 initBoxes : Array DialogBox.Model
-initBoxes = fromList
+initBoxes =
+    fromList
         [ DialogBox.init (Just "") 1
         , DialogBox.init Nothing 2
         , DialogBox.init Nothing 3
@@ -81,8 +82,11 @@ convertViewMessage boxNum boxAction =
 
         DialogBox.SetImage s ->
             case s of
-              Nothing -> NoOp
-              Just src -> SetImages src
+                Nothing ->
+                    NoOp
+
+                Just src ->
+                    SetImages src
 
         DialogBox.SetText s ->
             UpdateText boxNum s
@@ -172,7 +176,7 @@ updateText boxIndex newBoxText oldTexts =
 
 updateBoxes : DialogBox.Action -> Array DialogBox.Model -> Array DialogBox.Model
 updateBoxes action boxes =
-      Array.map (DialogBox.update action) boxes
+    Array.map (DialogBox.update action) boxes
 
 
 resetTexts : Array DialogBox.Model -> Array DialogBox.Model
@@ -180,13 +184,14 @@ resetTexts boxes =
     let
         boxList = toList boxes
 
-        (first, rest) = (List.head boxList, List.tail boxList)
+        ( first, rest ) = ( List.head boxList, List.tail boxList )
     in
-      case Maybe.map2 (,) first rest of
-        Nothing -> Array.repeat 1 (DialogBox.init (Just "") 1)
+        case Maybe.map2 (,) first rest of
+            Nothing ->
+                Array.repeat 1 (DialogBox.init (Just "") 1)
 
-        Just (blank, empty) ->
-            initBoxes
+            Just ( blank, empty ) ->
+                initBoxes
 
 
 type Action
@@ -205,9 +210,10 @@ update action model =
 
         SetCharacter chara ->
             ( { model
-                | boxes = model.boxes
-                          |> updateBoxes (DialogBox.SetImage Nothing)
-                          |> resetTexts
+                | boxes =
+                    model.boxes
+                        |> updateBoxes (DialogBox.SetImage Nothing)
+                        |> resetTexts
                 , character = Just chara
               }
             , False
@@ -244,10 +250,12 @@ update action model =
                 box = Array.get index model.boxes
             in
                 case box of
-                    Nothing -> ( model, False )
+                    Nothing ->
+                        ( model, False )
 
                     Just oldBox ->
-                      ( { model
-                        | boxes = Array.set index (DialogBox.update (DialogBox.ExpectImage b) oldBox) model.boxes
-                        }, False
-                      )
+                        ( { model
+                            | boxes = Array.set index (DialogBox.update (DialogBox.ExpectImage b) oldBox) model.boxes
+                          }
+                        , False
+                        )
