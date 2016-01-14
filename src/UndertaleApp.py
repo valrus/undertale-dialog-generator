@@ -74,18 +74,18 @@ def chunks(lst, length, max_chunks=3):
         left -= 1
 
 
-def dialogBox(portrait, text, fnt, doIndent=True):
+def dialogBox(portraits, text, fnt, doIndent=True):
     textChunks = list(chunks(text.split('\n'), 3))
     orig_size = Size(298, 4 + 84 * len(textChunks))
     # mode = '1' is black and white
     img = Image.new(b'1', orig_size)
     draw = ImageDraw.Draw(img)
     draw.fontmode = b'1'
-    for boxNum, textChunk in enumerate(textChunks):
+    for boxNum, (portrait_src, textChunk) in enumerate(zip(portraits, textChunks)):
         y_offset = 84 * boxNum
         draw.rectangle((4, 4 + y_offset, 294, 80 + y_offset), fill=1)
         draw.rectangle((7, 7 + y_offset, 291, 77 + y_offset), fill=0)
-        img.paste(portrait, (13, 12 + y_offset))
+        img.paste(Image.open(portrait_src.lstrip('/')), (13, 12 + y_offset))
         for row, line in enumerate(textChunk[:3]):
             if app.debug:
                 print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
@@ -101,11 +101,11 @@ def makeDialogBox():
     text = _clean_text(request.args.get('text'), character)
     imgData = apply_personality(text, character)
     if imgData is None:
-        mood_img = request.args.get('moodImg')
+        mood_imgs = request.args.getlist('moodImg')
         if app.debug:
-            print(mood_img)
+            print(mood_imgs)
         box = dialogBox(
-            Image.open(mood_img.lstrip('/')),
+            mood_imgs,
             text,
             getFontForCharacter(character),
             doIndent=(character != 'papyrus')
