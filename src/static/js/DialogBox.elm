@@ -1,7 +1,5 @@
 module DialogBox (..) where
 
-import Debug exposing (log)
-
 import Color exposing (grayscale)
 import Graphics.Collage exposing (collage, move, filled, rect, toForm, alpha)
 import Graphics.Element exposing (Element, image)
@@ -211,5 +209,5 @@ update action model =
 
         ExpectImage b ->
             { model
-                | expectingImage = (log "expect" b)
+                | expectingImage = b
             }

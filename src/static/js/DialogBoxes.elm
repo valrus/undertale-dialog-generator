@@ -1,6 +1,5 @@
 module DialogBoxes (..) where
 
-import Debug exposing (log)
 import Array exposing (Array, toList, fromList)
 import Html exposing (Html)
 import Maybe.Extra exposing (isJust, join)
@@ -217,7 +216,7 @@ update action model =
 
         ExpectImage index b ->
             let
-                box = Array.get (log "boxIndex" index) model.boxes
+                box = Array.get index model.boxes
             in
                 case box of
                     Nothing -> ( model, False )
