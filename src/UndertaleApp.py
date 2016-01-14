@@ -102,6 +102,8 @@ def makeDialogBox():
     imgData = apply_personality(text, character)
     if imgData is None:
         mood_img = request.args.get('moodImg')
+        if app.debug:
+            print(mood_img)
         box = dialogBox(
             Image.open(mood_img.lstrip('/')),
             text,

@@ -182,13 +182,14 @@ view address chara model =
                 chara
 
 
-updateSrc : Maybe String -> String -> Bool -> Maybe String
+updateSrc : Maybe String -> Maybe String -> Bool -> Maybe String
 updateSrc old new expecting =
-    if ((old == Nothing) || expecting) then (Just new) else old
+    if ((old == Nothing) || (new == Nothing) || expecting) then new else old
 
 
 type Action
-    = SetImage String
+    = NoOp
+    | SetImage (Maybe String)
     | SetText (Maybe String)
     | ExpectImage Bool
 
@@ -196,9 +197,13 @@ type Action
 update : Action -> Model -> Model
 update action model =
     case action of
+        NoOp ->
+            model
+
         SetImage src ->
             { model
-                | imgSrc = updateSrc model.imgSrc src model.expectingImage
+                | imgSrc =
+                    updateSrc model.imgSrc src model.expectingImage
                 , expectingImage = False
             }
 

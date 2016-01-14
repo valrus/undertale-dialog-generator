@@ -23,14 +23,17 @@ type alias Model =
     }
 
 
+initBoxes : Array DialogBox.Model
+initBoxes = fromList
+        [ DialogBox.init (Just "") 1
+        , DialogBox.init Nothing 2
+        , DialogBox.init Nothing 3
+        ]
+
+
 init : Model
 init =
-    { boxes =
-        fromList
-            [ DialogBox.init (Just "") 1
-            , DialogBox.init Nothing 2
-            , DialogBox.init Nothing 3
-            ]
+    { boxes = initBoxes
     , character = Nothing
     , focusIndex = 0
     }
@@ -73,8 +76,13 @@ viewable model =
 convertViewMessage : Int -> DialogBox.Action -> Action
 convertViewMessage boxNum boxAction =
     case boxAction of
+        DialogBox.NoOp ->
+            NoOp
+
         DialogBox.SetImage s ->
-            SetImages s
+            case s of
+              Nothing -> NoOp
+              Just src -> SetImages src
 
         DialogBox.SetText s ->
             UpdateText boxNum s
@@ -162,11 +170,23 @@ updateText boxIndex newBoxText oldTexts =
         )
 
 
-updateMany : DialogBox.Action -> Model -> Model
-updateMany action model =
-    { model
-        | boxes = Array.map (DialogBox.update action) model.boxes
-    }
+updateBoxes : DialogBox.Action -> Array DialogBox.Model -> Array DialogBox.Model
+updateBoxes action boxes =
+      Array.map (DialogBox.update action) boxes
+
+
+resetTexts : Array DialogBox.Model -> Array DialogBox.Model
+resetTexts boxes =
+    let
+        boxList = toList boxes
+
+        (first, rest) = (List.head boxList, List.tail boxList)
+    in
+      case Maybe.map2 (,) first rest of
+        Nothing -> Array.repeat 1 (DialogBox.init (Just "") 1)
+
+        Just (blank, empty) ->
+            initBoxes
 
 
 type Action
@@ -185,13 +205,18 @@ update action model =
 
         SetCharacter chara ->
             ( { model
-                | character = Just chara
+                | boxes = model.boxes
+                          |> updateBoxes (DialogBox.SetImage Nothing)
+                          |> resetTexts
+                , character = Just chara
               }
             , False
             )
 
         SetImages src ->
-            ( updateMany (DialogBox.SetImage src) model
+            ( { model
+                | boxes = updateBoxes (DialogBox.SetImage (Just src)) model.boxes
+              }
             , False
             )
 

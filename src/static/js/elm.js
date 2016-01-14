@@ -12359,13 +12359,15 @@ Elm.DialogBox.make = function (_elm) {
    var ExpectImage = function (a) {    return {ctor: "ExpectImage",_0: a};};
    var SetText = function (a) {    return {ctor: "SetText",_0: a};};
    var SetImage = function (a) {    return {ctor: "SetImage",_0: a};};
-   var updateSrc = F3(function (old,$new,expecting) {    return _U.eq(old,$Maybe.Nothing) || expecting ? $Maybe.Just($new) : old;});
+   var NoOp = {ctor: "NoOp"};
+   var updateSrc = F3(function (old,$new,expecting) {    return _U.eq(old,$Maybe.Nothing) || (_U.eq($new,$Maybe.Nothing) || expecting) ? $new : old;});
    var update = F2(function (action,model) {
       var _p0 = action;
       switch (_p0.ctor)
-      {case "SetImage": return _U.update(model,{imgSrc: A3(updateSrc,model.imgSrc,_p0._0,model.expectingImage),expectingImage: false});
+      {case "NoOp": return model;
+         case "SetImage": return _U.update(model,{imgSrc: A3(updateSrc,model.imgSrc,_p0._0,model.expectingImage),expectingImage: false});
          case "SetText": return _U.update(model,{text: _p0._0});
-         default: return _U.update(model,{expectingImage: A2($Debug.log,"expect",_p0._0)});}
+         default: return _U.update(model,{expectingImage: _p0._0});}
    });
    var certifyModel = function (model) {
       var _p1 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),model.imgSrc,model.text);
@@ -12454,6 +12456,7 @@ Elm.DialogBox.make = function (_elm) {
                                   ,certifyModel: certifyModel
                                   ,view: view
                                   ,updateSrc: updateSrc
+                                  ,NoOp: NoOp
                                   ,SetImage: SetImage
                                   ,SetText: SetText
                                   ,ExpectImage: ExpectImage
@@ -12484,7 +12487,7 @@ Elm.DialogBoxes.make = function (_elm) {
    var SetImages = function (a) {    return {ctor: "SetImages",_0: a};};
    var SetCharacter = function (a) {    return {ctor: "SetCharacter",_0: a};};
    var NoOp = {ctor: "NoOp"};
-   var updateMany = F2(function (action,model) {    return _U.update(model,{boxes: A2($Array.map,$DialogBox.update(action),model.boxes)});});
+   var updateBoxes = F2(function (action,boxes) {    return A2($Array.map,$DialogBox.update(action),boxes);});
    var pad = F3(function (len,item,xs) {    return A2($Basics._op["++"],xs,A2($List.repeat,len - $List.length(xs),item));});
    var textsToString = function (texts) {    return A2($String.join,"\n",$Helpers.takeJusts(texts));};
    var textWithUpdate = F3(function (entryBoxIndex,newBoxText,oldTexts) {    return textsToString(A3($Array.set,entryBoxIndex,newBoxText,oldTexts));});
@@ -12516,18 +12519,24 @@ Elm.DialogBoxes.make = function (_elm) {
    var convertViewMessage = F2(function (boxNum,boxAction) {
       var _p3 = boxAction;
       switch (_p3.ctor)
-      {case "SetImage": return SetImages(_p3._0);
+      {case "NoOp": return NoOp;
+         case "SetImage": var _p4 = _p3._0;
+           if (_p4.ctor === "Nothing") {
+                 return NoOp;
+              } else {
+                 return SetImages(_p4._0);
+              }
          case "SetText": return A2(UpdateText,boxNum,_p3._0);
          default: return A2(ExpectImage,boxNum,_p3._0);}
    });
    var view = F2(function (address,model) {
-      var _p4 = model.character;
-      if (_p4.ctor === "Nothing") {
+      var _p5 = model.character;
+      if (_p5.ctor === "Nothing") {
             return _U.list([]);
          } else {
             return $Array.toList(A2($Array.indexedMap,
             function (i) {
-               return A2($DialogBox.view,A2($Signal.forwardTo,address,convertViewMessage(i)),_p4._0);
+               return A2($DialogBox.view,A2($Signal.forwardTo,address,convertViewMessage(i)),_p5._0);
             },
             model.boxes));
          }
@@ -12535,49 +12544,64 @@ Elm.DialogBoxes.make = function (_elm) {
    var viewable = function (model) {    return A2($List.any,$Maybe$Extra.isJust,$Array.toList(A2($Array.map,$DialogBox.certifyModel,model.boxes)));};
    var getImgSrcs = function (model) {    return $Helpers.takeJusts(A2($Array.map,function (_) {    return _.imgSrc;},model.boxes));};
    var getTexts = function (model) {    return A2($Array.map,function (_) {    return _.text;},model.boxes);};
+   var getText = F2(function (i,model) {    return A2($Maybe.andThen,A2($Array.get,i,model.boxes),function (_) {    return _.text;});});
+   var concat = function (model) {    return A2($String.join,"\n",$Helpers.takeJusts(A2($Array.map,function (_) {    return _.text;},model.boxes)));};
+   var count = function (model) {
+      return $Array.length(A2($Array.filter,function (_p6) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p6));},model.boxes));
+   };
+   var initBoxes = $Array.fromList(_U.list([A2($DialogBox.init,$Maybe.Just(""),1),A2($DialogBox.init,$Maybe.Nothing,2),A2($DialogBox.init,$Maybe.Nothing,3)]));
+   var init = {boxes: initBoxes,character: $Maybe.Nothing,focusIndex: 0};
+   var resetTexts = function (boxes) {
+      var boxList = $Array.toList(boxes);
+      var _p7 = {ctor: "_Tuple2",_0: $List.head(boxList),_1: $List.tail(boxList)};
+      var first = _p7._0;
+      var rest = _p7._1;
+      var _p8 = A3($Maybe.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),first,rest);
+      if (_p8.ctor === "Nothing") {
+            return A2($Array.repeat,1,A2($DialogBox.init,$Maybe.Just(""),1));
+         } else {
+            return initBoxes;
+         }
+   };
    var update = F2(function (action,model) {
-      var _p5 = action;
-      switch (_p5.ctor)
+      var _p9 = action;
+      switch (_p9.ctor)
       {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: false};
-         case "SetCharacter": return {ctor: "_Tuple2",_0: _U.update(model,{character: $Maybe.Just(_p5._0)}),_1: false};
-         case "SetImages": return {ctor: "_Tuple2",_0: A2(updateMany,$DialogBox.SetImage(_p5._0),model),_1: false};
-         case "UpdateText": var _p6 = A3(updateText,_p5._0,_p5._1,getTexts(model));
-           var focusBoxNum = _p6._0;
-           var newTexts = _p6._1;
+         case "SetCharacter": return {ctor: "_Tuple2"
+                                     ,_0: _U.update(model,
+                                     {boxes: resetTexts(A2(updateBoxes,$DialogBox.SetImage($Maybe.Nothing),model.boxes)),character: $Maybe.Just(_p9._0)})
+                                     ,_1: false};
+         case "SetImages": return {ctor: "_Tuple2"
+                                  ,_0: _U.update(model,{boxes: A2(updateBoxes,$DialogBox.SetImage($Maybe.Just(_p9._0)),model.boxes)})
+                                  ,_1: false};
+         case "UpdateText": var _p10 = A3(updateText,_p9._0,_p9._1,getTexts(model));
+           var focusBoxNum = _p10._0;
+           var newTexts = _p10._1;
            return {ctor: "_Tuple2"
                   ,_0: _U.update(model,
                   {boxes: $Array.fromList(A2($List.map,
-                  function (_p7) {
-                     var _p8 = _p7;
-                     return A2($DialogBox.update,$DialogBox.SetText(_p8._0),_p8._1);
+                  function (_p11) {
+                     var _p12 = _p11;
+                     return A2($DialogBox.update,$DialogBox.SetText(_p12._0),_p12._1);
                   },
                   A3($List.map2,F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),newTexts,$Array.toList(model.boxes))))
                   ,focusIndex: focusBoxNum})
                   ,_1: !_U.eq(model.focusIndex,focusBoxNum)};
-         default: var _p10 = _p5._0;
-           var box = A2($Array.get,A2($Debug.log,"boxIndex",_p10),model.boxes);
-           var _p9 = box;
-           if (_p9.ctor === "Nothing") {
+         default: var _p14 = _p9._0;
+           var box = A2($Array.get,_p14,model.boxes);
+           var _p13 = box;
+           if (_p13.ctor === "Nothing") {
                  return {ctor: "_Tuple2",_0: model,_1: false};
               } else {
                  return {ctor: "_Tuple2"
-                        ,_0: _U.update(model,{boxes: A3($Array.set,_p10,A2($DialogBox.update,$DialogBox.ExpectImage(_p5._1),_p9._0),model.boxes)})
+                        ,_0: _U.update(model,{boxes: A3($Array.set,_p14,A2($DialogBox.update,$DialogBox.ExpectImage(_p9._1),_p13._0),model.boxes)})
                         ,_1: false};
               }}
    });
-   var getText = F2(function (i,model) {    return A2($Maybe.andThen,A2($Array.get,i,model.boxes),function (_) {    return _.text;});});
-   var concat = function (model) {    return A2($String.join,"\n",$Helpers.takeJusts(A2($Array.map,function (_) {    return _.text;},model.boxes)));};
-   var count = function (model) {
-      return $Array.length(A2($Array.filter,function (_p11) {    return $Maybe$Extra.isJust(function (_) {    return _.text;}(_p11));},model.boxes));
-   };
-   var init = {boxes: $Array.fromList(_U.list([A2($DialogBox.init,$Maybe.Just(""),1)
-                                              ,A2($DialogBox.init,$Maybe.Nothing,2)
-                                              ,A2($DialogBox.init,$Maybe.Nothing,3)]))
-              ,character: $Maybe.Nothing
-              ,focusIndex: 0};
    var Model = F3(function (a,b,c) {    return {boxes: a,character: b,focusIndex: c};});
    return _elm.DialogBoxes.values = {_op: _op
                                     ,Model: Model
+                                    ,initBoxes: initBoxes
                                     ,init: init
                                     ,count: count
                                     ,concat: concat
@@ -12592,7 +12616,8 @@ Elm.DialogBoxes.make = function (_elm) {
                                     ,textWithUpdate: textWithUpdate
                                     ,pad: pad
                                     ,updateText: updateText
-                                    ,updateMany: updateMany
+                                    ,updateBoxes: updateBoxes
+                                    ,resetTexts: resetTexts
                                     ,NoOp: NoOp
                                     ,SetCharacter: SetCharacter
                                     ,SetImages: SetImages
@@ -12933,7 +12958,7 @@ Elm.UndertaleDialog.make = function (_elm) {
            return {ctor: "_Tuple2",_0: _U.update(model,{imgur: newImgur}),_1: A2($Effects.map,UpdateImgur,fx)};}
    });
    var dialogBoxImg = F3(function (boxes,address,pngData) {
-      var boxCount = A2($Debug.log,"boxCount",$DialogBoxes.count(boxes));
+      var boxCount = $DialogBoxes.count(boxes);
       return _U.list([A2($Html.a,
       _U.list([]),
       _U.list([A2($Html.img,
