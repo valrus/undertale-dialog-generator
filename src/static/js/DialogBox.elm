@@ -188,8 +188,8 @@ view address chara model =
 
 
 updateSrc : Maybe String -> Maybe String -> Bool -> Maybe String
-updateSrc old new expecting =
-    if ((old == Nothing) || (new == Nothing) || expecting) then
+updateSrc old new wantToSet =
+    if ((old == Nothing) || wantToSet) then
         new
     else
         old
@@ -197,7 +197,7 @@ updateSrc old new expecting =
 
 type Action
     = NoOp
-    | SetImage (Maybe String)
+    | SetImage (Maybe String) Bool
     | SetText (Maybe String)
     | ExpectImage Bool
 
@@ -208,10 +208,10 @@ update action model =
         NoOp ->
             model
 
-        SetImage src ->
+        SetImage src force ->
             { model
                 | imgSrc =
-                    updateSrc model.imgSrc src model.expectingImage
+                    updateSrc model.imgSrc src (model.expectingImage || force)
                 , expectingImage = False
             }
 

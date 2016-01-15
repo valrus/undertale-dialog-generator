@@ -12361,14 +12361,14 @@ Elm.DialogBox.make = function (_elm) {
    var _op = {};
    var ExpectImage = function (a) {    return {ctor: "ExpectImage",_0: a};};
    var SetText = function (a) {    return {ctor: "SetText",_0: a};};
-   var SetImage = function (a) {    return {ctor: "SetImage",_0: a};};
+   var SetImage = F2(function (a,b) {    return {ctor: "SetImage",_0: a,_1: b};});
    var NoOp = {ctor: "NoOp"};
-   var updateSrc = F3(function (old,$new,expecting) {    return _U.eq(old,$Maybe.Nothing) || (_U.eq($new,$Maybe.Nothing) || expecting) ? $new : old;});
+   var updateSrc = F3(function (old,$new,wantToSet) {    return _U.eq(old,$Maybe.Nothing) || wantToSet ? $new : old;});
    var update = F2(function (action,model) {
       var _p0 = action;
       switch (_p0.ctor)
       {case "NoOp": return model;
-         case "SetImage": return _U.update(model,{imgSrc: A3(updateSrc,model.imgSrc,_p0._0,model.expectingImage),expectingImage: false});
+         case "SetImage": return _U.update(model,{imgSrc: A3(updateSrc,model.imgSrc,_p0._0,model.expectingImage || _p0._1),expectingImage: false});
          case "SetText": return _U.update(model,{text: _p0._0});
          default: return _U.update(model,{expectingImage: _p0._0});}
    });
@@ -12572,10 +12572,11 @@ Elm.DialogBoxes.make = function (_elm) {
       {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: false};
          case "SetCharacter": return {ctor: "_Tuple2"
                                      ,_0: _U.update(model,
-                                     {boxes: resetTexts(A2(updateBoxes,$DialogBox.SetImage($Maybe.Nothing),model.boxes)),character: $Maybe.Just(_p9._0)})
+                                     {boxes: resetTexts(A2(updateBoxes,A2($DialogBox.SetImage,$Maybe.Nothing,true),model.boxes))
+                                     ,character: $Maybe.Just(_p9._0)})
                                      ,_1: false};
          case "SetImages": return {ctor: "_Tuple2"
-                                  ,_0: _U.update(model,{boxes: A2(updateBoxes,$DialogBox.SetImage($Maybe.Just(_p9._0)),model.boxes)})
+                                  ,_0: _U.update(model,{boxes: A2(updateBoxes,A2($DialogBox.SetImage,$Maybe.Just(_p9._0),_U.eq(count(model),1)),model.boxes)})
                                   ,_1: false};
          case "UpdateText": var _p10 = A3(updateText,_p9._0,_p9._1,getTexts(model));
            var focusBoxNum = _p10._0;

@@ -80,7 +80,7 @@ convertViewMessage boxNum boxAction =
         DialogBox.NoOp ->
             NoOp
 
-        DialogBox.SetImage s ->
+        DialogBox.SetImage s force ->
             case s of
                 Nothing ->
                     NoOp
@@ -212,7 +212,7 @@ update action model =
             ( { model
                 | boxes =
                     model.boxes
-                        |> updateBoxes (DialogBox.SetImage Nothing)
+                        |> updateBoxes (DialogBox.SetImage Nothing True)
                         |> resetTexts
                 , character = Just chara
               }
@@ -221,7 +221,10 @@ update action model =
 
         SetImages src ->
             ( { model
-                | boxes = updateBoxes (DialogBox.SetImage (Just src)) model.boxes
+                | boxes =
+                    updateBoxes
+                        (DialogBox.SetImage (Just src) (count model == 1))
+                        model.boxes
               }
             , False
             )
