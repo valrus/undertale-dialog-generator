@@ -12082,7 +12082,7 @@ Elm.Character.make = function (_elm) {
          case "Papyrus": return 19;
          case "Undyne": return 24;
          case "Alphys": return 22;
-         case "Asgore": return 6;
+         case "Asgore": return 21;
          case "Napstablook": return 2;
          case "Mettaton": return 22;
          case "Flowey": return 21;

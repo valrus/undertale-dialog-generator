@@ -38,7 +38,7 @@ moodCount c =
             22
 
         Asgore ->
-            6
+            21
 
         Napstablook ->
             2
