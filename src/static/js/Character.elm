@@ -19,8 +19,8 @@ type alias StyleList =
     List ( String, String )
 
 
-moodCount : Name -> Int
-moodCount c =
+moodCount : Bool -> Name -> Int
+moodCount exmode c =
     case c of
         Toriel ->
             40
@@ -50,7 +50,7 @@ moodCount c =
             21
 
         Asriel ->
-            19
+            if exmode then 26 else 19
 
         Temmie ->
             3

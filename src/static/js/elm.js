@@ -9334,6 +9334,116 @@ Elm.Json.Decode.make = function (_elm) {
                                     ,value: value
                                     ,customDecoder: customDecoder};
 };
+Elm.Native.Keyboard = {};
+
+Elm.Native.Keyboard.make = function(localRuntime) {
+	localRuntime.Native = localRuntime.Native || {};
+	localRuntime.Native.Keyboard = localRuntime.Native.Keyboard || {};
+	if (localRuntime.Native.Keyboard.values)
+	{
+		return localRuntime.Native.Keyboard.values;
+	}
+
+	var NS = Elm.Native.Signal.make(localRuntime);
+
+
+	function keyEvent(event)
+	{
+		return {
+			alt: event.altKey,
+			meta: event.metaKey,
+			keyCode: event.keyCode
+		};
+	}
+
+
+	function keyStream(node, eventName, handler)
+	{
+		var stream = NS.input(eventName, { alt: false, meta: false, keyCode: 0 });
+
+		localRuntime.addListener([stream.id], node, eventName, function(e) {
+			localRuntime.notify(stream.id, handler(e));
+		});
+
+		return stream;
+	}
+
+	var downs = keyStream(document, 'keydown', keyEvent);
+	var ups = keyStream(document, 'keyup', keyEvent);
+	var presses = keyStream(document, 'keypress', keyEvent);
+	var blurs = keyStream(window, 'blur', function() { return null; });
+
+
+	return localRuntime.Native.Keyboard.values = {
+		downs: downs,
+		ups: ups,
+		blurs: blurs,
+		presses: presses
+	};
+};
+
+Elm.Keyboard = Elm.Keyboard || {};
+Elm.Keyboard.make = function (_elm) {
+   "use strict";
+   _elm.Keyboard = _elm.Keyboard || {};
+   if (_elm.Keyboard.values) return _elm.Keyboard.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
+   $Native$Keyboard = Elm.Native.Keyboard.make(_elm),
+   $Set = Elm.Set.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var presses = A2($Signal.map,function (_) {    return _.keyCode;},$Native$Keyboard.presses);
+   var toXY = F2(function (_p0,keyCodes) {
+      var _p1 = _p0;
+      var is = function (keyCode) {    return A2($Set.member,keyCode,keyCodes) ? 1 : 0;};
+      return {x: is(_p1.right) - is(_p1.left),y: is(_p1.up) - is(_p1.down)};
+   });
+   var Directions = F4(function (a,b,c,d) {    return {up: a,down: b,left: c,right: d};});
+   var dropMap = F2(function (f,signal) {    return $Signal.dropRepeats(A2($Signal.map,f,signal));});
+   var EventInfo = F3(function (a,b,c) {    return {alt: a,meta: b,keyCode: c};});
+   var Blur = {ctor: "Blur"};
+   var Down = function (a) {    return {ctor: "Down",_0: a};};
+   var Up = function (a) {    return {ctor: "Up",_0: a};};
+   var rawEvents = $Signal.mergeMany(_U.list([A2($Signal.map,Up,$Native$Keyboard.ups)
+                                             ,A2($Signal.map,Down,$Native$Keyboard.downs)
+                                             ,A2($Signal.map,$Basics.always(Blur),$Native$Keyboard.blurs)]));
+   var empty = {alt: false,meta: false,keyCodes: $Set.empty};
+   var update = F2(function (event,model) {
+      var _p2 = event;
+      switch (_p2.ctor)
+      {case "Down": var _p3 = _p2._0;
+           return {alt: _p3.alt,meta: _p3.meta,keyCodes: A2($Set.insert,_p3.keyCode,model.keyCodes)};
+         case "Up": var _p4 = _p2._0;
+           return {alt: _p4.alt,meta: _p4.meta,keyCodes: A2($Set.remove,_p4.keyCode,model.keyCodes)};
+         default: return empty;}
+   });
+   var model = A3($Signal.foldp,update,empty,rawEvents);
+   var alt = A2(dropMap,function (_) {    return _.alt;},model);
+   var meta = A2(dropMap,function (_) {    return _.meta;},model);
+   var keysDown = A2(dropMap,function (_) {    return _.keyCodes;},model);
+   var arrows = A2(dropMap,toXY({up: 38,down: 40,left: 37,right: 39}),keysDown);
+   var wasd = A2(dropMap,toXY({up: 87,down: 83,left: 65,right: 68}),keysDown);
+   var isDown = function (keyCode) {    return A2(dropMap,$Set.member(keyCode),keysDown);};
+   var ctrl = isDown(17);
+   var shift = isDown(16);
+   var space = isDown(32);
+   var enter = isDown(13);
+   var Model = F3(function (a,b,c) {    return {alt: a,meta: b,keyCodes: c};});
+   return _elm.Keyboard.values = {_op: _op
+                                 ,arrows: arrows
+                                 ,wasd: wasd
+                                 ,enter: enter
+                                 ,space: space
+                                 ,ctrl: ctrl
+                                 ,shift: shift
+                                 ,alt: alt
+                                 ,meta: meta
+                                 ,isDown: isDown
+                                 ,keysDown: keysDown
+                                 ,presses: presses};
+};
 Elm.Native.Effects = {};
 Elm.Native.Effects.make = function(localRuntime) {
 
@@ -12074,7 +12184,7 @@ Elm.Character.make = function (_elm) {
             return {ctor: "_Tuple2",_0: 60,_1: 60};
          }
    };
-   var moodCount = function (c) {
+   var moodCount = F2(function (exmode,c) {
       var _p5 = c;
       switch (_p5.ctor)
       {case "Toriel": return 40;
@@ -12086,9 +12196,9 @@ Elm.Character.make = function (_elm) {
          case "Napstablook": return 2;
          case "Mettaton": return 22;
          case "Flowey": return 21;
-         case "Asriel": return 19;
+         case "Asriel": return exmode ? 26 : 19;
          default: return 3;}
-   };
+   });
    var Temmie = {ctor: "Temmie"};
    var Asriel = {ctor: "Asriel"};
    var Mettaton = {ctor: "Mettaton"};
@@ -12118,6 +12228,52 @@ Elm.Character.make = function (_elm) {
                                   ,fontStyles: fontStyles
                                   ,textboxStyles: textboxStyles
                                   ,dialogAsterisk: dialogAsterisk};
+};
+Elm.CheatCode = Elm.CheatCode || {};
+Elm.CheatCode.make = function (_elm) {
+   "use strict";
+   _elm.CheatCode = _elm.CheatCode || {};
+   if (_elm.CheatCode.values) return _elm.CheatCode.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Dict = Elm.Dict.make(_elm),
+   $Effects = Elm.Effects.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm),
+   $Task = Elm.Task.make(_elm);
+   var _op = {};
+   var mailbox = $Signal.mailbox("");
+   var isComplete = function (_p0) {    var _p1 = _p0;return _U.eq($String.length(_p1._0),_p1._1);};
+   var checkChar = F3(function (c,code,matches) {
+      var _p2 = $String.uncons(A2($String.dropLeft,matches,code));
+      if (_p2.ctor === "Just" && _p2._0.ctor === "_Tuple2") {
+            return _U.eq(_p2._0._0,c) ? matches + 1 : 0;
+         } else {
+            return 0;
+         }
+   });
+   var update = F2(function (c,model) {
+      var status = A2($Dict.map,checkChar(c),model.codeStatus);
+      var complete = $List.head(A2($List.filter,isComplete,$Dict.toList(status)));
+      var _p3 = complete;
+      if (_p3.ctor === "Nothing") {
+            return {ctor: "_Tuple2",_0: _U.update(model,{codeStatus: status}),_1: $Effects.none};
+         } else {
+            var _p7 = _p3._0._0;
+            return {ctor: "_Tuple2"
+                   ,_0: _U.update(model,{codeStatus: A2($Dict.map,F2(function (_p5,_p4) {    return 0;}),status)})
+                   ,_1: $Effects.task(A2($Task.map,function (_p6) {    return _p7;},A2($Signal.send,model.mailbox.address,_p7)))};
+         }
+   });
+   var init = F2(function (codes,mailbox) {
+      return {codeStatus: $Dict.fromList(A2($List.map,function (s) {    return {ctor: "_Tuple2",_0: s,_1: 0};},codes)),mailbox: mailbox};
+   });
+   var Model = F2(function (a,b) {    return {codeStatus: a,mailbox: b};});
+   return _elm.CheatCode.values = {_op: _op,Model: Model,init: init,checkChar: checkChar,isComplete: isComplete,update: update,mailbox: mailbox};
 };
 Elm.Modal = Elm.Modal || {};
 Elm.Modal.make = function (_elm) {
@@ -12344,6 +12500,7 @@ Elm.DialogBox.make = function (_elm) {
    if (_elm.DialogBox.values) return _elm.DialogBox.values;
    var _U = Elm.Native.Utils.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
    $Character = Elm.Character.make(_elm),
    $Color = Elm.Color.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -12644,10 +12801,19 @@ Elm.Focus.make = function (_elm) {
    var _op = {};
    var focusFilter = function (action) {    var _p0 = action;if (_p0.ctor === "Focus") {    return $Maybe.Just(_p0._0);} else {    return $Maybe.Nothing;}};
    var NoOp = {ctor: "NoOp"};
+   var mailbox = $Signal.mailbox(NoOp);
    var Focus = function (a) {    return {ctor: "Focus",_0: a};};
    var emptyParams = {elementId: "",moveCursorToEnd: false};
+   var filteredSignal = function (signal) {    return A3($Signal.filterMap,focusFilter,emptyParams,signal);};
    var Params = F2(function (a,b) {    return {elementId: a,moveCursorToEnd: b};});
-   return _elm.Focus.values = {_op: _op,Params: Params,emptyParams: emptyParams,Focus: Focus,NoOp: NoOp,focusFilter: focusFilter};
+   return _elm.Focus.values = {_op: _op
+                              ,Params: Params
+                              ,emptyParams: emptyParams
+                              ,Focus: Focus
+                              ,NoOp: NoOp
+                              ,focusFilter: focusFilter
+                              ,filteredSignal: filteredSignal
+                              ,mailbox: mailbox};
 };
 Elm.Imgur = Elm.Imgur || {};
 Elm.Imgur.make = function (_elm) {
@@ -12846,7 +13012,9 @@ Elm.UndertaleDialog.make = function (_elm) {
    var _U = Elm.Native.Utils.make(_elm),
    $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
+   $Char = Elm.Char.make(_elm),
    $Character = Elm.Character.make(_elm),
+   $CheatCode = Elm.CheatCode.make(_elm),
    $Color = Elm.Color.make(_elm),
    $CreditsModal = Elm.CreditsModal.make(_elm),
    $Debug = Elm.Debug.make(_elm),
@@ -12861,6 +13029,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Http = Elm.Http.make(_elm),
    $Imgur = Elm.Imgur.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
+   $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Maybe$Extra = Elm.Maybe.Extra.make(_elm),
@@ -12870,12 +13039,6 @@ Elm.UndertaleDialog.make = function (_elm) {
    $StartApp = Elm.StartApp.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var toFocusMailbox = $Signal.mailbox($Focus.NoOp);
-   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",
-   function (v) {
-      return {elementId: v.elementId,moveCursorToEnd: v.moveCursorToEnd};
-   },
-   A3($Signal.filterMap,$Focus.focusFilter,$Focus.emptyParams,toFocusMailbox.signal));
    var staticRoot = Elm.Native.Port.make(_elm).inboundSignal("staticRoot",
    "String",
    function (v) {
@@ -12886,6 +13049,13 @@ Elm.UndertaleDialog.make = function (_elm) {
    function (v) {
       return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
+   var cheatCodeMailbox = $CheatCode.mailbox;
+   var focusMailbox = $Focus.mailbox;
+   var focus = Elm.Native.Port.make(_elm).outboundSignal("focus",
+   function (v) {
+      return {elementId: v.elementId,moveCursorToEnd: v.moveCursorToEnd};
+   },
+   $Focus.filteredSignal(focusMailbox.signal));
    var imgurParamsDecoder = A3($Json$Decode.object2,
    F2(function (v0,v1) {    return {ctor: "_Tuple2",_0: v0,_1: v1};}),
    A2($Json$Decode._op[":="],"clientId",$Json$Decode.string),
@@ -12922,43 +13092,51 @@ Elm.UndertaleDialog.make = function (_elm) {
    var UpdateDialogs = function (a) {    return {ctor: "UpdateDialogs",_0: a};};
    var ChooseMood = function (a) {    return {ctor: "ChooseMood",_0: a};};
    var ChooseCharacter = function (a) {    return {ctor: "ChooseCharacter",_0: a};};
+   var ActivateEXMode = {ctor: "ActivateEXMode"};
+   var EnterCheatCode = function (a) {    return {ctor: "EnterCheatCode",_0: a};};
    var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
    var toFocusEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,$Focus.Focus(params))));});
+   var getCheatCodeAction = function (s) {    var _p1 = s;if (_p1 === "ex") {    return ActivateEXMode;} else {    return NoOp({ctor: "_Tuple0"});}};
    var textBoxId = function (n) {    return A2($Basics._op["++"],"textBox",$Basics.toString(n));};
    var update = F2(function (action,model) {
-      var _p1 = action;
-      switch (_p1.ctor)
+      var _p2 = action;
+      switch (_p2.ctor)
       {case "NoOp": return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-         case "ChooseCharacter": var _p3 = _p1._0;
-           var _p2 = A2($DialogBoxes.update,$DialogBoxes.SetCharacter(_p3),model.dialogs);
-           var newBoxes = _p2._0;
-           var moveCursor = _p2._1;
-           return {ctor: "_Tuple2",_0: _U.update(model,{selection: $Maybe.Just(_p3),dialogs: newBoxes,imageData: $Maybe.Nothing}),_1: $Effects.none};
-         case "ChooseMood": var _p4 = A2($DialogBoxes.update,$DialogBoxes.SetImages(_p1._0),model.dialogs);
+         case "EnterCheatCode": var _p3 = A2($CheatCode.update,_p2._0,model.cheatCode);
+           var newCheatCode = _p3._0;
+           var cheatEffect = _p3._1;
+           return {ctor: "_Tuple2",_0: _U.update(model,{cheatCode: newCheatCode}),_1: A2($Effects.map,getCheatCodeAction,cheatEffect)};
+         case "ActivateEXMode": return {ctor: "_Tuple2",_0: _U.update(model,{exmode: true}),_1: $Effects.none};
+         case "ChooseCharacter": var _p5 = _p2._0;
+           var _p4 = A2($DialogBoxes.update,$DialogBoxes.SetCharacter(_p5),model.dialogs);
            var newBoxes = _p4._0;
            var moveCursor = _p4._1;
+           return {ctor: "_Tuple2",_0: _U.update(model,{selection: $Maybe.Just(_p5),dialogs: newBoxes,imageData: $Maybe.Nothing}),_1: $Effects.none};
+         case "ChooseMood": var _p6 = A2($DialogBoxes.update,$DialogBoxes.SetImages(_p2._0),model.dialogs);
+           var newBoxes = _p6._0;
+           var moveCursor = _p6._1;
            return {ctor: "_Tuple2"
                   ,_0: _U.update(model,{dialogs: newBoxes,imageData: $Maybe.Nothing})
-                  ,_1: A2(toFocusEffect,model.focusAddress,{elementId: textBoxId(1),moveCursorToEnd: moveCursor})};
-         case "UpdateDialogs": var _p5 = A2($DialogBoxes.update,_p1._0,model.dialogs);
-           var newBoxes = _p5._0;
-           var moveCursor = _p5._1;
+                  ,_1: A2(toFocusEffect,model.focusMailbox.address,{elementId: textBoxId(1),moveCursorToEnd: moveCursor})};
+         case "UpdateDialogs": var _p7 = A2($DialogBoxes.update,_p2._0,model.dialogs);
+           var newBoxes = _p7._0;
+           var moveCursor = _p7._1;
            return {ctor: "_Tuple2"
                   ,_0: _U.update(model,{dialogs: newBoxes,imageData: $Maybe.Nothing})
-                  ,_1: A2(toFocusEffect,model.focusAddress,{elementId: textBoxId(newBoxes.focusIndex),moveCursorToEnd: moveCursor})};
-         case "SetScriptRoot": var _p6 = _p1._0;
-           return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p6}),_1: getImgurParams(_p6)};
-         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p1._0}),_1: $Effects.none};
+                  ,_1: A2(toFocusEffect,model.focusMailbox.address,{elementId: textBoxId(newBoxes.focusIndex),moveCursorToEnd: moveCursor})};
+         case "SetScriptRoot": var _p8 = _p2._0;
+           return {ctor: "_Tuple2",_0: _U.update(model,{scriptRoot: _p8}),_1: getImgurParams(_p8)};
+         case "SetStaticRoot": return {ctor: "_Tuple2",_0: _U.update(model,{staticRoot: _p2._0}),_1: $Effects.none};
          case "GetDownload": return {ctor: "_Tuple2",_0: model,_1: getDialogBoxImg(model)};
-         case "GotDownload": var _p8 = _p1._0;
-           var _p7 = A2($Imgur.update,$Imgur.SetImageData(_p8),model.imgur);
-           var newImgur = _p7._0;
-           var fx = _p7._1;
-           return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p8,imgur: newImgur}),_1: $Effects.none};
-         case "UpdateModal": return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p1._0,model.modal)}),_1: $Effects.none};
-         default: var _p9 = A2($Imgur.update,_p1._0,model.imgur);
+         case "GotDownload": var _p10 = _p2._0;
+           var _p9 = A2($Imgur.update,$Imgur.SetImageData(_p10),model.imgur);
            var newImgur = _p9._0;
            var fx = _p9._1;
+           return {ctor: "_Tuple2",_0: _U.update(model,{imageData: _p10,imgur: newImgur}),_1: $Effects.none};
+         case "UpdateModal": return {ctor: "_Tuple2",_0: _U.update(model,{modal: A2($Modal.update,_p2._0,model.modal)}),_1: $Effects.none};
+         default: var _p11 = A2($Imgur.update,_p2._0,model.imgur);
+           var newImgur = _p11._0;
+           var fx = _p11._1;
            return {ctor: "_Tuple2",_0: _U.update(model,{imgur: newImgur}),_1: A2($Effects.map,UpdateImgur,fx)};}
    });
    var dialogBoxImg = F3(function (boxes,address,pngData) {
@@ -12974,16 +13152,16 @@ Elm.UndertaleDialog.make = function (_elm) {
    var returnedDialogBox = F3(function (boxes,address,imgData) {
       return A2($Maybe.andThen,
       A3($Maybe.map2,F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),$Maybe.Just("data:image/png;base64,"),imgData),
-      function (_p10) {
-         return $Maybe.Just(A3(dialogBoxImg,boxes,address,_p10));
+      function (_p12) {
+         return $Maybe.Just(A3(dialogBoxImg,boxes,address,_p12));
       });
    });
    var dialogBoxTexts = function (arr) {
-      var _p11 = $Maybe$Extra.join(A2($Array.get,0,arr));
-      if (_p11.ctor === "Nothing") {
+      var _p13 = $Maybe$Extra.join(A2($Array.get,0,arr));
+      if (_p13.ctor === "Nothing") {
             return _U.list([""]);
          } else {
-            return A2($Basics._op["++"],_U.list([_p11._0]),$Helpers.takeJusts(A3($Array.slice,1,3,arr)));
+            return A2($Basics._op["++"],_U.list([_p13._0]),$Helpers.takeJusts(A3($Array.slice,1,3,arr)));
          }
    };
    var numBoxes = function (texts) {    return $List.length(dialogBoxTexts(texts));};
@@ -13034,11 +13212,11 @@ Elm.UndertaleDialog.make = function (_elm) {
    var header = A2($Html.div,
    _U.list([]),
    _U.list([A2($Html.hr,_U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "margin-bottom",_1: "30px"}]))]),_U.list([]))]));
-   var maybeDivider = function (choice) {    var _p12 = choice;if (_p12.ctor === "Nothing") {    return blank;} else {    return header;}};
+   var maybeDivider = function (choice) {    var _p14 = choice;if (_p14.ctor === "Nothing") {    return blank;} else {    return header;}};
    var flatButton = _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "transparent"},{ctor: "_Tuple2",_0: "border",_1: "none"}]);
    var characterButton = F3(function (address,staticRoot,c) {
-      var _p13 = c;
-      if (_p13.ctor === "Temmie") {
+      var _p15 = c;
+      if (_p15.ctor === "Temmie") {
             return blank;
          } else {
             return A2($Html.button,
@@ -13057,17 +13235,19 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html$Events.onClick,address,ChooseMood(spriteStr)),$Html$Attributes.style(flatButton)]),
       _U.list([A2($Html.img,_U.list([$Html$Attributes.src(spriteStr)]),_U.list([]))]));
    });
-   var moodButtons = F3(function (address,root,c) {
+   var moodButtons = F4(function (address,root,c,exmode) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([A2($Html.ul,_U.list([$Html$Attributes.$class("moods")]),A2($List.map,A3(moodButton,address,root,c),_U.range(1,$Character.moodCount(c))))]));
+      _U.list([A2($Html.ul,
+      _U.list([$Html$Attributes.$class("moods")]),
+      A2($List.map,A3(moodButton,address,root,c),_U.range(1,A2($Character.moodCount,exmode,c))))]));
    });
-   var moodSection = F3(function (address,root,maybeChar) {
-      var _p14 = maybeChar;
-      if (_p14.ctor === "Nothing") {
+   var moodSection = F4(function (address,root,maybeChar,exmode) {
+      var _p16 = maybeChar;
+      if (_p16.ctor === "Nothing") {
             return blank;
          } else {
-            return A3(moodButtons,address,root,_p14._0);
+            return A4(moodButtons,address,root,_p16._0,exmode);
          }
    });
    var infoButton = F2(function (address,root) {
@@ -13084,12 +13264,12 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2(title,model.staticRoot,address)
               ,A3(characterButtons,address,model.staticRoot,model.characters)
               ,maybeDivider(model.selection)
-              ,A3(moodSection,address,model.staticRoot,model.selection)
+              ,A4(moodSection,address,model.staticRoot,model.selection,model.exmode)
               ,A2(dialogBoxSection,address,model)
               ,A2(infoButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
-   var init = F2(function (characters,focusAddress) {
+   var init = F3(function (characters,focusBox,cheatCodeBox) {
       return {characters: characters
              ,selection: $Maybe.Nothing
              ,dialogs: $DialogBoxes.init
@@ -13097,11 +13277,13 @@ Elm.UndertaleDialog.make = function (_elm) {
              ,scriptRoot: ""
              ,imageData: $Maybe.Nothing
              ,modal: $Modal.init($Color.grayscale(1))
-             ,focusAddress: focusAddress
-             ,imgur: $Imgur.init};
+             ,focusMailbox: focusBox
+             ,cheatCode: A2($CheatCode.init,_U.list(["ex"]),cheatCodeBox)
+             ,imgur: $Imgur.init
+             ,exmode: false};
    });
    var app = $StartApp.start({init: {ctor: "_Tuple2"
-                                    ,_0: A2(init,
+                                    ,_0: A3(init,
                                     _U.list([$Character.Toriel
                                             ,$Character.Sans
                                             ,$Character.Papyrus
@@ -13113,16 +13295,53 @@ Elm.UndertaleDialog.make = function (_elm) {
                                             ,$Character.Flowey
                                             ,$Character.Asriel
                                             ,$Character.Temmie]),
-                                    toFocusMailbox.address)
+                                    focusMailbox,
+                                    cheatCodeMailbox)
                                     ,_1: $Effects.none}
                              ,update: update
                              ,view: view
-                             ,inputs: _U.list([A2($Signal.map,SetScriptRoot,scriptRoot),A2($Signal.map,SetStaticRoot,staticRoot)])});
+                             ,inputs: _U.list([A2($Signal.map,SetScriptRoot,scriptRoot)
+                                              ,A2($Signal.map,SetStaticRoot,staticRoot)
+                                              ,A2($Signal.map,
+                                              function (_p17) {
+                                                 return EnterCheatCode($Char.toLower($Char.fromCode(_p17)));
+                                              },
+                                              $Keyboard.presses)])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
-   var Model = F9(function (a,b,c,d,e,f,g,h,i) {
-      return {characters: a,selection: b,dialogs: c,staticRoot: d,scriptRoot: e,imageData: f,modal: g,focusAddress: h,imgur: i};
-   });
+   var Model = function (a) {
+      return function (b) {
+         return function (c) {
+            return function (d) {
+               return function (e) {
+                  return function (f) {
+                     return function (g) {
+                        return function (h) {
+                           return function (i) {
+                              return function (j) {
+                                 return function (k) {
+                                    return {characters: a
+                                           ,selection: b
+                                           ,dialogs: c
+                                           ,staticRoot: d
+                                           ,scriptRoot: e
+                                           ,imageData: f
+                                           ,modal: g
+                                           ,focusMailbox: h
+                                           ,cheatCode: i
+                                           ,imgur: j
+                                           ,exmode: k};
+                                 };
+                              };
+                           };
+                        };
+                     };
+                  };
+               };
+            };
+         };
+      };
+   };
    return _elm.UndertaleDialog.values = {_op: _op
                                         ,Model: Model
                                         ,init: init
@@ -13148,8 +13367,11 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,infoButton: infoButton
                                         ,textBoxId: textBoxId
                                         ,dialogBoxSection: dialogBoxSection
+                                        ,getCheatCodeAction: getCheatCodeAction
                                         ,view: view
                                         ,NoOp: NoOp
+                                        ,EnterCheatCode: EnterCheatCode
+                                        ,ActivateEXMode: ActivateEXMode
                                         ,ChooseCharacter: ChooseCharacter
                                         ,ChooseMood: ChooseMood
                                         ,UpdateDialogs: UpdateDialogs
@@ -13166,7 +13388,8 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,imgurParamsDecoder: imgurParamsDecoder
                                         ,getImgurParams: getImgurParams
                                         ,toFocusEffect: toFocusEffect
+                                        ,focusMailbox: focusMailbox
+                                        ,cheatCodeMailbox: cheatCodeMailbox
                                         ,app: app
-                                        ,main: main
-                                        ,toFocusMailbox: toFocusMailbox};
+                                        ,main: main};
 };

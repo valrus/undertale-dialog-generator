@@ -2,27 +2,30 @@ module UndertaleDialog (..) where
 
 import StartApp exposing (start)
 import Array exposing (Array, toList, fromList)
-import Character
+import Char
 import Color exposing (grayscale)
 import Effects exposing (Effects, Never, none)
 import Either exposing (Either)
 import Html exposing (..)
-import Html.Events exposing (on, targetValue, onClick, onKeyPress)
+import Html.Events exposing (on, targetValue, onClick, onKeyDown)
 import Html.Attributes exposing (class, src, style)
 import Http
 import Json.Decode exposing (object2, string, (:=))
+import Keyboard
 import Maybe exposing (Maybe, andThen)
 import Maybe.Extra exposing (combine, isJust, join, maybeToList)
 import Task
 import Focus
-import Helpers exposing (..)
-import Imgur
-import Modal
 
 
 -- Local modules
 -- Could split the image map stuff into a different module
 
+import Helpers exposing (..)
+import Character
+import CheatCode
+import Imgur
+import Modal
 import CreditsModal exposing (creditsDialog, mapArea)
 import DialogBoxes
 
@@ -38,24 +41,27 @@ type alias Model =
     , scriptRoot : String
     , imageData : Maybe String
     , modal : Modal.Model
-    , focusAddress : Signal.Address Focus.Action
+    , focusMailbox : Signal.Mailbox Focus.Action
+    , cheatCode : CheatCode.Model
     , imgur : Imgur.Model
+    , exmode : Bool
     }
 
 
-init : List Character.Name -> Signal.Address Focus.Action -> Model
-init characters focusAddress =
+init : List Character.Name -> Signal.Mailbox Focus.Action -> Signal.Mailbox String -> Model
+init characters focusBox cheatCodeBox =
     { characters = characters
     , selection = Nothing
     , dialogs = DialogBoxes.init
     , staticRoot = "/static/"
     , scriptRoot = ""
     , imageData = Nothing
-    , modal = Modal.init <| grayscale 1
-    , focusAddress = focusAddress
+    , modal = Modal.init (grayscale 1)
+    , focusMailbox = focusBox
+    , cheatCode = CheatCode.init ["ex"] cheatCodeBox
     , imgur = Imgur.init
+    , exmode = False
     }
-
 
 
 -- View
@@ -104,6 +110,7 @@ titleImgMap address =
         ]
 
 
+title : String -> Signal.Address Action -> Html
 title root address =
     div
         [ style
@@ -184,24 +191,24 @@ moodButton address root c n =
             [ img [ src <| spriteStr ] [] ]
 
 
-moodButtons : Signal.Address Action -> String -> Character.Name -> Html
-moodButtons address root c =
+moodButtons : Signal.Address Action -> String -> Character.Name -> Bool -> Html
+moodButtons address root c exmode =
     div
         []
         [ ul
             [ class "moods" ]
-            <| List.map (moodButton address root c) [1..(Character.moodCount c)]
+            <| List.map (moodButton address root c) [1..(Character.moodCount exmode c)]
         ]
 
 
-moodSection : Signal.Address Action -> String -> Maybe Character.Name -> Html
-moodSection address root maybeChar =
+moodSection : Signal.Address Action -> String -> Maybe Character.Name -> Bool -> Html
+moodSection address root maybeChar exmode =
     case maybeChar of
         Nothing ->
             blank
 
         Just c ->
-            moodButtons address root c
+            moodButtons address root c exmode
 
 
 
@@ -312,22 +319,35 @@ dialogBoxSection address model =
                 )
             , Just
                 <| (DialogBoxes.view (Signal.forwardTo address UpdateDialogs) model.dialogs)
-                ++ if DialogBoxes.viewable model.dialogs then (crunchyButton address) else []
+                ++ if DialogBoxes.viewable model.dialogs then
+                    (crunchyButton address)
+                   else
+                    []
             ]
+
+
+getCheatCodeAction : String -> Action
+getCheatCodeAction s =
+    case s of
+      "ex" -> ActivateEXMode
+
+      _ -> NoOp ()
 
 
 view : Signal.Address Action -> Model -> Html
 view address model =
     div
-        [ Html.Attributes.id "content" ]
+        [ Html.Attributes.id "content"
+        ]
         [ title model.staticRoot address
         , characterButtons address model.staticRoot model.characters
         , maybeDivider model.selection
-        , moodSection address model.staticRoot model.selection
+        , moodSection address model.staticRoot model.selection model.exmode
         , dialogBoxSection address model
         , infoButton address model.staticRoot
         , Modal.view (Signal.forwardTo address UpdateModal) model.modal
         ]
+
 
 
 -- Update
@@ -335,6 +355,8 @@ view address model =
 
 type Action
     = NoOp ()
+    | EnterCheatCode Char
+    | ActivateEXMode
     | ChooseCharacter Character.Name
     | ChooseMood String
     | UpdateDialogs DialogBoxes.Action
@@ -354,32 +376,49 @@ update action model =
             , none
             )
 
+        EnterCheatCode c ->
+            let
+                ( newCheatCode, cheatEffect ) = CheatCode.update c model.cheatCode
+            in
+                ( { model
+                      | cheatCode = newCheatCode
+                }
+                , Effects.map getCheatCodeAction cheatEffect
+                )
+
+        ActivateEXMode ->
+            ( { model
+                | exmode = True
+              }
+            , none
+            )
+
         ChooseCharacter c ->
             let
                 ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetCharacter c) model.dialogs
             in
-              ( { model
-                  | selection = Just c
-                  , dialogs = newBoxes
-                  , imageData = Nothing
-                }
-              , none
-              )
+                ( { model
+                    | selection = Just c
+                    , dialogs = newBoxes
+                    , imageData = Nothing
+                  }
+                , none
+                )
 
         ChooseMood s ->
             let
                 ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetImages s) model.dialogs
             in
-              ( { model
-                  | dialogs = newBoxes
-                  , imageData = Nothing
-                }
-              , toFocusEffect
-                  model.focusAddress
-                  { elementId = textBoxId 1
-                  , moveCursorToEnd = moveCursor
+                ( { model
+                    | dialogs = newBoxes
+                    , imageData = Nothing
                   }
-              )
+                , toFocusEffect
+                    model.focusMailbox.address
+                    { elementId = textBoxId 1
+                    , moveCursorToEnd = moveCursor
+                    }
+                )
 
         UpdateDialogs action ->
             let
@@ -390,7 +429,7 @@ update action model =
                     , imageData = Nothing
                   }
                 , toFocusEffect
-                    model.focusAddress
+                    model.focusMailbox.address
                     { elementId = textBoxId newBoxes.focusIndex
                     , moveCursorToEnd = moveCursor
                     }
@@ -442,7 +481,6 @@ update action model =
                   }
                 , Effects.map UpdateImgur fx
                 )
-
 
 
 -- Tasks
@@ -497,8 +535,11 @@ toFocusEffect address params =
     Signal.send address (Focus.Focus params) |> Task.map NoOp |> Effects.task
 
 
-
 -- Main
+
+
+focusMailbox = Focus.mailbox
+cheatCodeMailbox = CheatCode.mailbox
 
 
 app : StartApp.App Model
@@ -518,7 +559,8 @@ app =
                 , Character.Asriel
                 , Character.Temmie
                 ]
-                toFocusMailbox.address
+                focusMailbox
+                cheatCodeMailbox
             , none
             )
         , update = update
@@ -526,6 +568,7 @@ app =
         , inputs =
             [ Signal.map SetScriptRoot scriptRoot
             , Signal.map SetStaticRoot staticRoot
+            , Signal.map (EnterCheatCode << Char.toLower << Char.fromCode) Keyboard.presses
             ]
         }
 
@@ -535,19 +578,16 @@ main =
     app.html
 
 
-
 -- Interop
 
 
 port scriptRoot : Signal String
 port staticRoot : Signal String
+
+
 port focus : Signal Focus.Params
 port focus =
-    Signal.filterMap Focus.focusFilter Focus.emptyParams toFocusMailbox.signal
-
-
-toFocusMailbox =
-    Signal.mailbox Focus.NoOp
+    Focus.filteredSignal focusMailbox.signal
 
 
 port tasks : Signal (Task.Task Never ())

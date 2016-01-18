@@ -1,6 +1,7 @@
 module DialogBox (..) where
 
 import Color exposing (grayscale)
+import Char
 import Graphics.Collage exposing (collage, move, filled, rect, toForm, alpha)
 import Graphics.Element exposing (Element, image)
 import Graphics.Input exposing (customButton)
@@ -57,7 +58,7 @@ indentAsterisk character =
         [ Html.text <| Character.dialogAsterisk character ]
 
 
-deleteEmptyBox : String -> Int -> Action
+deleteEmptyBox : String -> Char.KeyCode -> Action
 deleteEmptyBox text keyCode =
     case keyCode of
         8 ->

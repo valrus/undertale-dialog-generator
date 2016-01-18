@@ -1,9 +1,5 @@
 module Focus (..) where
 
-import Effects
-import Task
-
-
 -- Reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb
 
 
@@ -30,3 +26,14 @@ focusFilter action =
 
         _ ->
             Nothing
+
+
+filteredSignal : Signal Action -> Signal Params
+filteredSignal signal =
+    Signal.filterMap focusFilter emptyParams signal
+
+
+mailbox : Signal.Mailbox Action
+mailbox =
+    Signal.mailbox NoOp
+
