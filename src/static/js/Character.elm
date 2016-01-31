@@ -47,7 +47,7 @@ moodCount exmode c =
             if exmode then 29 else 22
 
         Flowey ->
-            21
+            22
 
         Asriel ->
             if exmode then 26 else 19
