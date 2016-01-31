@@ -12188,13 +12188,13 @@ Elm.Character.make = function (_elm) {
       var _p5 = c;
       switch (_p5.ctor)
       {case "Toriel": return 40;
-         case "Sans": return 6;
+         case "Sans": return exmode ? 14 : 6;
          case "Papyrus": return 19;
-         case "Undyne": return 24;
+         case "Undyne": return exmode ? 39 : 24;
          case "Alphys": return 22;
          case "Asgore": return 21;
          case "Napstablook": return 2;
-         case "Mettaton": return 22;
+         case "Mettaton": return exmode ? 29 : 22;
          case "Flowey": return 21;
          case "Asriel": return exmode ? 26 : 19;
          default: return 3;}
@@ -13096,7 +13096,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    var EnterCheatCode = function (a) {    return {ctor: "EnterCheatCode",_0: a};};
    var NoOp = function (a) {    return {ctor: "NoOp",_0: a};};
    var toFocusEffect = F2(function (address,params) {    return $Effects.task(A2($Task.map,NoOp,A2($Signal.send,address,$Focus.Focus(params))));});
-   var getCheatCodeAction = function (s) {    var _p1 = s;if (_p1 === "ex") {    return ActivateEXMode;} else {    return NoOp({ctor: "_Tuple0"});}};
+   var getCheatCodeAction = function (s) {    var _p1 = s;if (_p1 === "EX") {    return ActivateEXMode;} else {    return NoOp({ctor: "_Tuple0"});}};
    var textBoxId = function (n) {    return A2($Basics._op["++"],"textBox",$Basics.toString(n));};
    var update = F2(function (action,model) {
       var _p2 = action;
@@ -13278,7 +13278,7 @@ Elm.UndertaleDialog.make = function (_elm) {
              ,imageData: $Maybe.Nothing
              ,modal: $Modal.init($Color.grayscale(1))
              ,focusMailbox: focusBox
-             ,cheatCode: A2($CheatCode.init,_U.list(["ex"]),cheatCodeBox)
+             ,cheatCode: A2($CheatCode.init,_U.list(["EX"]),cheatCodeBox)
              ,imgur: $Imgur.init
              ,exmode: false};
    });
@@ -13302,11 +13302,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                              ,view: view
                              ,inputs: _U.list([A2($Signal.map,SetScriptRoot,scriptRoot)
                                               ,A2($Signal.map,SetStaticRoot,staticRoot)
-                                              ,A2($Signal.map,
-                                              function (_p17) {
-                                                 return EnterCheatCode($Char.toLower($Char.fromCode(_p17)));
-                                              },
-                                              $Keyboard.presses)])});
+                                              ,A2($Signal.map,function (_p17) {    return EnterCheatCode($Char.fromCode(_p17));},$Keyboard.presses)])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
    var Model = function (a) {

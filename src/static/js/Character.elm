@@ -26,13 +26,13 @@ moodCount exmode c =
             40
 
         Sans ->
-            6
+            if exmode then 14 else 6
 
         Papyrus ->
             19
 
         Undyne ->
-            24
+            if exmode then 39 else 24
 
         Alphys ->
             22
@@ -44,7 +44,7 @@ moodCount exmode c =
             2
 
         Mettaton ->
-            22
+            if exmode then 29 else 22
 
         Flowey ->
             21

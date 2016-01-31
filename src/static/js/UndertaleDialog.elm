@@ -58,7 +58,7 @@ init characters focusBox cheatCodeBox =
     , imageData = Nothing
     , modal = Modal.init (grayscale 1)
     , focusMailbox = focusBox
-    , cheatCode = CheatCode.init ["ex"] cheatCodeBox
+    , cheatCode = CheatCode.init ["EX"] cheatCodeBox
     , imgur = Imgur.init
     , exmode = False
     }
@@ -329,7 +329,7 @@ dialogBoxSection address model =
 getCheatCodeAction : String -> Action
 getCheatCodeAction s =
     case s of
-      "ex" -> ActivateEXMode
+      "EX" -> ActivateEXMode
 
       _ -> NoOp ()
 
@@ -568,7 +568,7 @@ app =
         , inputs =
             [ Signal.map SetScriptRoot scriptRoot
             , Signal.map SetStaticRoot staticRoot
-            , Signal.map (EnterCheatCode << Char.toLower << Char.fromCode) Keyboard.presses
+            , Signal.map (EnterCheatCode << Char.fromCode) Keyboard.presses
             ]
         }
 
