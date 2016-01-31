@@ -12195,7 +12195,7 @@ Elm.Character.make = function (_elm) {
          case "Asgore": return 21;
          case "Napstablook": return 2;
          case "Mettaton": return exmode ? 29 : 22;
-         case "Flowey": return 21;
+         case "Flowey": return 22;
          case "Asriel": return exmode ? 26 : 19;
          default: return 3;}
    });
