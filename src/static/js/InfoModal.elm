@@ -17,7 +17,7 @@ infoImgMap =
             , Html.Attributes.name "infoMap"
             ]
             [ mapArea [62,121,161,147] "IDTHV on Twitter!" <| Either.Left "https://twitter.com/IDTHV"
-            , mapArea [430,186,529,212] "IDTHV on GitHub!" <| Either.Left "https://github.com/valrus/undertale-dialog-generator"
+            , mapArea [430,186,529,212] "IDTHV on GitHub!" <| Either.Left "https://github.com/valrus/undertale-dialog-generator/issues"
             ]
 
 

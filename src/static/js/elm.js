@@ -13013,7 +13013,7 @@ Elm.InfoModal.make = function (_elm) {
    "map",
    _U.list([$Html$Attributes.id("infoMap"),$Html$Attributes.name("infoMap")]),
    _U.list([A3($ImageMap.mapArea,_U.list([62,121,161,147]),"IDTHV on Twitter!",$Either.Left("https://twitter.com/IDTHV"))
-           ,A3($ImageMap.mapArea,_U.list([430,186,529,212]),"IDTHV on GitHub!",$Either.Left("https://github.com/valrus/undertale-dialog-generator"))]));
+           ,A3($ImageMap.mapArea,_U.list([430,186,529,212]),"IDTHV on GitHub!",$Either.Left("https://github.com/valrus/undertale-dialog-generator/issues"))]));
    var infoDialog = function (staticRoot) {
       var innerDiv = A2($Html.div,
       _U.list([$Html$Attributes.style(A2($Basics._op["++"],
