@@ -45,6 +45,11 @@ update action model =
             model
 
 
+expand : List ( String, String )
+expand =
+    [ ( "width", "100%" ), ( "height", "100%" ) ]
+
+
 partlyTransparent : Color -> String
 partlyTransparent color =
     let

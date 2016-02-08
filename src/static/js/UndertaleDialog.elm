@@ -26,7 +26,9 @@ import Character
 import CheatCode
 import Imgur
 import Modal
-import CreditsModal exposing (creditsDialog, mapArea)
+import ImageMap exposing (mapArea)
+import CreditsModal exposing (creditsDialog)
+import InfoModal exposing (infoDialog)
 import DialogBoxes
 
 
@@ -275,11 +277,27 @@ returnedDialogBox boxes address imgData =
 
 
 
--- Button for credits modal
+-- Buttons for modals
 
 
 infoButton : Signal.Address Action -> String -> Html
 infoButton address root =
+    button
+        [ onClick address
+              <| UpdateModal
+              <| Modal.Show (Just <| infoDialog root)
+        , style
+              <| [ ( "position", "fixed" )
+                 , ( "bottom", "15px" )
+                 , ( "left", "20px" )
+                 ]
+              ++ flatButton
+        ]
+        [ img [ src <| root ++ "images/heart.png" ] [] ]
+
+
+creditsButton : Signal.Address Action -> String -> Html
+creditsButton address root =
     button
         [ onClick address
             <| UpdateModal
@@ -292,7 +310,6 @@ infoButton address root =
             ++ flatButton
         ]
         [ img [ src <| root ++ "images/creditsbutton.png" ] [] ]
-
 
 
 -- Main view
@@ -345,6 +362,7 @@ view address model =
         , moodSection address model.staticRoot model.selection model.exmode
         , dialogBoxSection address model
         , infoButton address model.staticRoot
+        , creditsButton address model.staticRoot
         , Modal.view (Signal.forwardTo address UpdateModal) model.modal
         ]
 

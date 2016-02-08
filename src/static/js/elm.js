@@ -12275,6 +12275,44 @@ Elm.CheatCode.make = function (_elm) {
    var Model = F2(function (a,b) {    return {codeStatus: a,mailbox: b};});
    return _elm.CheatCode.values = {_op: _op,Model: Model,init: init,checkChar: checkChar,isComplete: isComplete,update: update,mailbox: mailbox};
 };
+Elm.ImageMap = Elm.ImageMap || {};
+Elm.ImageMap.make = function (_elm) {
+   "use strict";
+   _elm.ImageMap = _elm.ImageMap || {};
+   if (_elm.ImageMap.values) return _elm.ImageMap.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Either = Elm.Either.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $Html$Events = Elm.Html.Events.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $String = Elm.String.make(_elm);
+   var _op = {};
+   var mapArea = F3(function (coords,caption,action) {
+      var clickAction = function () {
+         var _p0 = action;
+         if (_p0.ctor === "Left") {
+               return $Html$Attributes.href(_p0._0);
+            } else {
+               return A2($Html$Events.onClick,_p0._0._0,_p0._0._1);
+            }
+      }();
+      return A3($Html.node,
+      "area",
+      _U.list([$Html$Attributes.shape("rect")
+              ,$Html$Attributes.title(caption)
+              ,$Html$Attributes.alt(caption)
+              ,$Html$Attributes.coords(A2($String.join,", ",A2($List.map,$Basics.toString,coords)))
+              ,clickAction]),
+      _U.list([]));
+   });
+   return _elm.ImageMap.values = {_op: _op,mapArea: mapArea};
+};
 Elm.Modal = Elm.Modal || {};
 Elm.Modal.make = function (_elm) {
    "use strict";
@@ -12305,6 +12343,7 @@ Elm.Modal.make = function (_elm) {
       "rgba(",
       A2($Basics._op["++"],A2($String.join,", ",A2($List.map,$Basics.toString,_U.list([rgb.red,rgb.green,rgb.blue]))),", 0.7)"));
    };
+   var expand = _U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"},{ctor: "_Tuple2",_0: "height",_1: "100%"}]);
    var update = F2(function (action,model) {
       var _p1 = action;
       if (_p1.ctor === "Show") {
@@ -12357,6 +12396,7 @@ Elm.Modal.make = function (_elm) {
                               ,NoOp: NoOp
                               ,Show: Show
                               ,update: update
+                              ,expand: expand
                               ,partlyTransparent: partlyTransparent
                               ,backgroundAttrs: backgroundAttrs
                               ,messageOn: messageOn
@@ -12376,47 +12416,31 @@ Elm.CreditsModal.make = function (_elm) {
    $Either = Elm.Either.make(_elm),
    $Html = Elm.Html.make(_elm),
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
-   $Html$Events = Elm.Html.Events.make(_elm),
+   $ImageMap = Elm.ImageMap.make(_elm),
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Modal = Elm.Modal.make(_elm),
    $Result = Elm.Result.make(_elm),
-   $Signal = Elm.Signal.make(_elm),
-   $String = Elm.String.make(_elm);
+   $Signal = Elm.Signal.make(_elm);
    var _op = {};
-   var mapArea = F3(function (coords,caption,action) {
-      var clickAction = function () {
-         var _p0 = action;
-         if (_p0.ctor === "Left") {
-               return $Html$Attributes.href(_p0._0);
-            } else {
-               return A2($Html$Events.onClick,_p0._0._0,_p0._0._1);
-            }
-      }();
-      return A3($Html.node,
-      "area",
-      _U.list([$Html$Attributes.shape("rect")
-              ,$Html$Attributes.title(caption)
-              ,$Html$Attributes.alt(caption)
-              ,$Html$Attributes.coords(A2($String.join,", ",A2($List.map,$Basics.toString,coords)))
-              ,clickAction]),
-      _U.list([]));
-   });
    var creditsImgMap = A3($Html.node,
    "map",
    _U.list([$Html$Attributes.id("creditsMap"),$Html$Attributes.name("creditsMap")]),
-   _U.list([A3(mapArea,_U.list([331,75,441,96]),"valrus\'s Twitter!",$Either.Left("http://twitter.com/valrus"))
-           ,A3(mapArea,_U.list([299,110,475,132]),"This web page\'s source code!",$Either.Left("https://github.com/valrus/undertale-dialog-generator"))
-           ,A3(mapArea,
+   _U.list([A3($ImageMap.mapArea,_U.list([331,75,441,96]),"valrus\'s Twitter!",$Either.Left("http://twitter.com/valrus"))
+           ,A3($ImageMap.mapArea,
+           _U.list([299,110,475,132]),
+           "This web page\'s source code!",
+           $Either.Left("https://github.com/valrus/undertale-dialog-generator"))
+           ,A3($ImageMap.mapArea,
            _U.list([448,192,523,218]),
            "Determination, the Better Undertale Font!",
            $Either.Left("https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font"))
-           ,A3(mapArea,
+           ,A3($ImageMap.mapArea,
            _U.list([152,228,264,254]),
            "Monster Friend, the Undertale Logo Font!",
            $Either.Left("https://www.behance.net/gallery/31378523/Monster-Friend-Undertale-Logo-Font"))
-           ,A3(mapArea,_U.list([152,264,495,291]),"JapanYoshi\'s Behance page!",$Either.Left("https://www.behance.net/JapanYoshi"))
-           ,A3(mapArea,_U.list([338,359,456,391]),"The official Undertale website!",$Either.Left("http://undertale.com"))]));
+           ,A3($ImageMap.mapArea,_U.list([152,264,495,291]),"JapanYoshi\'s Behance page!",$Either.Left("https://www.behance.net/JapanYoshi"))
+           ,A3($ImageMap.mapArea,_U.list([338,359,456,391]),"The official Undertale website!",$Either.Left("http://undertale.com"))]));
    var creditsImg = function (staticRoot) {
       return A2($Html.img,
       _U.list([$Html$Attributes.width(596)
@@ -12425,21 +12449,15 @@ Elm.CreditsModal.make = function (_elm) {
               ,$Html$Attributes.src(A2($Basics._op["++"],staticRoot,"images/credits.png"))]),
       _U.list([]));
    };
-   var expand = _U.list([{ctor: "_Tuple2",_0: "width",_1: "100%"},{ctor: "_Tuple2",_0: "height",_1: "100%"}]);
    var creditsDialog = function (staticRoot) {
       var innerDiv = A2($Html.div,
       _U.list([$Html$Attributes.style(A2($Basics._op["++"],
       _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]),
-      expand))]),
+      $Modal.expand))]),
       _U.list([creditsImg(staticRoot),creditsImgMap]));
       return A3($Modal.SizedHtml,innerDiv,"596","654");
    };
-   return _elm.CreditsModal.values = {_op: _op
-                                     ,expand: expand
-                                     ,creditsImg: creditsImg
-                                     ,mapArea: mapArea
-                                     ,creditsImgMap: creditsImgMap
-                                     ,creditsDialog: creditsDialog};
+   return _elm.CreditsModal.values = {_op: _op,creditsImg: creditsImg,creditsImgMap: creditsImgMap,creditsDialog: creditsDialog};
 };
 Elm.Helpers = Elm.Helpers || {};
 Elm.Helpers.make = function (_elm) {
@@ -12965,6 +12983,47 @@ Elm.Imgur.make = function (_elm) {
                               ,doUpload: doUpload
                               ,update: update};
 };
+Elm.InfoModal = Elm.InfoModal || {};
+Elm.InfoModal.make = function (_elm) {
+   "use strict";
+   _elm.InfoModal = _elm.InfoModal || {};
+   if (_elm.InfoModal.values) return _elm.InfoModal.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $Either = Elm.Either.make(_elm),
+   $Html = Elm.Html.make(_elm),
+   $Html$Attributes = Elm.Html.Attributes.make(_elm),
+   $ImageMap = Elm.ImageMap.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Modal = Elm.Modal.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm);
+   var _op = {};
+   var infoImg = function (staticRoot) {
+      return A2($Html.img,
+      _U.list([$Html$Attributes.width(596)
+              ,$Html$Attributes.height(654)
+              ,$Html$Attributes.usemap("#infoMap")
+              ,$Html$Attributes.src(A2($Basics._op["++"],staticRoot,"images/info.png"))]),
+      _U.list([]));
+   };
+   var infoImgMap = A3($Html.node,
+   "map",
+   _U.list([$Html$Attributes.id("infoMap"),$Html$Attributes.name("infoMap")]),
+   _U.list([A3($ImageMap.mapArea,_U.list([62,121,161,147]),"IDTHV on Twitter!",$Either.Left("https://twitter.com/IDTHV"))
+           ,A3($ImageMap.mapArea,_U.list([430,186,529,212]),"IDTHV on GitHub!",$Either.Left("https://github.com/valrus/undertale-dialog-generator"))]));
+   var infoDialog = function (staticRoot) {
+      var innerDiv = A2($Html.div,
+      _U.list([$Html$Attributes.style(A2($Basics._op["++"],
+      _U.list([{ctor: "_Tuple2",_0: "backgroundColor",_1: "white"},{ctor: "_Tuple2",_0: "color",_1: "black"}]),
+      $Modal.expand))]),
+      _U.list([infoImg(staticRoot),infoImgMap]));
+      return A3($Modal.SizedHtml,innerDiv,"596","654");
+   };
+   return _elm.InfoModal.values = {_op: _op,infoImgMap: infoImgMap,infoImg: infoImg,infoDialog: infoDialog};
+};
 Elm.StartApp = Elm.StartApp || {};
 Elm.StartApp.make = function (_elm) {
    "use strict";
@@ -13027,7 +13086,9 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Html$Attributes = Elm.Html.Attributes.make(_elm),
    $Html$Events = Elm.Html.Events.make(_elm),
    $Http = Elm.Http.make(_elm),
+   $ImageMap = Elm.ImageMap.make(_elm),
    $Imgur = Elm.Imgur.make(_elm),
+   $InfoModal = Elm.InfoModal.make(_elm),
    $Json$Decode = Elm.Json.Decode.make(_elm),
    $Keyboard = Elm.Keyboard.make(_elm),
    $List = Elm.List.make(_elm),
@@ -13181,7 +13242,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       return A3($Html.node,
       "map",
       _U.list([$Html$Attributes.id("titleMap"),$Html$Attributes.name("titleMap")]),
-      _U.list([A3($CreditsModal.mapArea,_U.list([606,43,626,61]),"hOI!",$Either.Right({ctor: "_Tuple2",_0: address,_1: ChooseCharacter($Character.Temmie)}))]));
+      _U.list([A3($ImageMap.mapArea,_U.list([606,43,626,61]),"hOI!",$Either.Right({ctor: "_Tuple2",_0: address,_1: ChooseCharacter($Character.Temmie)}))]));
    };
    var title = F2(function (root,address) {
       return A2($Html.div,
@@ -13252,6 +13313,14 @@ Elm.UndertaleDialog.make = function (_elm) {
    });
    var infoButton = F2(function (address,root) {
       return A2($Html.button,
+      _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just($InfoModal.infoDialog(root)))))
+              ,$Html$Attributes.style(A2($Basics._op["++"],
+              _U.list([{ctor: "_Tuple2",_0: "position",_1: "fixed"},{ctor: "_Tuple2",_0: "bottom",_1: "15px"},{ctor: "_Tuple2",_0: "left",_1: "20px"}]),
+              flatButton))]),
+      _U.list([A2($Html.img,_U.list([$Html$Attributes.src(A2($Basics._op["++"],root,"images/heart.png"))]),_U.list([]))]));
+   });
+   var creditsButton = F2(function (address,root) {
+      return A2($Html.button,
       _U.list([A2($Html$Events.onClick,address,UpdateModal($Modal.Show($Maybe.Just($CreditsModal.creditsDialog(root)))))
               ,$Html$Attributes.style(A2($Basics._op["++"],
               _U.list([{ctor: "_Tuple2",_0: "position",_1: "fixed"},{ctor: "_Tuple2",_0: "bottom",_1: "10px"},{ctor: "_Tuple2",_0: "right",_1: "20px"}]),
@@ -13267,6 +13336,7 @@ Elm.UndertaleDialog.make = function (_elm) {
               ,A4(moodSection,address,model.staticRoot,model.selection,model.exmode)
               ,A2(dialogBoxSection,address,model)
               ,A2(infoButton,address,model.staticRoot)
+              ,A2(creditsButton,address,model.staticRoot)
               ,A2($Modal.view,A2($Signal.forwardTo,address,UpdateModal),model.modal)]));
    });
    var init = F3(function (characters,focusBox,cheatCodeBox) {
@@ -13361,6 +13431,7 @@ Elm.UndertaleDialog.make = function (_elm) {
                                         ,dialogBoxImg: dialogBoxImg
                                         ,returnedDialogBox: returnedDialogBox
                                         ,infoButton: infoButton
+                                        ,creditsButton: creditsButton
                                         ,textBoxId: textBoxId
                                         ,dialogBoxSection: dialogBoxSection
                                         ,getCheatCodeAction: getCheatCodeAction
