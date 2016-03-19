@@ -4,6 +4,7 @@ module CheatCode (..) where
 import Debug exposing (log)
 import Dict exposing (Dict)
 import Effects exposing (Effects, none)
+import Set exposing (Set)
 import String
 import Task
 
@@ -21,10 +22,18 @@ init codes mailbox =
     }
 
 
-checkChar : Char -> String -> Int -> Int
-checkChar c code matches =
+soleMember : Set Char -> Char -> Int -> Int
+soleMember cs c prev =
+    case Set.size cs of
+      0 -> prev
+      1 -> if (Set.member c cs) then prev + 1 else 0
+      _ -> if (Set.member c cs) then prev else 0
+
+
+checkChar : Set Char -> String -> Int -> Int
+checkChar cs code matches =
     case String.uncons (String.dropLeft matches code) of
-      Just (next, _) -> if next == c then matches + 1 else 0
+      Just (next, _) -> soleMember cs next matches
 
       _ -> 0
 
@@ -34,11 +43,11 @@ isComplete (s, n) =
     String.length s == n
 
 
-update : Char -> Model -> (Model, Effects String)
-update c model =
+update : Set Char -> Model -> (Model, Effects String)
+update cs model =
     let
         status =
-            Dict.map (checkChar c) model.codeStatus
+            Dict.map (checkChar cs) model.codeStatus
 
         complete =
             List.head <| List.filter isComplete <| Dict.toList status

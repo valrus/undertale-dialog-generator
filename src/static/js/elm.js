@@ -12242,38 +12242,53 @@ Elm.CheatCode.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
    var mailbox = $Signal.mailbox("");
    var isComplete = function (_p0) {    var _p1 = _p0;return _U.eq($String.length(_p1._0),_p1._1);};
-   var checkChar = F3(function (c,code,matches) {
-      var _p2 = $String.uncons(A2($String.dropLeft,matches,code));
-      if (_p2.ctor === "Just" && _p2._0.ctor === "_Tuple2") {
-            return _U.eq(_p2._0._0,c) ? matches + 1 : 0;
+   var soleMember = F3(function (cs,c,prev) {
+      var _p2 = $Set.size(cs);
+      switch (_p2)
+      {case 0: return prev;
+         case 1: return A2($Set.member,c,cs) ? prev + 1 : 0;
+         default: return A2($Set.member,c,cs) ? prev : 0;}
+   });
+   var checkChar = F3(function (cs,code,matches) {
+      var _p3 = $String.uncons(A2($String.dropLeft,matches,code));
+      if (_p3.ctor === "Just" && _p3._0.ctor === "_Tuple2") {
+            return A3(soleMember,cs,_p3._0._0,matches);
          } else {
             return 0;
          }
    });
-   var update = F2(function (c,model) {
-      var status = A2($Dict.map,checkChar(c),model.codeStatus);
+   var update = F2(function (cs,model) {
+      var status = A2($Dict.map,checkChar(cs),model.codeStatus);
       var complete = $List.head(A2($List.filter,isComplete,$Dict.toList(status)));
-      var _p3 = complete;
-      if (_p3.ctor === "Nothing") {
+      var _p4 = complete;
+      if (_p4.ctor === "Nothing") {
             return {ctor: "_Tuple2",_0: _U.update(model,{codeStatus: status}),_1: $Effects.none};
          } else {
-            var _p7 = _p3._0._0;
+            var _p8 = _p4._0._0;
             return {ctor: "_Tuple2"
-                   ,_0: _U.update(model,{codeStatus: A2($Dict.map,F2(function (_p5,_p4) {    return 0;}),status)})
-                   ,_1: $Effects.task(A2($Task.map,function (_p6) {    return _p7;},A2($Signal.send,model.mailbox.address,_p7)))};
+                   ,_0: _U.update(model,{codeStatus: A2($Dict.map,F2(function (_p6,_p5) {    return 0;}),status)})
+                   ,_1: $Effects.task(A2($Task.map,function (_p7) {    return _p8;},A2($Signal.send,model.mailbox.address,_p8)))};
          }
    });
    var init = F2(function (codes,mailbox) {
       return {codeStatus: $Dict.fromList(A2($List.map,function (s) {    return {ctor: "_Tuple2",_0: s,_1: 0};},codes)),mailbox: mailbox};
    });
    var Model = F2(function (a,b) {    return {codeStatus: a,mailbox: b};});
-   return _elm.CheatCode.values = {_op: _op,Model: Model,init: init,checkChar: checkChar,isComplete: isComplete,update: update,mailbox: mailbox};
+   return _elm.CheatCode.values = {_op: _op
+                                  ,Model: Model
+                                  ,init: init
+                                  ,soleMember: soleMember
+                                  ,checkChar: checkChar
+                                  ,isComplete: isComplete
+                                  ,update: update
+                                  ,mailbox: mailbox};
 };
 Elm.ImageMap = Elm.ImageMap || {};
 Elm.ImageMap.make = function (_elm) {
@@ -13096,6 +13111,7 @@ Elm.UndertaleDialog.make = function (_elm) {
    $Maybe$Extra = Elm.Maybe.Extra.make(_elm),
    $Modal = Elm.Modal.make(_elm),
    $Result = Elm.Result.make(_elm),
+   $Set = Elm.Set.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
    $Task = Elm.Task.make(_elm);
@@ -13372,7 +13388,11 @@ Elm.UndertaleDialog.make = function (_elm) {
                              ,view: view
                              ,inputs: _U.list([A2($Signal.map,SetScriptRoot,scriptRoot)
                                               ,A2($Signal.map,SetStaticRoot,staticRoot)
-                                              ,A2($Signal.map,function (_p17) {    return EnterCheatCode($Char.fromCode(_p17));},$Keyboard.presses)])});
+                                              ,A2($Signal.map,
+                                              function (_p17) {
+                                                 return EnterCheatCode($Set.map($Char.fromCode)(_p17));
+                                              },
+                                              $Keyboard.keysDown)])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
    var Model = function (a) {

@@ -14,6 +14,7 @@ import Json.Decode exposing (object2, string, (:=))
 import Keyboard
 import Maybe exposing (Maybe, andThen)
 import Maybe.Extra exposing (combine, isJust, join, maybeToList)
+import Set
 import Task
 import Focus
 
@@ -373,7 +374,7 @@ view address model =
 
 type Action
     = NoOp ()
-    | EnterCheatCode Char
+    | EnterCheatCode (Set.Set Char)
     | ActivateEXMode
     | ChooseCharacter Character.Name
     | ChooseMood String
@@ -394,9 +395,9 @@ update action model =
             , none
             )
 
-        EnterCheatCode c ->
+        EnterCheatCode cs ->
             let
-                ( newCheatCode, cheatEffect ) = CheatCode.update c model.cheatCode
+                ( newCheatCode, cheatEffect ) = CheatCode.update cs model.cheatCode
             in
                 ( { model
                       | cheatCode = newCheatCode
@@ -586,7 +587,7 @@ app =
         , inputs =
             [ Signal.map SetScriptRoot scriptRoot
             , Signal.map SetStaticRoot staticRoot
-            , Signal.map (EnterCheatCode << Char.fromCode) Keyboard.presses
+            , Signal.map (EnterCheatCode << (Set.map <| Char.fromCode)) Keyboard.keysDown
             ]
         }
 
