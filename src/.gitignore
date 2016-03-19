@@ -1,3 +1,4 @@
 elm-stuff
-*.pyc
+**/*.pyc
 .htaccess
+**/.tern-port
