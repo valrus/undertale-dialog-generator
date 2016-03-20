@@ -97,9 +97,8 @@ textarea {
 }
 
 #imgurButton {
-    width: 64px;
-    height: 64px;
     padding: 0;
+    margin: 0;
     background-color: black;
 }
 
@@ -114,7 +113,6 @@ textarea {
     font-family: "determination_monoregular";
     font-size: 21px;
 }
-
 
 /* http://stackoverflow.com/questions/7615009/disable-interpolation-when-scaling-a-canvas?lq=1 */
 canvas {
