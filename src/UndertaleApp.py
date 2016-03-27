@@ -143,6 +143,7 @@ def builder():
     response = make_response(render_template('index.html'))
     response.headers['X-Clacks-Overhead'] = 'GNU Terry Pratchett'
     response.cache_control.max_age = HTML_CACHE_AGE
+    response.add_etag()
     return response
 
 
