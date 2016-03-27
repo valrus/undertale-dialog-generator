@@ -2,7 +2,6 @@
 
   <head>
     <title>I'LL DO THE HOT VOICE!!!</title>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/elm.min.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main.css') }}"></link>
   </head>
 
@@ -13,6 +12,7 @@
     $STATIC_ROOT = {{ url_for('static', filename='')|tojson|safe }};
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
   </script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/elm.min.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/undertale.js') }}"></script>
 
 </html>
