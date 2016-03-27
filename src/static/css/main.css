@@ -25,6 +25,11 @@
          url('fonts/Smooth Papyrus/Smooth_Papyrus.svg#Smooth_Papyrus') format('svg');
 }
 
+@viewport {
+    zoom: 1.0;
+    width: 800px;
+}
+
 
 body {
     background-color: black;
