@@ -61,10 +61,11 @@ init characters focusBox cheatCodeBox =
     , imageData = Nothing
     , modal = Modal.init (grayscale 1)
     , focusMailbox = focusBox
-    , cheatCode = CheatCode.init ["EX"] cheatCodeBox
+    , cheatCode = CheatCode.init [ "EX" ] cheatCodeBox
     , imgur = Imgur.init
     , exmode = False
     }
+
 
 
 -- View
@@ -285,14 +286,14 @@ infoButton : Signal.Address Action -> String -> Html
 infoButton address root =
     button
         [ onClick address
-              <| UpdateModal
-              <| Modal.Show (Just <| infoDialog root)
+            <| UpdateModal
+            <| Modal.Show (Just <| infoDialog root)
         , style
-              <| [ ( "position", "fixed" )
-                 , ( "bottom", "15px" )
-                 , ( "left", "20px" )
-                 ]
-              ++ flatButton
+            <| [ ( "position", "fixed" )
+               , ( "bottom", "15px" )
+               , ( "left", "20px" )
+               ]
+            ++ flatButton
         ]
         [ img [ src <| root ++ "images/heart.png" ] [] ]
 
@@ -311,6 +312,7 @@ creditsButton address root =
             ++ flatButton
         ]
         [ img [ src <| root ++ "images/creditsbutton.png" ] [] ]
+
 
 
 -- Main view
@@ -347,9 +349,11 @@ dialogBoxSection address model =
 getCheatCodeAction : String -> Action
 getCheatCodeAction s =
     case s of
-      "EX" -> ActivateEXMode
+        "EX" ->
+            ActivateEXMode
 
-      _ -> NoOp ()
+        _ ->
+            NoOp ()
 
 
 view : Signal.Address Action -> Model -> Html
@@ -400,8 +404,8 @@ update action model =
                 ( newCheatCode, cheatEffect ) = CheatCode.update cs model.cheatCode
             in
                 ( { model
-                      | cheatCode = newCheatCode
-                }
+                    | cheatCode = newCheatCode
+                  }
                 , Effects.map getCheatCodeAction cheatEffect
                 )
 
@@ -502,6 +506,7 @@ update action model =
                 )
 
 
+
 -- Tasks
 
 
@@ -554,11 +559,16 @@ toFocusEffect address params =
     Signal.send address (Focus.Focus params) |> Task.map NoOp |> Effects.task
 
 
+
 -- Main
 
 
-focusMailbox = Focus.mailbox
-cheatCodeMailbox = CheatCode.mailbox
+focusMailbox =
+    Focus.mailbox
+
+
+cheatCodeMailbox =
+    CheatCode.mailbox
 
 
 app : StartApp.App Model
@@ -597,13 +607,12 @@ main =
     app.html
 
 
+
 -- Interop
 
 
 port scriptRoot : Signal String
 port staticRoot : Signal String
-
-
 port focus : Signal Focus.Params
 port focus =
     Focus.filteredSignal focusMailbox.signal
