@@ -1,0 +1,7 @@
+python -m rcssmin <src/static/css/main.css >src/static/css/main.min.css
+slimit src/static/js/elm.js >src/static/js/elm.min.js
+slimit src/static/js/undertale.js >src/static/js/undertale.min.js
+
+gzip --keep src/static/css/main.min.css
+gzip --keep src/static/js/elm.min.js
+gzip --keep src/static/js/undertale.min.js
