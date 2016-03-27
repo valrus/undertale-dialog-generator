@@ -7,6 +7,7 @@ import os
 
 from flask import Flask, render_template, request, after_this_request
 from flask import make_response, jsonify
+from flask.ext.compress import Compress
 from PIL import Image, ImageDraw, ImageFont
 
 from personalities import apply_personality
@@ -19,6 +20,10 @@ IMGUR_ALBUM_ID = os.environ.get('IDTHV_ALBUM_ID')
 imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
 
 
+# Cache HTML template for a day
+HTML_CACHE_AGE = 60 * 60 * 24
+
+
 BLACK, WHITE = (0, 0, 0), (255, 255, 255)
 Size = namedtuple('Size', ['x', 'y'])
 
@@ -26,6 +31,10 @@ Size = namedtuple('Size', ['x', 'y'])
 UPLOAD_FOLDER = 'static/images/boxes'
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+Compress(app)
+# 'application/x-font-woff' omitted because compression ratio is 1.0x
+app.config['COMPRESS_MIMETYPES'] += ['text/plain']
 
 
 BASIC_UNICODE_SANITIZER = {
@@ -133,6 +142,7 @@ def getImgurId():
 def builder():
     response = make_response(render_template('index.html'))
     response.headers['X-Clacks-Overhead'] = 'GNU Terry Pratchett'
+    response.cache_control.max_age = HTML_CACHE_AGE
     return response
 
 
