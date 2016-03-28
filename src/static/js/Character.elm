@@ -1,5 +1,8 @@
 module Character (..) where
 
+import List exposing (maximum, map)
+import Maybe exposing (withDefault)
+
 
 type Name
     = Toriel
@@ -13,6 +16,22 @@ type Name
     | Mettaton
     | Asriel
     | Temmie
+
+
+allNames : List Name
+allNames =
+    [ Toriel
+    , Sans
+    , Papyrus
+    , Undyne
+    , Alphys
+    , Asgore
+    , Flowey
+    , Napstablook
+    , Mettaton
+    , Asriel
+    , Temmie
+    ]
 
 
 type alias StyleList =
@@ -54,6 +73,11 @@ moodCount exmode c =
 
         Temmie ->
             3
+
+
+maxMoods : Bool -> Int
+maxMoods exmode =
+    withDefault 0 <| maximum (map (moodCount exmode) allNames)
 
 
 portraitSize : Name -> ( Int, Int )

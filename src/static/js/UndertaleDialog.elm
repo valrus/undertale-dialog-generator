@@ -76,6 +76,7 @@ flatButton : List ( String, String )
 flatButton =
     [ ( "backgroundColor", "transparent" )
     , ( "border", "none" )
+    , ( "display", "inline-block" )
     ]
 
 
@@ -118,7 +119,7 @@ title : String -> Signal.Address Action -> Html
 title root address =
     div
         [ style
-            [ ( "padding-top", "100px" )
+            [ ( "padding-top", "60px" )
             , ( "padding-bottom", "30px" )
             , ( "display", "block" )
             ]
@@ -195,13 +196,38 @@ moodButton address root c n =
             [ img [ src <| spriteStr ] [] ]
 
 
+moodBlank : Html
+moodBlank =
+    div
+        [ style
+            <| flatButton
+            ++ [ ( "height", "60px" )
+               , ( "width", "60px" )
+               ]
+        ]
+        []
+
+
+moodSpace : Signal.Address Action -> String -> Character.Name -> Bool -> Int -> Html
+moodSpace address root c exmode n =
+    let
+        numMoods = (Character.moodCount exmode c)
+    in
+        if n <= numMoods then
+            (moodButton address root c n)
+        else
+            moodBlank
+
+
 moodButtons : Signal.Address Action -> String -> Character.Name -> Bool -> Html
 moodButtons address root c exmode =
     div
         []
         [ ul
             [ class "moods" ]
-            <| List.map (moodButton address root c) [1..(Character.moodCount exmode c)]
+            <| List.map
+                (moodSpace address root c exmode)
+                [1..(Character.maxMoods exmode)]
         ]
 
 
