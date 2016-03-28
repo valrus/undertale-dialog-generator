@@ -102,8 +102,8 @@ blank =
     div [] []
 
 
-titleImgMap : Signal.Address Action -> Html
-titleImgMap address =
+titleImgMap : String -> Signal.Address Action -> Html
+titleImgMap root address =
     Html.node
         "map"
         [ Html.Attributes.id "titleMap"
@@ -111,7 +111,7 @@ titleImgMap address =
         ]
         [ mapArea [ 606, 43, 626, 61 ] "hOI!"
             <| Either.Right
-            <| ( address, ChooseCharacter Character.Temmie )
+            <| ( address, ChooseMood Character.Temmie (defaultSprite root Character.Temmie) )
         ]
 
 
@@ -133,7 +133,7 @@ title root address =
             , Html.Attributes.usemap "#titleMap"
             ]
             []
-        , titleImgMap address
+        , titleImgMap root address
         ]
 
 
@@ -164,7 +164,7 @@ characterButton address staticRoot c =
 
         _ ->
             button
-                [ onClick address <| ChooseCharacter c
+                [ onClick address <| ChooseMood c (defaultSprite staticRoot c)
                 , style flatButton
                 ]
                 [ img [ src <| defaultSprite staticRoot c ] [] ]
@@ -190,7 +190,7 @@ moodButton address root c n =
         spriteStr = spriteNumber root c n
     in
         button
-            [ onClick address <| ChooseMood spriteStr
+            [ onClick address <| ChooseMood c spriteStr
             , style flatButton
             ]
             [ img [ src <| spriteStr ] [] ]
@@ -198,14 +198,17 @@ moodButton address root c n =
 
 moodBlank : Html
 moodBlank =
-    div
-        [ style
-            <| flatButton
-            ++ [ ( "height", "60px" )
-               , ( "width", "60px" )
-               ]
+    button
+        [ style flatButton
         ]
-        []
+        [ div
+            [ style
+                [ ( "height", "60px" )
+                , ( "width", "60px" )
+                ]
+            ]
+            []
+        ]
 
 
 moodSpace : Signal.Address Action -> String -> Character.Name -> Bool -> Int -> Html
@@ -406,8 +409,7 @@ type Action
     = NoOp ()
     | EnterCheatCode (Set.Set Char)
     | ActivateEXMode
-    | ChooseCharacter Character.Name
-    | ChooseMood String
+    | ChooseMood Character.Name String
     | UpdateDialogs DialogBoxes.Action
     | SetScriptRoot String
     | SetStaticRoot String
@@ -442,24 +444,13 @@ update action model =
             , none
             )
 
-        ChooseCharacter c ->
+        ChooseMood c s ->
             let
-                ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetCharacter c) model.dialogs
+                ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetImages c s) model.dialogs
             in
                 ( { model
                     | selection = Just c
                     , dialogs = newBoxes
-                    , imageData = Nothing
-                  }
-                , none
-                )
-
-        ChooseMood s ->
-            let
-                ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetImages s) model.dialogs
-            in
-                ( { model
-                    | dialogs = newBoxes
                     , imageData = Nothing
                   }
                 , toFocusEffect

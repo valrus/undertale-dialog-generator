@@ -21,7 +21,8 @@ import Helpers exposing (takeLines)
 
 
 type alias Model =
-    { imgSrc : Maybe String
+    { chara : Maybe Character.Name
+    , imgSrc : Maybe String
     , text : Maybe String
     , index : Int
     , expectingImage : Bool
@@ -29,7 +30,8 @@ type alias Model =
 
 
 type alias FullModel =
-    { imgSrc : String
+    { chara : Character.Name
+    , imgSrc : String
     , text : String
     , index : Int
     , expectingImage : Bool
@@ -38,7 +40,8 @@ type alias FullModel =
 
 init : Maybe String -> Int -> Model
 init s i =
-    { imgSrc = Nothing
+    { chara = Nothing
+    , imgSrc = Nothing
     , text = s
     , index = i
     , expectingImage = False
@@ -71,8 +74,8 @@ deleteEmptyBox text keyCode =
             SetText (Just text)
 
 
-textBox : Signal.Address Action -> FullModel -> Character.Name -> Html
-textBox address model chara =
+textBox : Signal.Address Action -> FullModel -> Html
+textBox address model =
     textarea
         [ Html.Attributes.id <| "textBox" ++ (toString model.index)
         , on
@@ -86,16 +89,16 @@ textBox address model chara =
             <| [ ( "line-height", "36px" )
                  -- TODO: Make the "36px" a function
                ]
-            ++ (Character.fontStyles chara)
-            ++ (Character.textboxStyles chara)
+            ++ (Character.fontStyles model.chara)
+            ++ (Character.textboxStyles model.chara)
         , Html.Attributes.rows 3
         , Html.Attributes.value (takeLines 3 model.text)
         ]
         []
 
 
-dialogCollage : Html -> Signal.Address Action -> FullModel -> Character.Name -> Html
-dialogCollage elem address model chara =
+dialogCollage : Html -> Signal.Address Action -> FullModel -> Html
+dialogCollage elem address model =
     div
         [ style [ ( "width", "100%" ) ] ]
         [ div
@@ -108,8 +111,8 @@ dialogCollage elem address model chara =
             [ div
                 [ Html.Attributes.class "dialog" ]
                 [ elem
-                , indentAsterisk chara
-                , textBox address model chara
+                , indentAsterisk model.chara
+                , textBox address model
                 ]
             ]
         ]
@@ -127,10 +130,10 @@ portraitButton address src chara =
             img
 
 
-dialogFrame : Signal.Address Action -> FullModel -> Character.Name -> Html
-dialogFrame address model chara =
+dialogFrame : Signal.Address Action -> FullModel -> Html
+dialogFrame address model =
     let
-        ( imgX, imgY ) = Character.portraitOffset chara
+        ( imgX, imgY ) = Character.portraitOffset model.chara
     in
         (fromElement
             <| collage
@@ -142,7 +145,7 @@ dialogFrame address model chara =
                   -- outer white border
                 , filled (grayscale 1) (rect 568 140)
                   -- inner black box
-                , (toForm <| portraitButton address model.imgSrc chara)
+                , (toForm <| portraitButton address model.imgSrc model.chara)
                     |> alpha
                         (if model.expectingImage then
                             0.5
@@ -161,35 +164,35 @@ doubleImage imgSrc ( w, h ) =
 
 certifyModel : Model -> Maybe FullModel
 certifyModel model =
-    case Maybe.map2 (,) model.imgSrc model.text of
+    case Maybe.map3 (,,) model.chara model.imgSrc model.text of
         Nothing ->
             Nothing
 
-        Just ( src, txt ) ->
+        Just ( chara, src, txt ) ->
             Just
-                { imgSrc = src
+                { chara = chara
+                , imgSrc = src
                 , text = txt
                 , index = model.index
                 , expectingImage = model.expectingImage
                 }
 
 
-view : Signal.Address Action -> Character.Name -> Model -> Html
-view address chara model =
+view : Signal.Address Action -> Model -> Html
+view address model =
     case certifyModel model of
         Nothing ->
             div [ Html.Attributes.class ("emptyDialog" ++ toString model.index) ] []
 
         Just fullModel ->
             dialogCollage
-                (dialogFrame address fullModel chara)
+                (dialogFrame address fullModel)
                 address
                 fullModel
-                chara
 
 
-updateSrc : Maybe String -> Maybe String -> Bool -> Maybe String
-updateSrc old new wantToSet =
+updateField : Maybe a -> Maybe a -> Bool -> Maybe a
+updateField old new wantToSet =
     if ((old == Nothing) || wantToSet) then
         new
     else
@@ -198,7 +201,7 @@ updateSrc old new wantToSet =
 
 type Action
     = NoOp
-    | SetImage (Maybe String) Bool
+    | SetImage Character.Name (Maybe String) Bool
     | SetText (Maybe String)
     | ExpectImage Bool
 
@@ -209,12 +212,16 @@ update action model =
         NoOp ->
             model
 
-        SetImage src force ->
-            { model
-                | imgSrc =
-                    updateSrc model.imgSrc src (model.expectingImage || force)
-                , expectingImage = False
-            }
+        SetImage chara src force ->
+            let wantToSet =
+                    model.expectingImage || force
+            in
+              { model
+                  | imgSrc =
+                      updateField model.imgSrc src wantToSet
+                  , chara = updateField model.chara (Just chara) wantToSet
+                  , expectingImage = False
+              }
 
         SetText text ->
             { model

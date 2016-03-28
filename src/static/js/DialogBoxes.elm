@@ -18,7 +18,6 @@ import Helpers exposing (..)
 
 type alias Model =
     { boxes : Array DialogBox.Model
-    , character : Maybe Character.Name
     , focusIndex : Int
     }
 
@@ -35,7 +34,6 @@ initBoxes =
 init : Model
 init =
     { boxes = initBoxes
-    , character = Nothing
     , focusIndex = 0
     }
 
@@ -80,13 +78,13 @@ convertViewMessage boxNum boxAction =
         DialogBox.NoOp ->
             NoOp
 
-        DialogBox.SetImage s force ->
+        DialogBox.SetImage c s force ->
             case s of
                 Nothing ->
                     NoOp
 
                 Just src ->
-                    SetImages src
+                    SetImages c src
 
         DialogBox.SetText s ->
             UpdateText boxNum s
@@ -97,15 +95,10 @@ convertViewMessage boxNum boxAction =
 
 view : Signal.Address Action -> Model -> List Html
 view address model =
-    case model.character of
-        Nothing ->
-            []
-
-        Just chara ->
-            Array.toList
-                <| Array.indexedMap
-                    (\i -> DialogBox.view (Signal.forwardTo address (convertViewMessage i)) chara)
-                    model.boxes
+    Array.toList
+        <| Array.indexedMap
+            (\i -> DialogBox.view (Signal.forwardTo address (convertViewMessage i)))
+            model.boxes
 
 
 
@@ -196,8 +189,7 @@ resetTexts boxes =
 
 type Action
     = NoOp
-    | SetCharacter Character.Name
-    | SetImages String
+    | SetImages Character.Name String
     | UpdateText Int (Maybe String)
     | ExpectImage Int Bool
 
@@ -208,22 +200,11 @@ update action model =
         NoOp ->
             ( model, False )
 
-        SetCharacter chara ->
-            ( { model
-                | boxes =
-                    model.boxes
-                        |> updateBoxes (DialogBox.SetImage Nothing True)
-                        |> resetTexts
-                , character = Just chara
-              }
-            , False
-            )
-
-        SetImages src ->
+        SetImages chara src ->
             ( { model
                 | boxes =
                     updateBoxes
-                        (DialogBox.SetImage (Just src) (count model == 1))
+                        (DialogBox.SetImage chara (Just src) (count model == 1))
                         model.boxes
               }
             , False
