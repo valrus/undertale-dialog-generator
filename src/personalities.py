@@ -11,21 +11,25 @@ COPYPASTA_START = b64decode('d2hhdCB0aGUgZnVjayBkaWQgeW91IGp1c3QgZnVja2luZyBzYXk
 MAX_TEXT = 210
 
 
+class PersonalityOverrideException(Exception):
+    def __init__(self, img_data):
+        self.img_data = img_data
+
+
 def apply_personality(text, character):
     char = CHARACTERS[character.lower()]
     try:
         text.encode(char.encoding)
     except UnicodeEncodeError:
-        return char.no_language()
+        raise PersonalityOverrideException(char.no_language())
     else:
         lowertext = text.lower()
         if any(word in lowertext for word in NAUGHTY_WORDS):
-            return char.naughty_word()
+            raise PersonalityOverrideException(char.naughty_word())
         elif lowertext.startswith(COPYPASTA_START):
-            return char.copypasta()
+            raise PersonalityOverrideException(char.copypasta())
         elif len(text) > MAX_TEXT:
-            return char.too_long()
-        return None
+            raise PersonalityOverrideException(char.too_long())
 
 
 class Character(object):

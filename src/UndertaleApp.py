@@ -10,7 +10,7 @@ from flask import make_response, jsonify
 from flask.ext.compress import Compress
 from PIL import Image, ImageDraw, ImageFont
 
-from personalities import apply_personality
+from personalities import apply_personality, PersonalityOverrideException
 
 
 from imgurpython import ImgurClient
@@ -63,7 +63,7 @@ def _indent(line_num, line):
         return '* ' + line
 
 
-def getFontForCharacter(character):
+def get_font_for_character(character):
     font_dir = os.path.join(app.root_path, 'static', 'css', 'fonts')
     if character.lower() == 'sans':
         return ImageFont.load(os.path.join(font_dir, 'a skele-ton.pil'))
@@ -83,54 +83,57 @@ def chunks(lst, length, max_chunks=3):
         left -= 1
 
 
-def dialogBox(portraits, text, fnt, doIndent=True):
+def get_character_from_portrait(src):
+    return os.path.basename(os.path.dirname(src)).lower()
+
+
+def dialogBox(portraits, text):
     textChunks = list(chunks(text.split('\n'), 3))
     orig_size = Size(298, 4 + 84 * len(textChunks))
     # mode = '1' is black and white
     img = Image.new(b'1', orig_size)
     draw = ImageDraw.Draw(img)
     draw.fontmode = b'1'
-    for boxNum, (portrait_src, textChunk) in enumerate(zip(portraits, textChunks)):
+    for boxNum, (portrait_src, text_chunk) in enumerate(zip(portraits, textChunks)):
+        character = get_character_from_portrait(portrait_src)
+        apply_personality(' '.join(text_chunk), character)
+        box_text = [_clean_text(line, character) for line in text_chunk]
+        fnt = get_font_for_character(character)
         y_offset = 84 * boxNum
         draw.rectangle((4, 4 + y_offset, 294, 80 + y_offset), fill=1)
         draw.rectangle((7, 7 + y_offset, 291, 77 + y_offset), fill=0)
         img.paste(Image.open(portrait_src.lstrip('/')), (13, 12 + y_offset))
-        for row, line in enumerate(textChunk[:3]):
+        for row, line in enumerate(box_text[:3]):
             if app.debug:
                 print('"{}"'.format(repr(line)), draw.textsize(line, font=fnt))
             draw.text((77, y_offset + 16 + row * 18),
-                      _indent(row, line) if doIndent else line,
+                      _indent(row, line) if character != 'papyrus' else line,
                       fill=1, font=fnt)
     return img.resize(Size(orig_size.x * 2, orig_size.y * 2))
 
 
 @app.route('/submit', methods=['GET'])
 def makeDialogBox():
-    character = request.args.get('character').lower()
-    text = _clean_text(request.args.get('text'), character)
-    imgData = apply_personality(text, character)
-    if imgData is None:
+    text = request.args.get('text')
+    try:
         mood_imgs = request.args.getlist('moodImg')
         if app.debug:
             print(mood_imgs)
-        box = dialogBox(
-            mood_imgs,
-            text,
-            getFontForCharacter(character),
-            doIndent=(character != 'papyrus')
-        )
+        box = dialogBox(mood_imgs, text)
         stream = StringIO()
         box.save(stream, format='png', optimize=True)
-        imgData = b64encode(stream.getvalue())
+        img_data = b64encode(stream.getvalue())
 
         @after_this_request
         def cleanup(response):
             stream.close()
             return response
+    except PersonalityOverrideException as override_response:
+        img_data = override_response.img_data
 
     if app.debug:
-        print(imgData)
-    return imgData
+        print(img_data)
+    return img_data
 
 
 @app.route('/imgur_id', methods=['GET'])

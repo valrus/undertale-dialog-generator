@@ -111,7 +111,11 @@ titleImgMap root address =
         ]
         [ mapArea [ 606, 43, 626, 61 ] "hOI!"
             <| Either.Right
-            <| ( address, ChooseMood Character.Temmie (defaultSprite root Character.Temmie) )
+            <| ( address
+               , UpdateDialogs
+                    <| DialogBoxes.SetImages Character.Temmie
+                    <| defaultSprite root Character.Temmie
+               )
         ]
 
 
@@ -164,7 +168,10 @@ characterButton address staticRoot c =
 
         _ ->
             button
-                [ onClick address <| ChooseMood c (defaultSprite staticRoot c)
+                [ onClick address
+                    <| UpdateDialogs
+                    <| DialogBoxes.SetImages c
+                    <| defaultSprite staticRoot c
                 , style flatButton
                 ]
                 [ img [ src <| defaultSprite staticRoot c ] [] ]
@@ -190,7 +197,9 @@ moodButton address root c n =
         spriteStr = spriteNumber root c n
     in
         button
-            [ onClick address <| ChooseMood c spriteStr
+            [ onClick address
+                <| UpdateDialogs
+                <| DialogBoxes.SetImages c spriteStr
             , style flatButton
             ]
             [ img [ src <| spriteStr ] [] ]
@@ -409,7 +418,6 @@ type Action
     = NoOp ()
     | EnterCheatCode (Set.Set Char)
     | ActivateEXMode
-    | ChooseMood Character.Name String
     | UpdateDialogs DialogBoxes.Action
     | SetScriptRoot String
     | SetStaticRoot String
@@ -444,28 +452,19 @@ update action model =
             , none
             )
 
-        ChooseMood c s ->
-            let
-                ( newBoxes, moveCursor ) = DialogBoxes.update (DialogBoxes.SetImages c s) model.dialogs
-            in
-                ( { model
-                    | selection = Just c
-                    , dialogs = newBoxes
-                    , imageData = Nothing
-                  }
-                , toFocusEffect
-                    model.focusMailbox.address
-                    { elementId = textBoxId 1
-                    , moveCursorToEnd = moveCursor
-                    }
-                )
-
         UpdateDialogs action ->
             let
                 ( newBoxes, moveCursor ) = DialogBoxes.update action model.dialogs
             in
                 ( { model
-                    | dialogs = newBoxes
+                    | selection =
+                        case action of
+                            DialogBoxes.SetImages c s ->
+                                Just c
+
+                            _ ->
+                                model.selection
+                    , dialogs = newBoxes
                     , imageData = Nothing
                   }
                 , toFocusEffect
@@ -541,9 +540,7 @@ getDialogBoxImg model =
         Just c ->
             Http.url
                 (getSubmitUrl model.scriptRoot)
-                ([ ( "character", toString c )
-                 , ( "text", DialogBoxes.concat model.dialogs )
-                 ]
+                ([ ( "text", DialogBoxes.concat model.dialogs ) ]
                     ++ (List.map ((,) "moodImg") <| DialogBoxes.getImgSrcs model.dialogs)
                 )
                 |> Http.getString
