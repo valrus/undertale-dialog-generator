@@ -22,13 +22,9 @@ init codes mailbox =
     }
 
 
-modifiers : Set number
-modifiers = Set.fromList [ 16, 17, 18, 91, 93, 224 ]
-
-
 allModifiers : Set KeyCode -> Bool
 allModifiers =
-    Set.toList >> List.all (\x -> Set.member x modifiers)
+    Set.toList >> List.all ((==) 16)
 
 
 soleMember : Set KeyCode -> Char -> Int -> Int

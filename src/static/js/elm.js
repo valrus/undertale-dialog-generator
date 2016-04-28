@@ -12336,8 +12336,7 @@ Elm.CheatCode.make = function (_elm) {
    var _op = {};
    var mailbox = $Signal.mailbox("");
    var isComplete = function (_p0) {    var _p1 = _p0;return _U.eq($String.length(_p1._0),_p1._1);};
-   var modifiers = $Set.fromList(_U.list([16,17,18,91,93,224]));
-   var allModifiers = function (_p2) {    return A2($List.all,function (x) {    return A2($Set.member,x,modifiers);},$Set.toList(_p2));};
+   var allModifiers = function (_p2) {    return A2($List.all,F2(function (x,y) {    return _U.eq(x,y);})(16),$Set.toList(_p2));};
    var soleMember = F3(function (ks,c,prev) {
       var k = $Char.toCode(c);
       var _p3 = $Set.size(ks);
@@ -12377,7 +12376,6 @@ Elm.CheatCode.make = function (_elm) {
    return _elm.CheatCode.values = {_op: _op
                                   ,Model: Model
                                   ,init: init
-                                  ,modifiers: modifiers
                                   ,allModifiers: allModifiers
                                   ,soleMember: soleMember
                                   ,checkChar: checkChar
