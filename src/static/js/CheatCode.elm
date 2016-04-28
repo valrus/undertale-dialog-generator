@@ -1,5 +1,6 @@
 module CheatCode (..) where
 
+import Char exposing (KeyCode)
 import Debug exposing (log)
 import Dict exposing (Dict)
 import Effects exposing (Effects, none)
@@ -21,30 +22,42 @@ init codes mailbox =
     }
 
 
-soleMember : Set Char -> Char -> Int -> Int
-soleMember cs c prev =
-    case Set.size cs of
-        0 ->
-            prev
+modifiers : Set number
+modifiers = Set.fromList [ 16, 17, 18, 91, 93, 224 ]
 
-        1 ->
-            if (Set.member c cs) then
-                prev + 1
-            else
-                0
 
-        _ ->
-            if (Set.member c cs) then
+allModifiers : Set KeyCode -> Bool
+allModifiers =
+    Set.toList >> List.all (\x -> Set.member x modifiers)
+
+
+soleMember : Set KeyCode -> Char -> Int -> Int
+soleMember ks c prev =
+    let
+        k = Char.toCode c
+    in
+        case Set.size ks of
+            0 ->
                 prev
-            else
-                0
+
+            _ ->
+                if (Set.member k ks) then
+                    if allModifiers (log "otherkeys" (Set.remove k ks)) then
+                        prev + 1
+                    else
+                        0
+                else
+                    if allModifiers (log "otherkeys" ks) then
+                        prev
+                    else
+                        0
 
 
-checkChar : Set Char -> String -> Int -> Int
-checkChar cs code matches =
+checkChar : Set KeyCode -> String -> Int -> Int
+checkChar ks code matches =
     case String.uncons (String.dropLeft matches code) of
         Just ( next, _ ) ->
-            soleMember cs next matches
+            soleMember ks next matches
 
         _ ->
             0
@@ -55,11 +68,11 @@ isComplete ( s, n ) =
     String.length s == n
 
 
-update : Set Char -> Model -> ( Model, Effects String )
-update cs model =
+update : Set KeyCode -> Model -> ( Model, Effects String )
+update ks model =
     let
         status =
-            Dict.map (checkChar cs) model.codeStatus
+            Dict.map (checkChar ks) model.codeStatus
 
         complete =
             List.head <| List.filter isComplete <| Dict.toList status

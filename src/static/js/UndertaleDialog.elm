@@ -2,7 +2,7 @@ module UndertaleDialog (..) where
 
 import StartApp exposing (start)
 import Array exposing (Array, toList, fromList)
-import Char
+import Char exposing (KeyCode)
 import Color exposing (grayscale)
 import Effects exposing (Effects, Never, none)
 import Either exposing (Either)
@@ -416,7 +416,7 @@ view address model =
 
 type Action
     = NoOp ()
-    | EnterCheatCode (Set.Set Char)
+    | EnterCheatCode (Set.Set KeyCode)
     | ActivateEXMode
     | UpdateDialogs DialogBoxes.Action
     | SetScriptRoot String
@@ -435,9 +435,9 @@ update action model =
             , none
             )
 
-        EnterCheatCode cs ->
+        EnterCheatCode ks ->
             let
-                ( newCheatCode, cheatEffect ) = CheatCode.update cs model.cheatCode
+                ( newCheatCode, cheatEffect ) = CheatCode.update ks model.cheatCode
             in
                 ( { model
                     | cheatCode = newCheatCode
@@ -611,7 +611,7 @@ app =
         , inputs =
             [ Signal.map SetScriptRoot scriptRoot
             , Signal.map SetStaticRoot staticRoot
-            , Signal.map (EnterCheatCode << (Set.map <| Char.fromCode)) Keyboard.keysDown
+            , Signal.map EnterCheatCode Keyboard.keysDown
             ]
         }
 
