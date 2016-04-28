@@ -12336,16 +12336,15 @@ Elm.CheatCode.make = function (_elm) {
    var _op = {};
    var mailbox = $Signal.mailbox("");
    var isComplete = function (_p0) {    var _p1 = _p0;return _U.eq($String.length(_p1._0),_p1._1);};
-   var allModifiers = function (_p2) {    return A2($List.all,F2(function (x,y) {    return _U.eq(x,y);})(16),$Set.toList(_p2));};
+   var onlyShift = function (_p2) {    return A2($List.all,F2(function (x,y) {    return _U.eq(x,y);})(16),$Set.toList(_p2));};
    var soleMember = F3(function (ks,c,prev) {
       var k = $Char.toCode(c);
       var _p3 = $Set.size(ks);
       if (_p3 === 0) {
             return prev;
          } else {
-            return A2($Set.member,k,ks) ? allModifiers(A2($Debug.log,"otherkeys",A2($Set.remove,k,ks))) ? prev + 1 : 0 : allModifiers(A2($Debug.log,
-            "otherkeys",
-            ks)) ? prev : 0;
+            var accept = onlyShift(A2($Set.remove,k,ks));
+            return A2($Set.member,k,ks) ? accept ? prev + 1 : 0 : accept ? prev : 0;
          }
    });
    var checkChar = F3(function (ks,code,matches) {
@@ -12376,7 +12375,7 @@ Elm.CheatCode.make = function (_elm) {
    return _elm.CheatCode.values = {_op: _op
                                   ,Model: Model
                                   ,init: init
-                                  ,allModifiers: allModifiers
+                                  ,onlyShift: onlyShift
                                   ,soleMember: soleMember
                                   ,checkChar: checkChar
                                   ,isComplete: isComplete
@@ -13396,7 +13395,7 @@ Elm.UndertaleDialog.make = function (_elm) {
       _U.list([A2($Html$Events.onClick,address,UpdateDialogs(A2($DialogBoxes.SetImages,c,spriteStr))),$Html$Attributes.style(flatButton)]),
       _U.list([A2($Html.img,_U.list([$Html$Attributes.src(spriteStr)]),_U.list([]))]));
    });
-   var moodBlank = A2($Html.button,
+   var moodBlank = A2($Html.div,
    _U.list([$Html$Attributes.style(flatButton)]),
    _U.list([A2($Html.div,
    _U.list([$Html$Attributes.style(_U.list([{ctor: "_Tuple2",_0: "height",_1: "60px"},{ctor: "_Tuple2",_0: "width",_1: "60px"}]))]),

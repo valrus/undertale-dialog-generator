@@ -207,7 +207,7 @@ moodButton address root c n =
 
 moodBlank : Html
 moodBlank =
-    button
+    div
         [ style flatButton
         ]
         [ div
