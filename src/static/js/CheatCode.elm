@@ -1,7 +1,6 @@
 module CheatCode (..) where
 
 import Char exposing (KeyCode)
-import Debug exposing (log)
 import Dict exposing (Dict)
 import Effects exposing (Effects, none)
 import Set exposing (Set)
@@ -22,8 +21,8 @@ init codes mailbox =
     }
 
 
-allModifiers : Set KeyCode -> Bool
-allModifiers =
+onlyShift : Set KeyCode -> Bool
+onlyShift =
     Set.toList >> List.all ((==) 16)
 
 
@@ -37,16 +36,19 @@ soleMember ks c prev =
                 prev
 
             _ ->
-                if (Set.member k ks) then
-                    if allModifiers (log "otherkeys" (Set.remove k ks)) then
-                        prev + 1
+                let
+                    accept = onlyShift (Set.remove k ks)
+                in
+                    if (Set.member k ks) then
+                        if accept then
+                            prev + 1
+                        else
+                            0
                     else
-                        0
-                else
-                    if allModifiers (log "otherkeys" ks) then
-                        prev
-                    else
-                        0
+                        if accept then
+                            prev
+                        else
+                            0
 
 
 checkChar : Set KeyCode -> String -> Int -> Int
