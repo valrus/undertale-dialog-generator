@@ -1,8 +1,7 @@
-module CheatCode (..) where
+module CheatCode exposing (..)
 
 import Debug exposing (log)
 import Dict exposing (Dict)
-import Effects exposing (Effects, none)
 import Set exposing (Set)
 import String
 import Task

@@ -1,4 +1,4 @@
-module CreditsModal (..) where
+module CreditsModal exposing (..)
 
 import Either exposing (Either)
 import Html exposing (..)

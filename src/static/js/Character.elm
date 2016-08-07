@@ -1,4 +1,4 @@
-module Character (..) where
+module Character exposing (..)
 
 import List exposing (maximum, map)
 import Maybe exposing (withDefault)

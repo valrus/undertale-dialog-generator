@@ -1,4 +1,4 @@
-module ImageMap (..) where
+module ImageMap exposing (mapArea)
 
 import Either exposing (Either)
 import Html exposing (Html, node)

@@ -1,4 +1,4 @@
-module InfoModal (..) where
+module InfoModal exposing (..)
 
 import Either exposing (Either)
 import Html exposing (..)

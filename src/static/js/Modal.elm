@@ -1,4 +1,4 @@
-module Modal (..) where
+module Modal exposing (..)
 
 import Color exposing (Color)
 import Html exposing (..)

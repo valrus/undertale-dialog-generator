@@ -1,6 +1,5 @@
-module Imgur (..) where
+module Imgur exposing (..)
 
-import Effects exposing (Effects, none)
 import Either exposing (Either)
 import Html exposing (..)
 import Html.Attributes exposing (src, id, style, href)
