@@ -1,4 +1,4 @@
-module DialogBox (..) where
+module DialogBox exposing (..)
 
 import Color exposing (grayscale)
 import Char

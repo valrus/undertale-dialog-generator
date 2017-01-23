@@ -1,4 +1,4 @@
-module Focus (..) where
+module Focus exposing (..)
 
 -- Reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb
 

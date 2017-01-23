@@ -1,10 +1,8 @@
-module UndertaleDialog (..) where
+module UndertaleDialog exposing (..)
 
-import StartApp exposing (start)
 import Array exposing (Array, toList, fromList)
 import Char exposing (KeyCode)
 import Color exposing (grayscale)
-import Effects exposing (Effects, Never, none)
 import Either exposing (Either)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick, onKeyDown)
@@ -585,7 +583,7 @@ cheatCodeMailbox =
     CheatCode.mailbox
 
 
-app : StartApp.App Model
+app : Html.program
 app =
     start
         { init =
