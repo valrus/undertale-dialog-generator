@@ -1,4 +1,4 @@
-module ImageMap (..) where
+module ImageMap exposing (..)
 
 import Either exposing (Either)
 import Html exposing (Html, node)
@@ -7,7 +7,7 @@ import Html.Events exposing (onClick)
 import String exposing (join)
 
 
-mapArea : List Int -> String -> Either String ( Signal.Address a, a ) -> Html
+mapArea : List Int -> String -> Either String msg -> Html msg
 mapArea coords caption action =
     let
         clickAction =
@@ -15,8 +15,8 @@ mapArea coords caption action =
                 Either.Left url ->
                     Html.Attributes.href url
 
-                Either.Right ( address, a ) ->
-                    onClick address a
+                Either.Right msg ->
+                    onClick msg
     in
         Html.node
             "area"

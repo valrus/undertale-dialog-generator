@@ -1,23 +1,20 @@
-module CheatCode (..) where
+module CheatCode exposing (..)
 
 import Char exposing (KeyCode)
 import Dict exposing (Dict)
-import Effects exposing (Effects, none)
+import Maybe
 import Set exposing (Set)
 import String
-import Task
 
 
 type alias Model =
     { codeStatus : Dict String Int
-    , mailbox : Signal.Mailbox String
     }
 
 
-init : List String -> Signal.Mailbox String -> Model
-init codes mailbox =
+init : List String -> Model
+init codes =
     { codeStatus = Dict.fromList <| List.map (\s -> ( s, 0 )) codes
-    , mailbox = mailbox
     }
 
 
@@ -66,7 +63,7 @@ isComplete ( s, n ) =
     String.length s == n
 
 
-update : Set KeyCode -> Model -> ( Model, Effects String )
+update : Set KeyCode -> Model -> ( Model, Maybe String )
 update ks model =
     let
         status =
@@ -80,17 +77,12 @@ update ks model =
                 ( { model
                     | codeStatus = status
                   }
-                , none
+                , Nothing
                 )
 
             Just ( match, _ ) ->
                 ( { model
                     | codeStatus = Dict.map (\_ _ -> 0) status
                   }
-                , Signal.send model.mailbox.address match |> Task.map (\_ -> match) |> Effects.task
+                , Just match
                 )
-
-
-mailbox : Signal.Mailbox String
-mailbox =
-    Signal.mailbox ""

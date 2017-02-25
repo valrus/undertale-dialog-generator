@@ -1,10 +1,8 @@
-module UndertaleDialog (..) where
+module UndertaleDialog exposing (..)
 
-import StartApp exposing (start)
 import Array exposing (Array, toList, fromList)
 import Char exposing (KeyCode)
 import Color exposing (grayscale)
-import Effects exposing (Effects, Never, none)
 import Either exposing (Either)
 import Html exposing (..)
 import Html.Events exposing (on, targetValue, onClick, onKeyDown)
@@ -14,6 +12,7 @@ import Json.Decode exposing (object2, string, (:=))
 import Keyboard
 import Maybe exposing (Maybe, andThen)
 import Maybe.Extra exposing (combine, isJust, join, maybeToList)
+import Platform.Cmd
 import Set
 import Task
 import Focus
@@ -384,14 +383,14 @@ dialogBoxSection address model =
             ]
 
 
-getCheatCodeAction : String -> Action
+getEXModeValue : Maybe String -> Action
 getCheatCodeAction s =
     case s of
-        "EX" ->
-            ActivateEXMode
+        Just "EX" ->
+            True
 
         _ ->
-            NoOp ()
+            False
 
 
 view : Signal.Address Action -> Model -> Html
@@ -415,7 +414,7 @@ view address model =
 
 
 type Action
-    = NoOp ()
+
     | EnterCheatCode (Set.Set KeyCode)
     | ActivateEXMode
     | UpdateDialogs DialogBoxes.Action
@@ -427,7 +426,7 @@ type Action
     | UpdateImgur Imgur.Action
 
 
-update : Action -> Model -> ( Model, Effects Action )
+update : Action -> Model -> ( Model, Cmd Action )
 update action model =
     case action of
         NoOp () ->
@@ -437,12 +436,14 @@ update action model =
 
         EnterCheatCode ks ->
             let
-                ( newCheatCode, cheatEffect ) = CheatCode.update ks model.cheatCode
+                ( newCheatCode, cheatResult ) =
+                    CheatCode.update ks model.cheatCode
             in
                 ( { model
                     | cheatCode = newCheatCode
+                    , exmode = getEXModeValue cheatResult
                   }
-                , Effects.map getCheatCodeAction cheatEffect
+                , Cmd.none
                 )
 
         ActivateEXMode ->

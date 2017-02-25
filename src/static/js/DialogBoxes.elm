@@ -1,4 +1,4 @@
-module DialogBoxes (..) where
+module DialogBoxes exposing (..)
 
 import Array exposing (Array, toList, fromList)
 import Html exposing (Html)

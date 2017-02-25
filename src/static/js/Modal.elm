@@ -1,4 +1,4 @@
-module Modal (..) where
+module Modal exposing (..)
 
 import Color exposing (Color)
 import Html exposing (..)
@@ -11,12 +11,12 @@ import String
 
 type alias Model =
     { backgroundColor : Color
-    , childElement : Maybe SizedHtml
+    , childElement : Maybe (SizedHtml Msg)
     }
 
 
-type alias SizedHtml =
-    { html : Html
+type alias SizedHtml msg =
+    { html : Html msg
     , width : String
     , height : String
     }
@@ -29,13 +29,14 @@ init color =
     }
 
 
-type Action
+type Msg
     = NoOp
-    | Show (Maybe SizedHtml)
+    | Show (Maybe (SizedHtml Msg))
 
 
-update action model =
-    case action of
+update : Msg -> Model -> Model
+update message model =
+    case message of
         Show something ->
             { model
                 | childElement = something
@@ -67,8 +68,9 @@ partlyTransparent color =
             ++ ", 0.7)"
 
 
-backgroundAttrs address color =
-    [ onClick address <| (Show Nothing)
+backgroundAttrs : Color -> List (Attribute Msg)
+backgroundAttrs color =
+    [ onClick (Show Nothing)
     , style
         [ ( "backgroundColor", partlyTransparent color )
         , ( "height", "100%" )
@@ -81,9 +83,9 @@ backgroundAttrs address color =
     ]
 
 
-messageOn : String -> Options -> Signal.Address a -> a -> Attribute
-messageOn name options addr msg =
-    onWithOptions name options Json.Decode.value (\_ -> Signal.message addr msg)
+messageOn : String -> Options -> msg -> Attribute msg
+messageOn event options message =
+    onWithOptions event options (Json.Decode.succeed message)
 
 
 noBubble : Options
@@ -93,15 +95,15 @@ noBubble =
     }
 
 
-swallowClick : Signal.Address a -> a -> Attribute
+swallowClick : msg -> Attribute msg
 swallowClick =
     messageOn "click" noBubble
 
 
-wrapperDiv : Signal.Address Action -> SizedHtml -> List Html
-wrapperDiv address inner =
+wrapperDiv : SizedHtml Msg -> List (Html Msg)
+wrapperDiv inner =
     [ div
-        [ swallowClick address NoOp
+        [ swallowClick NoOp
         , style
             [ ( "width", inner.width )
             , ( "height", inner.height )
@@ -118,13 +120,13 @@ wrapperDiv address inner =
     ]
 
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Model -> Html Msg
+view model =
     case model.childElement of
         Nothing ->
             div [] []
 
         Just dialog ->
             div
-                (backgroundAttrs address model.backgroundColor)
-                (wrapperDiv address dialog)
+                (backgroundAttrs model.backgroundColor)
+                (wrapperDiv dialog)

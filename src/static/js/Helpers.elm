@@ -1,4 +1,4 @@
-module Helpers (..) where
+module Helpers exposing (..)
 
 import Array exposing (Array, fromList, toList)
 import List
