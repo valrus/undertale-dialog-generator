@@ -4,11 +4,10 @@ import Either exposing (Either)
 import Html exposing (..)
 import Html.Attributes exposing (src, id, style, href)
 import Html.Events exposing (onClick)
-import Http exposing (send, defaultSettings, fromJson, stringData)
+import Http exposing (request, send, expectJson, stringBody)
 import Json.Decode exposing (Decoder, at)
 import Json.Encode as JSON
 import Maybe exposing (Maybe, withDefault)
-import Task exposing (Task)
 
 
 type Action
@@ -55,13 +54,13 @@ init =
     }
 
 
-uploadButton : Signal.Address Action -> ImgState -> String -> Html
-uploadButton address state imgSrc =
+uploadButton : ImgState -> String -> Html Action
+uploadButton state imgSrc =
     let
         attrs =
             case state of
                 Either.Left data ->
-                    [ onClick address DoUpload
+                    [ onClick DoUpload
                     , style [ ( "border", "1px solid white" ) ]
                     ]
 
@@ -76,7 +75,7 @@ uploadButton address state imgSrc =
             ]
 
 
-uploadField : ImgState -> Html
+uploadField : ImgState -> Html Action
 uploadField state =
     let
         content =
@@ -97,11 +96,11 @@ uploadField state =
             [ content ]
 
 
-uploadView : Signal.Address Action -> ImgState -> String -> Html
-uploadView address state imgSrc =
+uploadView : ImgState -> String -> Html Action
+uploadView state imgSrc =
     div
         [ id "imgurUpload" ]
-        [ uploadButton address state imgSrc
+        [ uploadButton state imgSrc
         , uploadField state
         ]
 
@@ -125,13 +124,13 @@ imgurButtonSrc status root =
         root ++ "images/" ++ fileName
 
 
-view address model staticRoot =
+view model staticRoot =
     case model.imgState of
         Nothing ->
             div [] []
 
         Just state ->
-            uploadView address state
+            uploadView state
                 <| imgurButtonSrc model.uploadStatus staticRoot
 
 
@@ -145,34 +144,33 @@ albumData id =
     [ ( "album", JSON.string id ) ]
 
 
-doUpload : Model -> Effects Action
+doUpload : Model -> Cmd Action
 doUpload model =
     case Maybe.map2 (,) model.clientId model.imgState of
         Just ( id, Either.Left data ) ->
-            send
-                defaultSettings
-                { verb = "POST"
-                , url = "https://api.imgur.com/3/upload"
+            request
+                { method = "POST"
                 , headers =
-                    [ ( "Authorization", "Client-ID " ++ id )
-                    , ( "Content-Type", "application/json" )
+                    [ Http.header "Authorization" ("Client-ID " ++ id)
+                    , Http.header "Content-Type" "application/json"
                     ]
+                , url = "https://api.imgur.com/3/upload"
                 , body =
-                    Http.string
+                    stringBody "application/json"
                         <| JSON.encode 0
                         <| JSON.object
                         <| [ ( "image", JSON.string data )
                            , ( "type", JSON.string "base64" )
                            ]
                         ++ (Maybe.withDefault [] <| Maybe.map albumData model.albumId)
+                , expect = expectJson responseDecoder
+                , timeout = Nothing
+                , withCredentials = False
                 }
-                |> fromJson responseDecoder
-                |> Task.toMaybe
-                |> Task.map SetUploadUrl
-                |> Effects.task
+                |> send (Result.toMaybe >> SetUploadUrl)
 
         _ ->
-            none
+            Cmd.none
 
 
 update : Action -> Model -> ( Model, Cmd Action )
@@ -183,7 +181,7 @@ update action model =
                 | clientId = Just client
                 , albumId = Just album
               }
-            , none
+            , Cmd.none
             )
 
         SetImageData data ->
@@ -191,7 +189,7 @@ update action model =
                 | imgState = Maybe.map Either.Left data
                 , uploadStatus = NotStarted
               }
-            , none
+            , Cmd.none
             )
 
         DoUpload ->
@@ -207,7 +205,7 @@ update action model =
                     ( { model
                         | uploadStatus = Failed
                       }
-                    , none
+                    , Cmd.none
                     )
 
                 Just url ->
@@ -215,8 +213,8 @@ update action model =
                         | imgState = Just <| Either.Right url
                         , uploadStatus = Finished
                       }
-                    , none
+                    , Cmd.none
                     )
 
         _ ->
-            ( model, none )
+            ( model, Cmd.none )
