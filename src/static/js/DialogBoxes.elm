@@ -50,7 +50,7 @@ concat model =
 
 getText : Int -> Model -> Maybe String
 getText i model =
-    Array.get i model.boxes `Maybe.andThen` .text
+    Array.get i model.boxes |> Maybe.andThen .text
 
 
 getTexts : Model -> Array (Maybe String)
@@ -93,11 +93,16 @@ convertViewMessage boxNum boxAction =
             ExpectImage boxNum b
 
 
-view : Signal.Address Action -> Model -> List Html
-view address model =
+mapBoxView : Int -> DialogBox.Model -> Html Action
+mapBoxView i box =
+    Html.map (convertViewMessage i) (DialogBox.view box)
+
+
+view : Model -> List (Html Action)
+view model =
     Array.toList
         <| Array.indexedMap
-            (\i -> DialogBox.view (Signal.forwardTo address (convertViewMessage i)))
+            mapBoxView
             model.boxes
 
 
@@ -243,3 +248,4 @@ update action model =
                           }
                         , False
                         )
+
