@@ -53,7 +53,7 @@ init s i =
 -- View
 
 
-indentAsterisk : Character.Name -> Html Action
+indentAsterisk : Character.Name -> Html Msg
 indentAsterisk character =
     div
         [ HtmlAttr.id "indent"
@@ -62,7 +62,7 @@ indentAsterisk character =
         [ Html.text <| Character.dialogAsterisk character ]
 
 
-deleteEmptyBox : String -> Char.KeyCode -> Action
+deleteEmptyBox : String -> Char.KeyCode -> Msg
 deleteEmptyBox text keyCode =
     case keyCode of
         8 ->
@@ -75,7 +75,7 @@ deleteEmptyBox text keyCode =
             SetText (Just text)
 
 
-textBox : FullModel -> Html Action
+textBox : FullModel -> Html Msg
 textBox model =
     Html.textarea
         [ HtmlAttr.id <| "textBox" ++ (toString model.index)
@@ -96,7 +96,7 @@ textBox model =
         []
 
 
-dialogCollage : Html Action -> FullModel -> Html Action
+dialogCollage : Html Msg -> FullModel -> Html Msg
 dialogCollage elem model =
     div
         [ HtmlAttr.style [ ( "width", "100%" ) ] ]
@@ -117,7 +117,7 @@ dialogCollage elem model =
         ]
 
 
-svgPosition : Position -> List (Svg.Attribute Action)
+svgPosition : Position -> List (Svg.Attribute Msg)
 svgPosition pos =
     [ SvgAttr.x (toString pos.x)
     , SvgAttr.y (toString pos.y)
@@ -126,7 +126,7 @@ svgPosition pos =
     ]
 
 
-portraitButton : Position -> String -> Character.Name -> Float -> Html Action
+portraitButton : Position -> String -> Character.Name -> Float -> Html Msg
 portraitButton pos src chara alpha =
     Svg.image
         ([ SvgAttr.xlinkHref src
@@ -138,14 +138,14 @@ portraitButton pos src chara alpha =
         []
 
 
-svgBorder : Position -> String -> Svg Action
+svgBorder : Position -> String -> Svg Msg
 svgBorder pos color =
     Svg.rect
         ([ SvgAttr.fill color ] ++ (svgPosition pos))
         []
 
 
-dialogFrame : FullModel -> Html Action
+dialogFrame : FullModel -> Html Msg
 dialogFrame model =
     let
         ( imgX, imgY ) =
@@ -197,7 +197,7 @@ certifyModel model =
                 }
 
 
-view : Model -> Html Action
+view : Model -> Html Msg
 view model =
     case certifyModel model of
         Nothing ->
@@ -217,14 +217,14 @@ updateField old new wantToSet =
         old
 
 
-type Action
+type Msg
     = NoOp
     | SetImage Character.Name (Maybe String) Bool
     | SetText (Maybe String)
     | ExpectImage Bool
 
 
-update : Action -> Model -> Model
+update : Msg -> Model -> Model
 update action model =
     case action of
         NoOp ->

@@ -10,7 +10,7 @@ import Json.Encode as JSON
 import Maybe exposing (Maybe, withDefault)
 
 
-type Action
+type Msg
     = NoOp
     | SetParams (Maybe ( String, String ))
     | SetImageData (Maybe ImgData)
@@ -54,7 +54,7 @@ init =
     }
 
 
-uploadButton : ImgState -> String -> Html Action
+uploadButton : ImgState -> String -> Html Msg
 uploadButton state imgSrc =
     let
         attrs =
@@ -75,7 +75,7 @@ uploadButton state imgSrc =
             ]
 
 
-uploadField : ImgState -> Html Action
+uploadField : ImgState -> Html Msg
 uploadField state =
     let
         content =
@@ -96,7 +96,7 @@ uploadField state =
             [ content ]
 
 
-uploadView : ImgState -> String -> Html Action
+uploadView : ImgState -> String -> Html Msg
 uploadView state imgSrc =
     div
         [ id "imgurUpload" ]
@@ -124,6 +124,7 @@ imgurButtonSrc status root =
         root ++ "images/" ++ fileName
 
 
+view : Model -> String -> Html Msg
 view model staticRoot =
     case model.imgState of
         Nothing ->
@@ -144,7 +145,7 @@ albumData id =
     [ ( "album", JSON.string id ) ]
 
 
-doUpload : Model -> Cmd Action
+doUpload : Model -> Cmd Msg
 doUpload model =
     case Maybe.map2 (,) model.clientId model.imgState of
         Just ( id, Either.Left data ) ->
@@ -173,7 +174,7 @@ doUpload model =
             Cmd.none
 
 
-update : Action -> Model -> ( Model, Cmd Action )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update action model =
     case action of
         SetParams (Just ( client, album )) ->

@@ -63,6 +63,7 @@ isComplete ( s, n ) =
     String.length s == n
 
 
+-- TODO: Should probably make the first arg a Msg (Set KeyCode) to be proper
 update : Set KeyCode -> Model -> ( Model, Maybe String )
 update ks model =
     let
