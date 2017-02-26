@@ -1,6 +1,7 @@
 module Helpers exposing (..)
 
 import Array exposing (Array, fromList, toList)
+import Http exposing (encodeUri)
 import List
 import List.Extra exposing (splitAt, takeWhile)
 import Maybe.Extra exposing (isJust, maybeToList)
@@ -60,3 +61,24 @@ takeLines n s =
     String.lines s
         |> List.take n
         |> String.join "\n"
+
+
+-- From https://github.com/evancz/elm-http/blob/3.0.1/src/Http.elm#L56-L73
+makeUrl : String -> List (String,String) -> String
+makeUrl baseUrl args =
+  case args of
+    [] ->
+        baseUrl
+
+    _ ->
+        baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
+
+
+queryPair : (String,String) -> String
+queryPair (key,value) =
+  queryEscape key ++ "=" ++ queryEscape value
+
+
+queryEscape : String -> String
+queryEscape string =
+  String.join "+" (String.split "%20" (encodeUri string))

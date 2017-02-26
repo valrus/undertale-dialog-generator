@@ -1,14 +1,8 @@
-var undertale = Elm.fullscreen(
-    Elm.UndertaleDialog,
-    {
+var undertale = Elm.UndertaleDialog.fullscreen({
         staticRoot: $STATIC_ROOT,
         scriptRoot: $SCRIPT_ROOT
     }
 );
-
-// passing in above doesn't seem to work?
-undertale.ports.staticRoot.send($STATIC_ROOT);
-undertale.ports.scriptRoot.send($SCRIPT_ROOT);
 
 undertale.ports.focus.subscribe(function(params) {
     setTimeout(function() {

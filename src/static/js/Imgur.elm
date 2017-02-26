@@ -12,8 +12,8 @@ import Maybe exposing (Maybe, withDefault)
 
 type Msg
     = NoOp
-    | SetParams (Maybe ( String, String ))
-    | SetImageData (Maybe ImgData)
+    | SetParams (Result Http.Error ( String, String ))
+    | SetImageData ImgData
     | DoUpload
     | SetUploadUrl (Maybe ImgUrl)
 
@@ -105,6 +105,7 @@ uploadView state imgSrc =
         ]
 
 
+imgurButtonSrc : UploadStatus -> String -> String
 imgurButtonSrc status root =
     let
         fileName =
@@ -131,8 +132,8 @@ view model staticRoot =
             div [] []
 
         Just state ->
-            uploadView state
-                <| imgurButtonSrc model.uploadStatus staticRoot
+            uploadView state <|
+                imgurButtonSrc model.uploadStatus staticRoot
 
 
 responseDecoder : Decoder String
@@ -157,13 +158,13 @@ doUpload model =
                     ]
                 , url = "https://api.imgur.com/3/upload"
                 , body =
-                    stringBody "application/json"
-                        <| JSON.encode 0
-                        <| JSON.object
-                        <| [ ( "image", JSON.string data )
-                           , ( "type", JSON.string "base64" )
-                           ]
-                        ++ (Maybe.withDefault [] <| Maybe.map albumData model.albumId)
+                    stringBody "application/json" <|
+                        JSON.encode 0 <|
+                            JSON.object <|
+                                [ ( "image", JSON.string data )
+                                , ( "type", JSON.string "base64" )
+                                ]
+                                    ++ (Maybe.withDefault [] <| Maybe.map albumData model.albumId)
                 , expect = expectJson responseDecoder
                 , timeout = Nothing
                 , withCredentials = False
@@ -177,7 +178,7 @@ doUpload model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update action model =
     case action of
-        SetParams (Just ( client, album )) ->
+        SetParams (Ok ( client, album )) ->
             ( { model
                 | clientId = Just client
                 , albumId = Just album
@@ -185,9 +186,12 @@ update action model =
             , Cmd.none
             )
 
+        SetParams (Err _) ->
+            ( model, Cmd.none )
+
         SetImageData data ->
             ( { model
-                | imgState = Maybe.map Either.Left data
+                | imgState = Just (Either.Left data)
                 , uploadStatus = NotStarted
               }
             , Cmd.none
