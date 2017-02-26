@@ -7,6 +7,14 @@ import Maybe.Extra exposing (isJust, maybeToList)
 import String exposing (split, join)
 
 
+type alias Position =
+    { x : Int
+    , y : Int
+    , w : Int
+    , h : Int
+    }
+
+
 takeJusts : Array (Maybe a) -> List a
 takeJusts arr =
     let justs =
