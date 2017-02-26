@@ -1,14 +1,15 @@
 module DialogBox exposing (..)
 
-import Color exposing (grayscale)
 import Char
-import Graphics.Collage exposing (collage, move, filled, rect, toForm, alpha)
-import Graphics.Element exposing (Element, image)
-import Graphics.Input exposing (customButton)
-import Html exposing (..)
-import Html.Attributes exposing (style)
-import Html.Events exposing (on, targetValue, onKeyDown)
+import Json.Decode as Json
+import Svg exposing (Svg)
+import Svg.Attributes as SvgAttr
+import Svg.Events exposing (onClick)
+import Html exposing (Html, div)
+import Html.Attributes as HtmlAttr
+import Html.Events exposing (on, onInput, targetValue, keyCode)
 import Maybe
+import Helpers exposing (Position)
 
 
 -- Local modules
@@ -52,11 +53,11 @@ init s i =
 -- View
 
 
-indentAsterisk : Character.Name -> Html
+indentAsterisk : Character.Name -> Html Action
 indentAsterisk character =
     div
-        [ Html.Attributes.id "indent"
-        , style <| Character.fontStyles character
+        [ HtmlAttr.id "indent"
+        , HtmlAttr.style <| Character.fontStyles character
         ]
         [ Html.text <| Character.dialogAsterisk character ]
 
@@ -74,92 +75,110 @@ deleteEmptyBox text keyCode =
             SetText (Just text)
 
 
-textBox : Signal.Address Action -> FullModel -> Html
-textBox address model =
-    textarea
-        [ Html.Attributes.id <| "textBox" ++ (toString model.index)
+textBox : FullModel -> Html Action
+textBox model =
+    Html.textarea
+        [ HtmlAttr.id <| "textBox" ++ (toString model.index)
+        , onInput
+            (Just >> SetText)
         , on
-            "input"
-            targetValue
-            (\s -> Signal.message address <| SetText <| Just s)
-        , onKeyDown
-            address
-            (deleteEmptyBox model.text)
-        , style
-            <| [ ( "line-height", "36px" )
-                 -- TODO: Make the "36px" a function
-               ]
-            ++ (Character.fontStyles model.chara)
-            ++ (Character.textboxStyles model.chara)
-        , Html.Attributes.rows 3
-        , Html.Attributes.value (takeLines 3 model.text)
+            "keyDown"
+            (Json.map (deleteEmptyBox model.text) keyCode)
+        , HtmlAttr.style <|
+            [ ( "line-height", "36px" )
+              -- TODO: Make the "36px" a function
+            ]
+                ++ (Character.fontStyles model.chara)
+                ++ (Character.textboxStyles model.chara)
+        , HtmlAttr.rows 3
+        , HtmlAttr.value (takeLines 3 model.text)
         ]
         []
 
 
-dialogCollage : Html -> Signal.Address Action -> FullModel -> Html
-dialogCollage elem address model =
+dialogCollage : Html Action -> FullModel -> Html Action
+dialogCollage elem model =
     div
-        [ style [ ( "width", "100%" ) ] ]
+        [ HtmlAttr.style [ ( "width", "100%" ) ] ]
         [ div
-            [ style
+            [ HtmlAttr.style
                 [ ( "width", "596px" )
                 , ( "position", "relative" )
                 , ( "margin", "0 auto" )
                 ]
             ]
             [ div
-                [ Html.Attributes.class "dialog" ]
+                [ HtmlAttr.class "dialog" ]
                 [ elem
                 , indentAsterisk model.chara
-                , textBox address model
+                , textBox model
                 ]
             ]
         ]
 
 
-portraitButton : Signal.Address Action -> String -> Character.Name -> Element
-portraitButton address src chara =
-    let
-        img = doubleImage src (Character.portraitSize chara)
-    in
-        customButton
-            (Signal.message address (ExpectImage True))
-            img
-            img
-            img
+svgPosition : Position -> List (Svg.Attribute Action)
+svgPosition pos =
+    [ SvgAttr.x (toString pos.x)
+    , SvgAttr.y (toString pos.y)
+    , SvgAttr.width (toString pos.w)
+    , SvgAttr.height (toString pos.h)
+    ]
 
 
-dialogFrame : Signal.Address Action -> FullModel -> Html
-dialogFrame address model =
-    let
-        ( imgX, imgY ) = Character.portraitOffset model.chara
-    in
-        (fromElement
-            <| collage
-                596
-                168
-                [ filled (grayscale 1) (rect 596 168)
-                  -- outer black border
-                , filled (grayscale 0) (rect 580 152)
-                  -- outer white border
-                , filled (grayscale 1) (rect 568 140)
-                  -- inner black box
-                , (toForm <| portraitButton address model.imgSrc model.chara)
-                    |> alpha
-                        (if model.expectingImage then
-                            0.5
-                         else
-                            1
-                        )
-                    |> move ( -214 + imgX, imgY )
-                ]
+portraitButton : Position -> String -> Character.Name -> Float -> Html Action
+portraitButton pos src chara alpha =
+    Svg.image
+        ([ SvgAttr.xlinkHref src
+         , SvgAttr.opacity (toString alpha)
+         , onClick (ExpectImage True)
+         ]
+            ++ (svgPosition pos)
         )
+        []
 
 
-doubleImage : String -> ( Int, Int ) -> Element
-doubleImage imgSrc ( w, h ) =
-    image (w * 2) (h * 2) imgSrc
+svgBorder : Position -> String -> Svg Action
+svgBorder pos color =
+    Svg.rect
+        ([ SvgAttr.fill color ] ++ (svgPosition pos))
+        []
+
+
+dialogFrame : FullModel -> Html Action
+dialogFrame model =
+    let
+        ( imgX, imgY ) =
+            Character.portraitOffset model.chara
+
+        ( sizeX, sizeY ) =
+            Character.portraitSize model.chara
+
+        portraitAlpha =
+            (if model.expectingImage then
+                0.5
+             else
+                1
+            )
+    in
+        Svg.svg
+            [ SvgAttr.width (toString 596)
+            , SvgAttr.height (toString 168)
+            ]
+            [ svgBorder (Position 0 0 596 168) "black"
+            , svgBorder (Position 8 8 580 152) "white"
+            , svgBorder (Position 14 14 568 140) "black"
+            , portraitButton
+                (Position
+                    (298 - 214 + imgX - sizeX)
+                    (84 + imgY - sizeY)
+                    (imgX * 2)
+                    (imgY * 2)
+                )
+                model.imgSrc
+                model.chara
+                portraitAlpha
+            ]
 
 
 certifyModel : Model -> Maybe FullModel
@@ -178,16 +197,15 @@ certifyModel model =
                 }
 
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+view : Model -> Html Action
+view model =
     case certifyModel model of
         Nothing ->
-            div [ Html.Attributes.class ("emptyDialog" ++ toString model.index) ] []
+            div [ HtmlAttr.class ("emptyDialog" ++ toString model.index) ] []
 
         Just fullModel ->
             dialogCollage
-                (dialogFrame address fullModel)
-                address
+                (dialogFrame fullModel)
                 fullModel
 
 
@@ -213,15 +231,16 @@ update action model =
             model
 
         SetImage chara src force ->
-            let wantToSet =
+            let
+                wantToSet =
                     model.expectingImage || force
             in
-              { model
-                  | imgSrc =
-                      updateField model.imgSrc src wantToSet
-                  , chara = updateField model.chara (Just chara) wantToSet
-                  , expectingImage = False
-              }
+                { model
+                    | imgSrc =
+                        updateField model.imgSrc src wantToSet
+                    , chara = updateField model.chara (Just chara) wantToSet
+                    , expectingImage = False
+                }
 
         SetText text ->
             { model
