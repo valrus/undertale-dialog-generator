@@ -11,7 +11,6 @@ import Html.Events exposing (on, onInput, targetValue, keyCode)
 import Maybe
 import Helpers exposing (Position)
 
-
 -- Local modules
 
 import Character
@@ -126,12 +125,17 @@ svgPosition pos =
     ]
 
 
-portraitButton : Position -> String -> Character.Name -> Float -> Html Msg
-portraitButton pos src chara alpha =
+portraitAlpha : Bool -> String
+portraitAlpha dim =
+    if dim then "0.5" else "1"
+
+
+portraitButton : Position -> FullModel -> Html Msg
+portraitButton pos model =
     Svg.image
-        ([ SvgAttr.xlinkHref src
-         , SvgAttr.opacity (toString alpha)
-         , onClick (ExpectImage True)
+        ([ SvgAttr.xlinkHref model.imgSrc
+         , SvgAttr.opacity <| portraitAlpha model.expectingImage
+         , onClick (ExpectImage <| not model.expectingImage)
          ]
             ++ (svgPosition pos)
         )
@@ -153,13 +157,6 @@ dialogFrame model =
 
         ( sizeX, sizeY ) =
             Character.portraitSize model.chara
-
-        portraitAlpha =
-            (if model.expectingImage then
-                0.5
-             else
-                1
-            )
     in
         Svg.svg
             [ SvgAttr.width (toString 596)
@@ -175,9 +172,7 @@ dialogFrame model =
                     (sizeX * 2)
                     (sizeY * 2)
                 )
-                model.imgSrc
-                model.chara
-                portraitAlpha
+                model
             ]
 
 
