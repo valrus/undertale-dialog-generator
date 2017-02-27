@@ -1,7 +1,4 @@
-module Focus exposing (..)
-
--- Reference: https://gist.github.com/pdamoc/97ca5e1ad605f7e5ebcb
-
+port module Focus exposing (..)
 
 type alias Params =
     { elementId : String
@@ -9,16 +6,17 @@ type alias Params =
     }
 
 
+emptyParams : Params
 emptyParams =
     { elementId = "", moveCursorToEnd = False }
 
 
-type Action
+type Msg
     = Focus Params
     | NoOp
 
 
-focusFilter : Action -> Maybe Params
+focusFilter : Msg -> Maybe Params
 focusFilter action =
     case action of
         Focus params ->
@@ -27,13 +25,4 @@ focusFilter action =
         _ ->
             Nothing
 
-
-filteredSignal : Signal Action -> Signal Params
-filteredSignal signal =
-    Signal.filterMap focusFilter emptyParams signal
-
-
-mailbox : Signal.Mailbox Action
-mailbox =
-    Signal.mailbox NoOp
-
+port focus : Params -> Cmd msg

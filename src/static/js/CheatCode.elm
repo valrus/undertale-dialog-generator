@@ -2,21 +2,19 @@ module CheatCode exposing (..)
 
 import Char exposing (KeyCode)
 import Dict exposing (Dict)
+import Maybe
 import Set exposing (Set)
 import String
-import Task
 
 
 type alias Model =
     { codeStatus : Dict String Int
-    , mailbox : Signal.Mailbox String
     }
 
 
-init : List String -> Signal.Mailbox String -> Model
-init codes mailbox =
+init : List String -> Model
+init codes =
     { codeStatus = Dict.fromList <| List.map (\s -> ( s, 0 )) codes
-    , mailbox = mailbox
     }
 
 
@@ -25,36 +23,23 @@ onlyShift =
     Set.toList >> List.all ((==) 16)
 
 
-soleMember : Set KeyCode -> Char -> Int -> Int
-soleMember ks c prev =
+matchCount : KeyCode -> Char -> Int -> Int
+matchCount k nextChar prevCount =
     let
-        k = Char.toCode c
+        next =
+            Char.toCode nextChar
     in
-        case Set.size ks of
-            0 ->
-                prev
-
-            _ ->
-                let
-                    accept = onlyShift (Set.remove k ks)
-                in
-                    if (Set.member k ks) then
-                        if accept then
-                            prev + 1
-                        else
-                            0
-                    else
-                        if accept then
-                            prev
-                        else
-                            0
+        if k == next then
+            prevCount + 1
+        else
+            0
 
 
-checkChar : Set KeyCode -> String -> Int -> Int
-checkChar ks code matches =
+checkChar : KeyCode -> String -> Int -> Int
+checkChar k code matches =
     case String.uncons (String.dropLeft matches code) of
         Just ( next, _ ) ->
-            soleMember ks next matches
+            matchCount k next matches
 
         _ ->
             0
@@ -65,11 +50,15 @@ isComplete ( s, n ) =
     String.length s == n
 
 
-update : Set KeyCode -> Model -> ( Model, Effects String )
-update ks model =
+
+-- TODO: Should probably make the first arg a Msg (Set KeyCode) to be proper
+
+
+update : KeyCode -> Model -> ( Model, Maybe String )
+update k model =
     let
         status =
-            Dict.map (checkChar ks) model.codeStatus
+            Dict.map (checkChar k) model.codeStatus
 
         complete =
             List.head <| List.filter isComplete <| Dict.toList status
@@ -79,17 +68,12 @@ update ks model =
                 ( { model
                     | codeStatus = status
                   }
-                , none
+                , Nothing
                 )
 
             Just ( match, _ ) ->
                 ( { model
                     | codeStatus = Dict.map (\_ _ -> 0) status
                   }
-                , Signal.send model.mailbox.address match |> Task.map (\_ -> match) |> Effects.task
+                , Just match
                 )
-
-
-mailbox : Signal.Mailbox String
-mailbox =
-    Signal.mailbox ""

@@ -90,7 +90,7 @@ portraitSize c =
             ( 60, 60 )
 
 
-portraitOffset : Name -> ( Float, Float )
+portraitOffset : Name -> ( Int, Int )
 portraitOffset c =
     case c of
         Napstablook ->

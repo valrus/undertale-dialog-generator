@@ -1,4 +1,4 @@
-module DialogBoxes (..) where
+module DialogBoxes exposing (..)
 
 import Array exposing (Array, toList, fromList)
 import Html exposing (Html)
@@ -50,7 +50,7 @@ concat model =
 
 getText : Int -> Model -> Maybe String
 getText i model =
-    Array.get i model.boxes `Maybe.andThen` .text
+    Array.get i model.boxes |> Maybe.andThen .text
 
 
 getTexts : Model -> Array (Maybe String)
@@ -72,9 +72,9 @@ viewable model =
 -- View
 
 
-convertViewMessage : Int -> DialogBox.Action -> Action
-convertViewMessage boxNum boxAction =
-    case boxAction of
+convertViewMessage : Int -> DialogBox.Msg -> Msg
+convertViewMessage boxNum boxMsg =
+    case boxMsg of
         DialogBox.NoOp ->
             NoOp
 
@@ -93,11 +93,16 @@ convertViewMessage boxNum boxAction =
             ExpectImage boxNum b
 
 
-view : Signal.Address Action -> Model -> List Html
-view address model =
+mapBoxView : Int -> DialogBox.Model -> Html Msg
+mapBoxView i box =
+    Html.map (convertViewMessage i) (DialogBox.view box)
+
+
+view : Model -> List (Html Msg)
+view model =
     Array.toList
         <| Array.indexedMap
-            (\i -> DialogBox.view (Signal.forwardTo address (convertViewMessage i)))
+            mapBoxView
             model.boxes
 
 
@@ -167,7 +172,7 @@ updateText boxIndex newBoxText oldTexts =
         )
 
 
-updateBoxes : DialogBox.Action -> Array DialogBox.Model -> Array DialogBox.Model
+updateBoxes : DialogBox.Msg -> Array DialogBox.Model -> Array DialogBox.Model
 updateBoxes action boxes =
     Array.map (DialogBox.update action) boxes
 
@@ -187,14 +192,14 @@ resetTexts boxes =
                 initBoxes
 
 
-type Action
+type Msg
     = NoOp
     | SetImages Character.Name String
     | UpdateText Int (Maybe String)
     | ExpectImage Int Bool
 
 
-update : Action -> Model -> ( Model, Bool )
+update : Msg -> Model -> ( Model, Bool )
 update action model =
     case action of
         NoOp ->
@@ -243,3 +248,4 @@ update action model =
                           }
                         , False
                         )
+
