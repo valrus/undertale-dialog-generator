@@ -12818,12 +12818,7 @@ var _valrus$undertale_dialog$DialogBox$dialogFrame = function (model) {
 						ctor: '::',
 						_0: A4(
 							_valrus$undertale_dialog$DialogBox$portraitButton,
-							A4(
-								_valrus$undertale_dialog$Helpers$Position,
-								((298 - 214) + imgX) - sizeX,
-								(84 + imgY) - sizeY,
-								A2(_elm_lang$core$Debug$log, 'x', imgX) * 2,
-								A2(_elm_lang$core$Debug$log, 'y', imgY) * 2),
+							A4(_valrus$undertale_dialog$Helpers$Position, ((298 - 214) + imgX) - sizeX, (84 + imgY) - sizeY, sizeX * 2, sizeY * 2),
 							model.imgSrc,
 							model.chara,
 							portraitAlpha),
