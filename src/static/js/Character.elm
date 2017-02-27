@@ -104,16 +104,15 @@ fontStyles : Name -> StyleList
 fontStyles c =
     case c of
         Papyrus ->
-            [ ( "font-family", "Smooth_Papyrus, Papyrus" )
-            , ( "font-size", "26px" )
-            , ( "font-weight", "bold" )
+            [ ( "font-family", "UndertalePapyrus, Smooth_Papyrus, Papyrus" )
+            , ( "font-size", "32px" )
             , ( "text-transform", "uppercase" )
             ]
 
         Sans ->
-            [ ( "font-family", "Comic Sans, Comic Sans MS Regular, Comic Sans MS" )
-            , ( "font-size", "30px" )
-            , ( "font-weight", "bold" )
+            [ ( "font-family"
+              , "UndertaleSans, Comic Sans, Comic Sans MS Regular, Comic Sans MS" )
+            , ( "font-size", "32px" )
             , ( "letter-spacing", "1px" )
             , ( "text-transform", "lowercase" )
             ]

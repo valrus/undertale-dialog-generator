@@ -16,13 +16,23 @@
 }
 
 @font-face {
-    font-family: 'Smooth_Papyrus';
-    src: url('fonts/SmoothPapyrus/Smooth_Papyrus.eot');
-    src: url('fonts/SmoothPapyrus/Smooth_Papyrus.eot') format('embedded-opentype'),
-         url('fonts/SmoothPapyrus/Smooth_Papyrus.woff2') format('woff2'),
-         url('fonts/SmoothPapyrus/Smooth_Papyrus.woff') format('woff'),
-         url('fonts/SmoothPapyrus/Smooth_Papyrus.ttf') format('truetype'),
-         url('fonts/SmoothPapyrus/Smooth_Papyrus.svg#Smooth_Papyrus') format('svg');
+    font-family: 'UndertalePapyrus';
+    src: url('fonts/UndertalePapyrus/undertalepapyrus-webfont.eot');
+    src: url('fonts/UndertalePapyrus/undertalepapyrus-webfont.eot') format('embedded-opentype'),
+         url('fonts/UndertalePapyrus/undertalepapyrus-webfont.woff2') format('woff2'),
+         url('fonts/UndertalePapyrus/undertalepapyrus-webfont.woff') format('woff'),
+         url('fonts/UndertalePapyrus/undertalepapyrus-webfont.ttf') format('truetype'),
+         url('fonts/UndertalePapyrus/undertalepapyrus-webfont.svg#undertalepapyrus-webfont') format('svg');
+}
+
+@font-face {
+    font-family: 'UndertaleSans';
+    src: url('fonts/UndertaleSans/undertalesans-webfont.eot');
+    src: url('fonts/UndertaleSans/undertalesans-webfont.eot') format('embedded-opentype'),
+    url('fonts/UndertaleSans/undertalesans-webfont.woff2') format('woff2'),
+    url('fonts/UndertaleSans/undertalesans-webfont.woff') format('woff'),
+    url('fonts/UndertaleSans/undertalesans-webfont.ttf') format('truetype'),
+    url('fonts/UndertaleSans/undertalesans-webfont.svg#undertalesans-webfont') format('svg');
 }
 
 @viewport {
