@@ -172,8 +172,8 @@ dialogFrame model =
                 (Position
                     (298 - 214 + imgX - sizeX)
                     (84 + imgY - sizeY)
-                    (imgX * 2)
-                    (imgY * 2)
+                    (sizeX * 2)
+                    (sizeY * 2)
                 )
                 model.imgSrc
                 model.chara
