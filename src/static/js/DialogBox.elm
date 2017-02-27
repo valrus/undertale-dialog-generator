@@ -149,6 +149,25 @@ svgBorder pos color =
         []
 
 
+-- TODO: Is it possible to crispify text client-side?
+-- http://stackoverflow.com/questions/35434315/how-to-get-crispedges-for-svg-text
+-- Use filter="url(#crispify)" on an svg text node
+filterDefs : Svg Msg
+filterDefs =
+    Svg.defs []
+        [ Svg.filter
+              [ SvgAttr.id "crispify" ]
+              [ Svg.node "feComponentTransfer" []
+                    [ Svg.feFuncA
+                          [ SvgAttr.type_ "discrete"
+                          , SvgAttr.tableValues "0 1"
+                          ]
+                          []
+                    ]
+              ]
+        ]
+
+
 dialogFrame : FullModel -> Html Msg
 dialogFrame model =
     let
@@ -162,7 +181,8 @@ dialogFrame model =
             [ SvgAttr.width (toString 596)
             , SvgAttr.height (toString 168)
             ]
-            [ svgBorder (Position 0 0 596 168) "black"
+            [ filterDefs
+            , svgBorder (Position 0 0 596 168) "black"
             , svgBorder (Position 8 8 580 152) "white"
             , svgBorder (Position 14 14 568 140) "black"
             , portraitButton
