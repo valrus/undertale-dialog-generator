@@ -17,12 +17,12 @@
 
 @font-face {
     font-family: 'Smooth_Papyrus';
-    src: url('fonts/Smooth Papyrus/Smooth_Papyrus.eot');
-    src: url('fonts/Smooth Papyrus/Smooth_Papyrus.eot') format('embedded-opentype'),
-         url('fonts/Smooth Papyrus/Smooth_Papyrus.woff2') format('woff2'),
-         url('fonts/Smooth Papyrus/Smooth_Papyrus.woff') format('woff'),
-         url('fonts/Smooth Papyrus/Smooth_Papyrus.ttf') format('truetype'),
-         url('fonts/Smooth Papyrus/Smooth_Papyrus.svg#Smooth_Papyrus') format('svg');
+    src: url('fonts/SmoothPapyrus/Smooth_Papyrus.eot');
+    src: url('fonts/SmoothPapyrus/Smooth_Papyrus.eot') format('embedded-opentype'),
+         url('fonts/SmoothPapyrus/Smooth_Papyrus.woff2') format('woff2'),
+         url('fonts/SmoothPapyrus/Smooth_Papyrus.woff') format('woff'),
+         url('fonts/SmoothPapyrus/Smooth_Papyrus.ttf') format('truetype'),
+         url('fonts/SmoothPapyrus/Smooth_Papyrus.svg#Smooth_Papyrus') format('svg');
 }
 
 @viewport {
