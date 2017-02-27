@@ -9,7 +9,8 @@ import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr
 import Html.Events exposing (on, onInput, targetValue, keyCode)
 import Maybe
-import Helpers exposing (Position)
+import Helpers exposing (Position, offset)
+
 
 -- Local modules
 
@@ -127,15 +128,18 @@ svgPosition pos =
 
 portraitAlpha : Bool -> String
 portraitAlpha dim =
-    if dim then "0.5" else "1"
+    if dim then
+        "0.5"
+    else
+        "1"
 
 
-portraitButton : Position -> FullModel -> Html Msg
-portraitButton pos model =
+portraitButton : Position -> String -> Bool -> Html Msg
+portraitButton pos src expectingImage =
     Svg.image
-        ([ SvgAttr.xlinkHref model.imgSrc
-         , SvgAttr.opacity <| portraitAlpha model.expectingImage
-         , onClick (ExpectImage <| not model.expectingImage)
+        ([ SvgAttr.xlinkHref src
+         , SvgAttr.opacity <| portraitAlpha expectingImage
+         , onClick (ExpectImage <| not expectingImage)
          ]
             ++ (svgPosition pos)
         )
@@ -149,51 +153,65 @@ svgBorder pos color =
         []
 
 
+
 -- TODO: Is it possible to crispify text client-side?
 -- http://stackoverflow.com/questions/35434315/how-to-get-crispedges-for-svg-text
 -- Use filter="url(#crispify)" on an svg text node
+
+
 filterDefs : Svg Msg
 filterDefs =
     Svg.defs []
         [ Svg.filter
-              [ SvgAttr.id "crispify" ]
-              [ Svg.node "feComponentTransfer" []
-                    [ Svg.feFuncA
-                          [ SvgAttr.type_ "discrete"
-                          , SvgAttr.tableValues "0 1"
-                          ]
-                          []
+            [ SvgAttr.id "crispify" ]
+            [ Svg.node "feComponentTransfer"
+                []
+                [ Svg.feFuncA
+                    [ SvgAttr.type_ "discrete"
+                    , SvgAttr.tableValues "0 1"
                     ]
-              ]
+                    []
+                ]
+            ]
         ]
 
 
-dialogFrame : FullModel -> Html Msg
-dialogFrame model =
+singleBox : Int -> Int -> FullModel -> List (Html Msg)
+singleBox x y model =
     let
         ( imgX, imgY ) =
             Character.portraitOffset model.chara
 
         ( sizeX, sizeY ) =
             Character.portraitSize model.chara
+
+        move =
+            offset x y
     in
-        Svg.svg
-            [ SvgAttr.width (toString 596)
-            , SvgAttr.height (toString 168)
-            ]
-            [ filterDefs
-            , svgBorder (Position 0 0 596 168) "black"
-            , svgBorder (Position 8 8 580 152) "white"
-            , svgBorder (Position 14 14 568 140) "black"
-            , portraitButton
-                (Position
-                    (298 - 214 + imgX - sizeX)
-                    (84 + imgY - sizeY)
-                    (sizeX * 2)
-                    (sizeY * 2)
-                )
-                model
-            ]
+        [ filterDefs
+        , svgBorder (Position 0 0 596 168 |> move) "black"
+        , svgBorder (Position 8 8 580 152 |> move) "white"
+        , svgBorder (Position 14 14 568 140 |> move) "black"
+        , portraitButton
+            (Position
+                (298 - 214 + imgX - sizeX)
+                (84 + imgY - sizeY)
+                (sizeX * 2)
+                (sizeY * 2)
+                |> move
+            )
+            model.imgSrc
+            model.expectingImage
+        ]
+
+
+dialogFrame : FullModel -> Html Msg
+dialogFrame model =
+    Svg.svg
+        [ SvgAttr.width (toString 596)
+        , SvgAttr.height (toString 168)
+        ]
+        (singleBox 0 0 model)
 
 
 certifyModel : Model -> Maybe FullModel

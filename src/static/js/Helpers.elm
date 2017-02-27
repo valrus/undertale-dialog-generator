@@ -16,6 +16,11 @@ type alias Position =
     }
 
 
+offset : Int -> Int -> Position -> Position
+offset x y pos =
+    Position (x + pos.x) (y + pos.y) pos.w pos.h
+
+
 takeJusts : Array (Maybe a) -> List a
 takeJusts arr =
     let justs =
