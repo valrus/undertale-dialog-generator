@@ -87,3 +87,10 @@ queryPair (key,value) =
 queryEscape : String -> String
 queryEscape string =
   String.join "+" (String.split "%20" (encodeUri string))
+
+
+thumbnail : List ( String, String )
+thumbnail =
+    [ ("width", "60px")
+    , ("height", "60px")
+    ]

@@ -184,7 +184,10 @@ characterButton staticRoot c =
                             defaultSprite staticRoot c
                 , style flatButton
                 ]
-                [ img [ src <| defaultSprite staticRoot c ] [] ]
+                [ img
+                  (style thumbnail :: [ src <| defaultSprite staticRoot c ])
+                  []
+                ]
 
 
 characterButtons : String -> List Character.Name -> Html Msg
@@ -214,7 +217,7 @@ moodButton root c n =
                     DialogBoxes.SetImages c spriteStr
             , style flatButton
             ]
-            [ img [ src <| spriteStr ] [] ]
+            [ img (style thumbnail :: [ src <| spriteStr ]) [] ]
 
 
 moodBlank : Html Msg
