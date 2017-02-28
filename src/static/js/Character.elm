@@ -100,6 +100,11 @@ portraitOffset c =
             ( 0, 0 )
 
 
+styleCss : StyleList -> String
+styleCss style =
+    String.join ";\n" <| List.map (\(a, b) -> a ++ ": " ++ b) style
+
+
 fontStyles : Name -> StyleList
 fontStyles c =
     case c of
@@ -149,4 +154,9 @@ dialogAsterisk c =
             ""
 
         _ ->
-            "*"
+            "* "
+
+
+indent : Name -> String -> String
+indent chara text =
+    (dialogAsterisk chara) ++ text

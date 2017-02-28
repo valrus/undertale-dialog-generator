@@ -15,6 +15,8 @@ import Maybe.Extra exposing (combine, isJust, join, maybeToList)
 import Platform.Cmd
 import Focus
 
+import Debug exposing (log)
+
 
 -- Local modules
 
@@ -301,7 +303,7 @@ dialogBoxImg : DialogBoxes.Model -> String -> List (Html Msg)
 dialogBoxImg boxes pngData =
     let
         boxCount =
-            DialogBoxes.count boxes
+            DialogBoxes.countBoxes boxes
     in
         [ Html.a
             []
@@ -497,8 +499,10 @@ update msg model =
             )
 
         GetDownload ->
-            ( model
-            , getDialogBoxImg model
+            ( { model
+                | dialogs = DialogBoxes.render model.dialogs
+              }
+            , Cmd.none
             )
 
         GotDownload (Ok data) ->
@@ -599,19 +603,7 @@ main : Program Flags Model Msg
 main =
     Html.programWithFlags
         { init =
-            init
-                [ Character.Toriel
-                , Character.Sans
-                , Character.Papyrus
-                , Character.Undyne
-                , Character.Alphys
-                , Character.Asgore
-                , Character.Napstablook
-                , Character.Mettaton
-                , Character.Flowey
-                , Character.Asriel
-                , Character.Temmie
-                ]
+            init Character.allNames
         , update = update
         , view = view
         , subscriptions = subs

@@ -75,6 +75,23 @@ deleteEmptyBox text keyCode =
             SetText (Just text)
 
 
+filterDefs : Svg.Svg Msg
+filterDefs =
+    Svg.defs []
+        [ Svg.filter
+            [ SvgAttr.id "crispify" ]
+            [ Svg.node "feComponentTransfer"
+                []
+                [ Svg.feFuncA
+                    [ SvgAttr.type_ "discrete"
+                    , SvgAttr.tableValues "0 1"
+                    ]
+                    []
+                ]
+            ]
+        ]
+
+
 textBox : FullModel -> Html Msg
 textBox model =
     Html.textarea
@@ -102,7 +119,7 @@ dialogCollage elem model =
         [ HtmlAttr.style [ ( "width", "100%" ) ] ]
         [ div
             [ HtmlAttr.style
-                [ ( "width", "596px" )
+                [ ( "width", (toString boxWidth) ++ "px" )
                 , ( "position", "relative" )
                 , ( "margin", "0 auto" )
                 ]
@@ -140,6 +157,7 @@ portraitButton pos src expectingImage =
         ([ SvgAttr.xlinkHref src
          , SvgAttr.opacity <| portraitAlpha expectingImage
          , onClick (ExpectImage <| not expectingImage)
+         , SvgAttr.filter "url(#crispify)"
          ]
             ++ (svgPosition pos)
         )
@@ -159,21 +177,14 @@ svgBorder pos color =
 -- Use filter="url(#crispify)" on an svg text node
 
 
-filterDefs : Svg Msg
-filterDefs =
-    Svg.defs []
-        [ Svg.filter
-            [ SvgAttr.id "crispify" ]
-            [ Svg.node "feComponentTransfer"
-                []
-                [ Svg.feFuncA
-                    [ SvgAttr.type_ "discrete"
-                    , SvgAttr.tableValues "0 1"
-                    ]
-                    []
-                ]
-            ]
-        ]
+boxHeight : Int -> Int
+boxHeight num =
+    168 * num
+
+
+boxWidth : Int
+boxWidth =
+    596
 
 
 singleBox : Int -> Int -> FullModel -> List (Html Msg)
@@ -188,8 +199,7 @@ singleBox x y model =
         move =
             offset x y
     in
-        [ filterDefs
-        , svgBorder (Position 0 0 596 168 |> move) "black"
+        [ svgBorder (Position 0 0 boxWidth (boxHeight 1) |> move) "black"
         , svgBorder (Position 8 8 580 152 |> move) "white"
         , svgBorder (Position 14 14 568 140 |> move) "black"
         , portraitButton
@@ -208,10 +218,11 @@ singleBox x y model =
 dialogFrame : FullModel -> Html Msg
 dialogFrame model =
     Svg.svg
-        [ SvgAttr.width (toString 596)
-        , SvgAttr.height (toString 168)
+        [ SvgAttr.width (toString boxWidth)
+        , SvgAttr.height (toString (boxHeight 1))
         ]
-        (singleBox 0 0 model)
+        <|
+        [ filterDefs ] ++ (singleBox 0 0 model)
 
 
 certifyModel : Model -> Maybe FullModel
