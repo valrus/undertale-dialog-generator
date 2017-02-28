@@ -128,35 +128,35 @@ fontStyles c =
             ]
 
 
-textboxStyles : Name -> StyleList
-textboxStyles c =
+textboxWidth : Name -> ( String, String)
+textboxWidth c =
     case c of
         Papyrus ->
-            [ ( "width", "416px" )
-            , ( "left", "150px" )
-            ]
-
-        Sans ->
-            [ ( "width", "382px" )
-            , ( "left", "184px" )
-            ]
+            ( "width", "416px" )
 
         _ ->
-            [ ( "width", "382px" )
-            , ( "left", "184px" )
-            ]
+            ( "width", "382px" )
 
 
-dialogAsterisk : Name -> String
-dialogAsterisk c =
+textboxLeft : Name -> ( String, String )
+textboxLeft c =
+    ( "left", (toString <| textIndent c) ++ "px" )
+
+
+textIndent : Name -> Int
+textIndent c =
+    case c of
+        Papyrus ->
+            150
+        _ ->
+            184
+
+
+dialogAsterisk : Int -> Name -> String
+dialogAsterisk lineIndex c =
     case c of
         Papyrus ->
             ""
 
         _ ->
-            "* "
-
-
-indent : Name -> String -> String
-indent chara text =
-    (dialogAsterisk chara) ++ text
+            if lineIndex == 0 then "*" else ""

@@ -59,7 +59,7 @@ indentAsterisk character =
         [ HtmlAttr.id "indent"
         , HtmlAttr.style <| Character.fontStyles character
         ]
-        [ Html.text <| Character.dialogAsterisk character ]
+        [ Html.text <| Character.dialogAsterisk 0 character ]
 
 
 deleteEmptyBox : String -> Char.KeyCode -> Msg
@@ -102,11 +102,12 @@ textBox model =
             "keyDown"
             (Json.map (deleteEmptyBox model.text) keyCode)
         , HtmlAttr.style <|
-            [ ( "line-height", "36px" )
-              -- TODO: Make the "36px" a function
-            ]
+            (Character.textboxLeft model.chara)
+                :: (Character.textboxWidth model.chara)
+                :: [ ( "line-height", "36px" )
+                     -- TODO: Make the "36px" a function
+                   ]
                 ++ (Character.fontStyles model.chara)
-                ++ (Character.textboxStyles model.chara)
         , HtmlAttr.rows 3
         , HtmlAttr.value (takeLines 3 model.text)
         ]
@@ -221,8 +222,9 @@ dialogFrame model =
         [ SvgAttr.width (toString boxWidth)
         , SvgAttr.height (toString (boxHeight 1))
         ]
-        <|
-        [ filterDefs ] ++ (singleBox 0 0 model)
+    <|
+        [ filterDefs ]
+            ++ (singleBox 0 0 model)
 
 
 certifyModel : Model -> Maybe FullModel

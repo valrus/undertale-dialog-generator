@@ -91,14 +91,15 @@ textarea {
     white-space: pre;
     word-wrap: normal;
     position: absolute;
-    top: 26px;
+    top: 27px;
+    padding: 2px 4px;
 }
 
 #indent {
     display: block;
     position: absolute;
-    top: 33px;
-    left: 153px;
+    top: 32px;
+    left: 154px;
 }
 
 #imgurUpload {

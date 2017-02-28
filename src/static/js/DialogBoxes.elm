@@ -143,16 +143,28 @@ textLineOffset offset lineNum =
 
 renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
 renderTextLine chara offset lineNum text =
-    Svg.text_
-        [ SvgAttr.alignmentBaseline "text-before-edge"
-        , SvgAttr.textAnchor "start"
-        , SvgAttr.x <| toString 154
-        , SvgAttr.y <| toString (textLineOffset offset lineNum)
-        , SvgAttr.fill "white"
-        , SvgAttr.filter "url(#crispify)"
-        , SvgAttr.style <| Character.styleCss (Character.fontStyles chara)
-        ]
-        [ Svg.text (Character.indent chara text) ]
+    let
+        attrs =
+            [ SvgAttr.y <| toString (textLineOffset offset lineNum)
+            , SvgAttr.alignmentBaseline "text-before-edge"
+            ]
+    in
+        Svg.g
+            [ SvgAttr.textAnchor "start"
+            , SvgAttr.xmlSpace "preserve"
+            , SvgAttr.fill "white"
+            , SvgAttr.filter "url(#crispify)"
+            , SvgAttr.style <| Character.styleCss (Character.fontStyles chara)
+            ]
+            [ Svg.text_
+                ([ SvgAttr.x <| toString 153 ] ++ attrs)
+                [ Svg.text <| Character.dialogAsterisk lineNum chara ]
+            , Svg.text_
+                ([ SvgAttr.x <| toString <| (Character.textIndent chara) + 4 ]
+                    ++ attrs)
+              <|
+                [ Svg.text text ]
+            ]
 
 
 renderText : Int -> Character.Name -> String -> List (Svg.Svg Msg)
@@ -332,8 +344,9 @@ update action model =
                 | boxes =
                     updateBoxes
                         (DialogBox.SetImage chara
-                             (Just src)
-                             (countBoxes model == 1))
+                            (Just src)
+                            (countBoxes model == 1)
+                        )
                         model.boxes
               }
             , False
