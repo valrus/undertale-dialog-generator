@@ -136,16 +136,16 @@ renderBox i box =
                         fullModel
 
 
-textLineOffset : Int -> Int -> Int
-textLineOffset offset lineNum =
-    (DialogBox.boxHeight offset) + 32 + (36 * lineNum)
+textLineOffset : Int -> Int -> Character.Name -> Int
+textLineOffset offset lineNum chara =
+    (DialogBox.boxHeight offset) + 32 + (36 * lineNum) + (Character.yOffset chara)
 
 
 renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
 renderTextLine chara offset lineNum text =
     let
         attrs =
-            [ SvgAttr.y <| toString (textLineOffset offset lineNum)
+            [ SvgAttr.y <| toString (textLineOffset offset lineNum chara)
             , SvgAttr.alignmentBaseline "text-before-edge"
             ]
     in

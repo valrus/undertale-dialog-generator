@@ -152,6 +152,19 @@ textIndent c =
             184
 
 
+yOffset : Name -> Int
+yOffset c =
+    case c of
+        Papyrus ->
+            -4
+
+        Sans ->
+            -2
+
+        _ ->
+            0
+
+
 dialogAsterisk : Int -> Name -> String
 dialogAsterisk lineIndex c =
     case c of
