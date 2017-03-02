@@ -3,5 +3,3 @@ elm-stuff
 .htaccess
 **/.tern-port
 **/*.gz
-**/*.min.js
-**/*.min.css
