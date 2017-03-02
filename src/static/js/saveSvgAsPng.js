@@ -146,13 +146,6 @@
 
       outer.appendChild(clone);
 
-        var s = document.createElement('style');
-        s.setAttribute('type', 'text/css');
-        s.innerHTML = "<![CDATA[\n" + css + "\n]]>";
-        var defs = document.createElement('defs');
-        defs.appendChild(s);
-        clone.insertBefore(defs, clone.firstChild);
-
         if (cb) {
             var outHtml = outer.innerHTML;
             outHtml = outHtml.replace(/NS\d+:href/gi, 'xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href');
