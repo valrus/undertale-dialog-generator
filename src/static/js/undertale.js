@@ -19,19 +19,35 @@ undertale.ports.focus.subscribe(function(params) {
 });
 
 // http://stackoverflow.com/questions/2483919/how-to-save-svg-canvas-to-local-filesystem
-undertale.ports.render.subscribe(function(params) {
+undertale.ports.getImg.subscribe(function(svgId) {
     setTimeout(function() {
-            // Add some critical information
-            $("svg").attr({ version: '1.1' , xmlns:"http://www.w3.org/2000/svg"});
 
-            var svg = $(params.svgId).html();
-            var b64 = Base64.encode(svg); // or use btoa if supported
+        var mySVG    = document.getElementById(svgId);      // Inline SVG element
+        svgAsPngUri(mySVG, {}, function(uri) {
+            undertale.ports.getRenderData.send(uri);
+        });
 
-            // Works in recent Webkit(Chrome)
-            $("body").append($("<img src='data:image/svg+xml;base64,\n"+b64+"' alt='file.svg'/>"));
+        // The following doesn't inline images
+        //     can      = document.createElement('canvas'), // Not shown on page
+        //     ctx      = can.getContext('2d'),
+        //     loader   = new Image;                        // Not shown on page
+        //     var bbox     = mySVG.getBBox();
+        //     var data;
 
-            // Works in Firefox 3.6 and Webit and possibly any browser which supports the data-uri
-            $("body").append($("<a href-lang='image/svg+xml' href='data:image/svg+xml;base64,\n"+b64+"' title='file.svg'>Download</a>"));
+        //     loader.width  = can.width  = bbox.width;
+        //     loader.height = can.height = bbox.height;
+
+        //     loader.onload = function(){
+        //         console.log(loader.src);
+        //         ctx.drawImage( loader, 0, 0, loader.width, loader.height );
+        //         data = can.toDataURL("image/png");
+
+        //         console.log(data);
+        //         undertale.ports.getRenderData.send(data);
+        //     };
+
+        //     var svgAsXML = (new XMLSerializer).serializeToString( mySVG );
+        //     loader.src = 'data:image/svg+xml,' + encodeURIComponent( svgAsXML );
     }, 50);
 });
 

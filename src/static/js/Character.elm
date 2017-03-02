@@ -3,6 +3,8 @@ module Character exposing (..)
 import List exposing (maximum, map)
 import Maybe exposing (withDefault)
 
+import UndertaleFonts exposing (..)
+
 
 type Name
     = Toriel
@@ -94,7 +96,7 @@ portraitOffset : Name -> ( Int, Int )
 portraitOffset c =
     case c of
         Napstablook ->
-            ( 0, -4 )
+            ( 0, 4 )
 
         _ ->
             ( 0, 0 )
@@ -103,6 +105,19 @@ portraitOffset c =
 styleCss : StyleList -> String
 styleCss style =
     String.join ";\n" <| List.map (\(a, b) -> a ++ ": " ++ b) style
+
+
+fontFamilyStyle : Name -> String
+fontFamilyStyle c =
+    case c of
+        Papyrus ->
+            "font-family: 'UndertalePapyrus';"
+
+        Sans ->
+            "font-family: 'UndertaleSans';"
+
+        _ ->
+            "font-family: 'determination_monoregular';"
 
 
 fontStyles : Name -> StyleList
@@ -173,3 +188,10 @@ dialogAsterisk lineIndex c =
 
         _ ->
             if lineIndex == 0 then "*" else ""
+
+
+thumbnail : Name -> List ( String, String )
+thumbnail c =
+    [ ("width", "60px")
+    , ("height", if c == Napstablook then "66px" else "60px")
+    ]

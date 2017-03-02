@@ -161,7 +161,8 @@ renderTextLine chara offset lineNum text =
                 [ Svg.text <| Character.dialogAsterisk lineNum chara ]
             , Svg.text_
                 ([ SvgAttr.x <| toString <| (Character.textIndent chara) + 4 ]
-                    ++ attrs)
+                    ++ attrs
+                )
               <|
                 [ Svg.text text ]
             ]
@@ -192,6 +193,8 @@ renderBoxes : Array DialogBox.Model -> String -> Html Msg
 renderBoxes boxes id =
     Svg.svg
         [ SvgAttr.id id
+        , SvgAttr.version "1.1"
+        , SvgAttr.xmlSpace "http://www.w3.org/2000/svg"
         , SvgAttr.width (toString DialogBox.boxWidth)
         , SvgAttr.height (toString <| DialogBox.boxHeight <| count boxes)
         , Svg.Events.onClick Unrender
@@ -315,11 +318,13 @@ resetTexts boxes =
                 initBoxes
 
 
-render : Model -> Model
+render : Model -> ( Model, String )
 render model =
-    { model
+    ( { model
         | renderId = Just renderedSvgId
-    }
+      }
+    , renderedSvgId
+    )
 
 
 type Msg
@@ -388,3 +393,7 @@ update action model =
                           }
                         , False
                         )
+
+
+port getImg : String -> Cmd msg
+port getRenderData : (String -> msg) -> Sub msg

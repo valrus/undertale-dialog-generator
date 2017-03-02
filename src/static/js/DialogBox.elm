@@ -16,6 +16,7 @@ import Helpers exposing (Position, offset)
 
 import Character
 import Helpers exposing (takeLines)
+import UndertaleFonts exposing (allFonts)
 
 
 -- Individual boxes
@@ -75,6 +76,39 @@ deleteEmptyBox text keyCode =
             SetText (Just text)
 
 
+fontFaceStyle : ( String, String, String ) -> String
+fontFaceStyle ( name, woff2, woff ) =
+    String.join "\n"
+    [ "@font-face {"
+    , (String.join ""
+           [ "font-family: '"
+           , name
+           , "';"
+           ]
+      )
+    , (String.join ""
+           [ "src: url('data:application/font-woff2;base64,"
+           , woff2
+           , "') format('woff2'),"
+           ]
+      )
+    , (String.join ""
+           [ "     url('data:application/x-font-woff;base64,"
+           , woff
+           , "') format('woff');"
+           ]
+      )
+    , "}"
+    ]
+
+
+fontFaceStyles : String
+fontFaceStyles =
+    -- "<![CDATA[\n"
+    String.join "\n" <| List.map fontFaceStyle allFonts
+    -- ++ "\n]]>"
+
+
 filterDefs : Svg.Svg Msg
 filterDefs =
     Svg.defs []
@@ -89,6 +123,9 @@ filterDefs =
                     []
                 ]
             ]
+        , Svg.style
+            [ SvgAttr.type_ "text/css" ]
+            [ Svg.text <| fontFaceStyles ]
         ]
 
 

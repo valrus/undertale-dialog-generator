@@ -21,7 +21,7 @@ import Debug exposing (log)
 -- Local modules
 
 import Helpers exposing (..)
-import Character
+import Character exposing (thumbnail)
 import CheatCode
 import Imgur
 import Modal
@@ -73,7 +73,7 @@ type Msg
     | SetScriptRoot String
     | SetStaticRoot String
     | GetDownload
-    | GotDownload (Result Http.Error String)
+    | GotDownload String
     | UpdateModal Modal.Msg
     | UpdateImgur Imgur.Msg
 
@@ -124,7 +124,7 @@ titleImgMap root =
             Either.Right <|
                 (UpdateDialogs <|
                     DialogBoxes.SetImages Character.Temmie <|
-                        defaultSprite root Character.Temmie
+                        defaultSprite root Character.Temmie False
                 )
         ]
 
@@ -165,9 +165,9 @@ spriteNumber root c n =
     (spriteFolder root c) ++ "/" ++ (toString n) ++ ".png"
 
 
-defaultSprite : String -> Character.Name -> String
-defaultSprite root c =
-    spriteNumber root c 0
+defaultSprite : String -> Character.Name -> Bool -> String
+defaultSprite root c thumbnail =
+    spriteNumber root c (if thumbnail then 0 else 1)
 
 
 characterButton : String -> Character.Name -> Html Msg
@@ -181,11 +181,13 @@ characterButton staticRoot c =
                 [ onClick <|
                     UpdateDialogs <|
                         DialogBoxes.SetImages c <|
-                            defaultSprite staticRoot c
+                            defaultSprite staticRoot c False
                 , style flatButton
                 ]
                 [ img
-                  (style thumbnail :: [ src <| defaultSprite staticRoot c ])
+                      -- Use Toriel here to avoid the Napstablook special case
+                  (style (thumbnail Character.Toriel)
+                  :: [ src <| defaultSprite staticRoot c True ])
                   []
                 ]
 
@@ -217,7 +219,7 @@ moodButton root c n =
                     DialogBoxes.SetImages c spriteStr
             , style flatButton
             ]
-            [ img (style thumbnail :: [ src <| spriteStr ]) [] ]
+            [ img (style (thumbnail c) :: [ src <| spriteStr ]) [] ]
 
 
 moodBlank : Html Msg
@@ -328,11 +330,7 @@ dialogBoxImg boxes pngData =
 
 returnedDialogBox : DialogBoxes.Model -> Maybe String -> Maybe (List (Html Msg))
 returnedDialogBox boxes imgData =
-    Maybe.map2
-        (++)
-        (Just "data:image/png;base64,")
-        imgData
-        |> Maybe.andThen (Just << dialogBoxImg boxes)
+      imgData |> Maybe.andThen (Just << dialogBoxImg boxes)
 
 
 
@@ -502,13 +500,17 @@ update msg model =
             )
 
         GetDownload ->
-            ( { model
-                | dialogs = DialogBoxes.render model.dialogs
-              }
-            , Cmd.none
-            )
+            let
+                ( newDialogs, svgId ) = DialogBoxes.render model.dialogs
 
-        GotDownload (Ok data) ->
+            in
+                ( { model
+                    | dialogs = newDialogs
+                  }
+                , DialogBoxes.getImg svgId
+                )
+
+        GotDownload data ->
             let
                 ( newImgur, fx ) =
                     Imgur.update (Imgur.SetImageData data) model.imgur
@@ -519,11 +521,6 @@ update msg model =
                   }
                 , Cmd.none
                 )
-
-        GotDownload (Err _) ->
-            ( model
-            , Cmd.none
-            )
 
         UpdateModal msg ->
             ( { model
@@ -553,22 +550,6 @@ getSubmitUrl root =
     root ++ "/submit"
 
 
-getDialogBoxImg : Model -> Cmd Msg
-getDialogBoxImg model =
-    case model.selection of
-        Nothing ->
-            Cmd.none
-
-        Just c ->
-            Http.send GotDownload <|
-                Http.getString <|
-                    makeUrl
-                        (getSubmitUrl model.scriptRoot)
-                        ([ ( "text", DialogBoxes.concat model.dialogs ) ]
-                            ++ (List.map ((,) "moodImg") <| DialogBoxes.getImgSrcs model.dialogs)
-                        )
-
-
 getImgurParamsUrl : String -> String
 getImgurParamsUrl root =
     root ++ "/imgur_id"
@@ -589,7 +570,10 @@ getImgurParams scriptRoot =
 
 subs : Model -> Sub Msg
 subs model =
-    Keyboard.downs EnterCheatCode
+    Sub.batch
+        [ Keyboard.downs EnterCheatCode
+        , DialogBoxes.getRenderData GotDownload
+        ]
 
 
 
