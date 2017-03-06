@@ -1,0 +1,23 @@
+@font-face {
+  font-family: 'Determination Mono';
+  src: url('Determination Mono.eot');
+  src: url('Determination Mono.woff2') format('woff2'),
+       url('Determination Mono.woff') format('woff'),
+       url('Determination Mono.ttf') format('truetype'),
+       url('Determination Mono.svg#DeterminationMono') format('svg'),
+       url('Determination Mono.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DTM-Mono';
+  src: url('Determination Mono.eot');
+  src: url('Determination Mono.woff2') format('woff2'),
+       url('Determination Mono.woff') format('woff'),
+       url('Determination Mono.ttf') format('truetype'),
+       url('Determination Mono.svg#DeterminationMono') format('svg'),
+       url('Determination Mono.eot?#iefix') format('embedded-opentype');
+  font-weight: normal;
+  font-style: normal;
+}
