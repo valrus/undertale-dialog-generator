@@ -2,6 +2,7 @@
 
 A web app for generating Undertale dialog boxes. 
 NOW LIVE at http://thehotvoice.mccowan.space/!
+And with a new BETA VERSION at http://ian.mccowan.space/undertale-dialog-generator/!!
 Also, catch me on Twitter: https://twitter.com/IDTHV
 
 NOTE: IDTHV is not under terribly active development right now.
