@@ -28,18 +28,22 @@ type alias Model =
     }
 
 
-initBoxes : Array DialogBox.Model
-initBoxes =
-    fromList
-        [ DialogBox.init (Just "") 1
-        , DialogBox.init Nothing 2
-        , DialogBox.init Nothing 3
-        ]
+initBoxes : String -> Array DialogBox.Model
+initBoxes imgRoot =
+    let
+        initBoxWithRoot =
+            DialogBox.init imgRoot
+    in
+        fromList
+            [ initBoxWithRoot (Just "") 1
+            , initBoxWithRoot Nothing 2
+            , initBoxWithRoot Nothing 3
+            ]
 
 
-init : Model
-init =
-    { boxes = initBoxes
+init : String -> Model
+init imgRoot =
+    { boxes = initBoxes imgRoot
     , focusIndex = 0
     , renderId = Nothing
     }
@@ -82,7 +86,7 @@ getImgSrcs model =
 
 viewable : Model -> Bool
 viewable model =
-    List.any isJust (toList <| Array.map DialogBox.certifyModel model.boxes)
+    List.any isJust (toList <| Array.map (DialogBox.certifyModel False) model.boxes)
 
 
 
@@ -121,7 +125,7 @@ mapBoxView i box =
 
 renderBox : Int -> DialogBox.Model -> Svg.Svg Msg
 renderBox i box =
-    case DialogBox.certifyModel box of
+    case DialogBox.certifyModel True box of
         Nothing ->
             Svg.g [] []
 
@@ -175,7 +179,7 @@ renderText i chara text =
 
 renderTexts : Int -> DialogBox.Model -> Svg.Svg Msg
 renderTexts i box =
-    case DialogBox.certifyModel box of
+    case DialogBox.certifyModel True box of
         Nothing ->
             Svg.g [] []
 
@@ -186,7 +190,7 @@ renderTexts i box =
 
 indexMapToList : (Int -> a -> b) -> Array a -> List b
 indexMapToList f arr =
-    Array.toList <| Array.indexedMap f arr
+    Array.indexedMap f arr |> Array.toList
 
 
 renderBoxes : Array DialogBox.Model -> String -> Html Msg
@@ -299,23 +303,6 @@ updateText boxIndex newBoxText oldTexts =
 updateBoxes : DialogBox.Msg -> Array DialogBox.Model -> Array DialogBox.Model
 updateBoxes action boxes =
     Array.map (DialogBox.update action) boxes
-
-
-resetTexts : Array DialogBox.Model -> Array DialogBox.Model
-resetTexts boxes =
-    let
-        boxList =
-            toList boxes
-
-        ( first, rest ) =
-            ( List.head boxList, List.tail boxList )
-    in
-        case Maybe.map2 (,) first rest of
-            Nothing ->
-                Array.repeat 1 (DialogBox.init (Just "") 1)
-
-            Just ( blank, empty ) ->
-                initBoxes
 
 
 render : Model -> ( Model, String )

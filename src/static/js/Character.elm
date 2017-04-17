@@ -2,6 +2,7 @@ module Character exposing (..)
 
 import List exposing (maximum, map)
 import Maybe exposing (withDefault)
+import Regex exposing (escape, regex, Regex)
 
 import UndertaleFonts exposing (..)
 
@@ -80,6 +81,21 @@ moodCount exmode c =
 maxMoods : Bool -> Int
 maxMoods exmode =
     withDefault 0 <| maximum (map (moodCount exmode) allNames)
+
+
+spriteFolder : String -> Name -> String
+spriteFolder root c =
+    root ++ "images/sprites/" ++ toString c
+
+
+spriteNumber : String -> Name -> Int -> String
+spriteNumber root c n =
+    (spriteFolder root c) ++ "/" ++ (toString n) ++ ".png"
+
+
+defaultSprite : String -> Name -> Bool -> String
+defaultSprite root c thumbnail =
+    spriteNumber root c (if thumbnail then 0 else 1)
 
 
 portraitSize : Name -> ( Int, Int )
@@ -190,8 +206,119 @@ dialogAsterisk lineIndex c =
             if lineIndex == 0 then "*" else ""
 
 
-thumbnail : Name -> List ( String, String )
+thumbnail : Name -> StyleList
 thumbnail c =
     [ ("width", "60px")
     , ("height", if c == Napstablook then "66px" else "60px")
     ]
+
+
+type alias RenderOverride =
+    ( String, Int )
+
+
+cussParams : Name -> RenderOverride
+cussParams c =
+    case c of
+        Toriel ->
+            ("I don't use nasty words\nlike that.", 27)
+
+        Sans ->
+            ("i don't really like\nto say things like that.", 4)
+
+        Papyrus ->
+            ("I DON'T THINK I WANT\nTO SAY THAT.", 15)
+
+        Undyne ->
+            ("Don't go putting\nwords like that\nin my mouth.", 10)
+
+        Alphys ->
+            ("Um... no!\nI don't want to\nsay that!", 10)
+
+        Asgore ->
+            ("That's not a very nice\nthing to say.", 5)
+
+        Napstablook ->
+            ("oh.......\ni can't say that....", 1)
+
+        Mettaton ->
+            ("Oh, my. Being nasty on\nthe Internet, are we?", 20)
+
+        Flowey ->
+            ("Ooh, look at you.\nYou sure are edgy.", 8)
+
+        Asriel ->
+            ("Maybe I used to\nsay things like that,\nbut not anymore.", 10)
+
+        Temmie ->
+            ("NO!!!\nnasty wordds r...\nNOT CUTE", 1)
+
+
+languageParams : Name -> ( String, Int )
+languageParams c =
+    case c of
+        Toriel ->
+            ("I'm sorry, my child.\nI don't understand!", 7)
+
+        Sans ->
+            ("buddy.\ndo i look like\na polyglot to you?", 2)
+
+        Papyrus ->
+            ("I DON'T KNOW HOW\nTO SAY THOSE\nLETTERS!", 11)
+
+        Undyne ->
+            ("Heh! Um... what???", 19)
+
+        Alphys ->
+            ("Um... huh?", 7)
+
+        Asgore ->
+            ("Oh... I'm sorry.\nI don't speak that\nlanguage.", 5)
+
+        Napstablook ->
+            ("oh.......\ni don't understand.....", 1)
+
+        Mettaton ->
+            ("What?\nDarling, I only\nspeak English!", 15)
+
+        Flowey ->
+            ("Uhhhhhh...\nOkay, you lost me.", 3)
+
+        Asriel ->
+            ("Sorry, I don't\nunderstand.", 3)
+
+        Temmie ->
+            ("um.....\n...... ... ...... .\n... .. . ... ..wut????!", 1)
+
+
+asciiString : String
+asciiString =
+    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+
+
+cp1252String : String
+cp1252String =
+    "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+
+
+outsideAscii : Regex
+outsideAscii =
+    regex <| "[^" ++ (escape asciiString) ++ "]"
+
+
+outsideCP1252 : Regex
+outsideCP1252 =
+    regex <| "[^" ++ (escape asciiString) ++ (escape cp1252String) ++ "]"
+
+
+illegalCharRegex : Name -> Regex
+illegalCharRegex c =
+    case c of
+        Sans ->
+            outsideAscii
+
+        Papyrus ->
+            outsideAscii
+
+        _ ->
+            outsideCP1252

@@ -2,3 +2,5 @@ resources
 .python-version
 .env
 *.acorn
+gh-pages
+*.b64

@@ -21,7 +21,7 @@ import Debug exposing (log)
 -- Local modules
 
 import Helpers exposing (..)
-import Character exposing (thumbnail)
+import Character exposing (thumbnail, defaultSprite, spriteNumber)
 import CheatCode
 import Imgur
 import Modal
@@ -52,7 +52,7 @@ init : List Character.Name -> Flags -> ( Model, Cmd Msg )
 init characters flags =
     ( { characters = characters
       , selection = Nothing
-      , dialogs = DialogBoxes.init
+      , dialogs = DialogBoxes.init flags.staticRoot
       , staticRoot = flags.staticRoot
       , scriptRoot = flags.scriptRoot
       , imageData = Nothing
@@ -153,21 +153,6 @@ title root =
 
 
 -- Character section
-
-
-spriteFolder : String -> Character.Name -> String
-spriteFolder root c =
-    root ++ "images/sprites/" ++ toString c
-
-
-spriteNumber : String -> Character.Name -> Int -> String
-spriteNumber root c n =
-    (spriteFolder root c) ++ "/" ++ (toString n) ++ ".png"
-
-
-defaultSprite : String -> Character.Name -> Bool -> String
-defaultSprite root c thumbnail =
-    spriteNumber root c (if thumbnail then 0 else 1)
 
 
 characterButton : String -> Character.Name -> Html Msg

@@ -9,13 +9,16 @@ import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr
 import Html.Events exposing (on, onInput, targetValue, keyCode)
 import Maybe
-import Helpers exposing (Position, offset)
+
+import Debug exposing (log)
 
 
 -- Local modules
 
-import Character
+import Character exposing (RenderOverride, spriteNumber)
+import Helpers exposing (Position, offset)
 import Helpers exposing (takeLines)
+import TextCleaning exposing (unicodeSanitizer, TextReplacement)
 import UndertaleFonts exposing (allFonts)
 
 
@@ -24,6 +27,7 @@ import UndertaleFonts exposing (allFonts)
 
 type alias Model =
     { chara : Maybe Character.Name
+    , imgRoot : String
     , imgSrc : Maybe String
     , text : Maybe String
     , index : Int
@@ -40,11 +44,12 @@ type alias FullModel =
     }
 
 
-init : Maybe String -> Int -> Model
-init s i =
+init : String -> Maybe String -> Int -> Model
+init root txt i =
     { chara = Nothing
+    , imgRoot = root
     , imgSrc = Nothing
-    , text = s
+    , text = txt
     , index = i
     , expectingImage = False
     }
@@ -195,7 +200,7 @@ portraitButton pos src expectingImage =
         ([ SvgAttr.xlinkHref src
          , SvgAttr.opacity <| portraitAlpha expectingImage
          , onClick (ExpectImage <| not expectingImage)
-         , SvgAttr.filter "url(#crispify)"
+         -- , SvgAttr.filter "url(#crispify)"
          ]
             ++ (svgPosition pos)
         )
@@ -207,12 +212,6 @@ svgBorder pos color =
     Svg.rect
         ([ SvgAttr.fill color ] ++ (svgPosition pos))
         []
-
-
-
--- TODO: Is it possible to crispify text client-side?
--- http://stackoverflow.com/questions/35434315/how-to-get-crispedges-for-svg-text
--- Use filter="url(#crispify)" on an svg text node
 
 
 boxHeight : Int -> Int
@@ -264,25 +263,58 @@ dialogFrame model =
             ++ (singleBox 0 0 model)
 
 
-certifyModel : Model -> Maybe FullModel
-certifyModel model =
+getOverrideImgSrc : String -> Character.Name -> RenderOverride -> ( String, String )
+getOverrideImgSrc root chara override =
+    let
+        ( text, imgNum ) = override
+    in
+        ( text, spriteNumber root chara imgNum )
+
+
+applyOverrides : String -> Character.Name -> String -> String -> ( String, String )
+applyOverrides imgRoot chara src txt =
+    let
+        sanitizedTxt =
+            String.map unicodeSanitizer txt
+    in
+        case TextCleaning.matchHelper chara txt of
+            TextCleaning.HasCusses ->
+                getOverrideImgSrc imgRoot chara <| Character.cussParams chara
+
+            TextCleaning.UnknownLanguage ->
+                getOverrideImgSrc imgRoot chara <| Character.languageParams chara
+
+            TextCleaning.TooLong ->
+                ( txt, src )
+
+            TextCleaning.NoMatch ->
+                ( txt, src )
+
+
+certifyModel : Bool -> Model -> Maybe FullModel
+certifyModel override model =
     case Maybe.map3 (,,) model.chara model.imgSrc model.text of
         Nothing ->
             Nothing
 
         Just ( chara, src, txt ) ->
-            Just
-                { chara = chara
-                , imgSrc = src
-                , text = txt
-                , index = model.index
-                , expectingImage = model.expectingImage
-                }
+            let
+                ( overrideText, overrideSrc ) =
+                    if override then applyOverrides model.imgRoot chara src txt
+                    else ( txt, src )
+            in
+                Just
+                    { chara = chara
+                    , imgSrc = overrideSrc
+                    , text = overrideText
+                    , index = model.index
+                    , expectingImage = model.expectingImage
+                    }
 
 
 view : Model -> Html Msg
 view model =
-    case certifyModel model of
+    case certifyModel False model of
         Nothing ->
             div [ HtmlAttr.class ("emptyDialog" ++ toString model.index) ] []
 
