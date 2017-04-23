@@ -13691,6 +13691,43 @@ var _valrus$undertale_dialog$DialogBoxes$indexMapToList = F2(
 		return _elm_lang$core$Array$toList(
 			A2(_elm_lang$core$Array$indexedMap, f, arr));
 	});
+var _valrus$undertale_dialog$DialogBoxes$crispyFontStyles = {
+	ctor: '::',
+	_0: {ctor: '_Tuple2', _0: 'font-smooth', _1: 'never'},
+	_1: {
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'image-rendering', _1: 'optimizeSpeed'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'image-rendering', _1: '-moz-crisp-edges'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: '-moz-osx-font-smoothing', _1: 'grayscale'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: '-webkit-font-smoothing', _1: 'none'},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'image-rendering', _1: '-webkit-optimize-contrast'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'image-rendering', _1: '-o-crisp-edges'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'image-rendering', _1: 'pixelated'},
+								_1: {
+									ctor: '::',
+									_0: {ctor: '_Tuple2', _0: '-ms-interpolation-mode', _1: 'nearest-neighbor'},
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+};
 var _valrus$undertale_dialog$DialogBoxes$textLineOffset = F3(
 	function (offset, lineNum, chara) {
 		return ((_valrus$undertale_dialog$DialogBox$boxHeight(offset) + 32) + (36 * lineNum)) + _valrus$undertale_dialog$Character$yOffset(chara);
@@ -13704,7 +13741,7 @@ var _valrus$undertale_dialog$DialogBoxes$renderTextLine = F4(
 					A3(_valrus$undertale_dialog$DialogBoxes$textLineOffset, offset, lineNum, chara))),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$svg$Svg_Attributes$alignmentBaseline('text-before-edge'),
+				_0: _elm_lang$svg$Svg_Attributes$dominantBaseline('text-before-edge'),
 				_1: {ctor: '[]'}
 			}
 		};
@@ -13726,7 +13763,10 @@ var _valrus$undertale_dialog$DialogBoxes$renderTextLine = F4(
 								ctor: '::',
 								_0: _elm_lang$svg$Svg_Attributes$style(
 									_valrus$undertale_dialog$Character$styleCss(
-										_valrus$undertale_dialog$Character$fontStyles(chara))),
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											_valrus$undertale_dialog$Character$fontStyles(chara),
+											_valrus$undertale_dialog$DialogBoxes$crispyFontStyles))),
 								_1: {ctor: '[]'}
 							}
 						}
