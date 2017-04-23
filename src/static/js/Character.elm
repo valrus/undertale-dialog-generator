@@ -4,6 +4,7 @@ import List exposing (maximum, map)
 import Maybe exposing (withDefault)
 import Regex exposing (escape, regex, Regex)
 
+import Helpers exposing (StyleList, styleCss)
 import UndertaleFonts exposing (..)
 
 
@@ -35,10 +36,6 @@ allNames =
     , Asriel
     , Temmie
     ]
-
-
-type alias StyleList =
-    List ( String, String )
 
 
 moodCount : Bool -> Name -> Int
@@ -116,11 +113,6 @@ portraitOffset c =
 
         _ ->
             ( 0, 0 )
-
-
-styleCss : StyleList -> String
-styleCss style =
-    String.join ";\n" <| List.map (\(a, b) -> a ++ ": " ++ b) style
 
 
 fontFamilyStyle : Name -> String

@@ -16,6 +16,10 @@ type alias Position =
     }
 
 
+type alias StyleList =
+    List ( String, String )
+
+
 offset : Int -> Int -> Position -> Position
 offset x y pos =
     Position (x + pos.x) (y + pos.y) pos.w pos.h
@@ -69,7 +73,7 @@ takeLines n s =
 
 
 -- From https://github.com/evancz/elm-http/blob/3.0.1/src/Http.elm#L56-L73
-makeUrl : String -> List (String,String) -> String
+makeUrl : String -> List ( String, String ) -> String
 makeUrl baseUrl args =
   case args of
     [] ->
@@ -79,11 +83,17 @@ makeUrl baseUrl args =
         baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
 
 
-queryPair : (String,String) -> String
-queryPair (key,value) =
+queryPair : ( String, String ) -> String
+queryPair ( key, value ) =
   queryEscape key ++ "=" ++ queryEscape value
 
 
 queryEscape : String -> String
 queryEscape string =
   String.join "+" (String.split "%20" (encodeUri string))
+
+
+styleCss : StyleList -> String
+styleCss style =
+    String.join ";\n" <| List.map (\(a, b) -> a ++ ": " ++ b) style
+

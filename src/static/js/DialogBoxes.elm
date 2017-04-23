@@ -145,17 +145,11 @@ textLineOffset offset lineNum chara =
     (DialogBox.boxHeight offset) + 32 + (36 * lineNum) + (Character.yOffset chara)
 
 
-crispyFontStyles : Character.StyleList
+crispyFontStyles : StyleList
 crispyFontStyles =
     [ ( "font-smooth", "never" )
-    , ( "image-rendering", "optimizeSpeed" )
-    , ( "image-rendering", "-moz-crisp-edges" )
     , ( "-moz-osx-font-smoothing", "grayscale" )
     , ( "-webkit-font-smoothing", "none" )
-    , ( "image-rendering", "-webkit-optimize-contrast" )
-    , ( "image-rendering", "-o-crisp-edges" )
-    , ( "image-rendering", "pixelated" )
-    , ( "-ms-interpolation-mode", "nearest-neighbor" )
     ]
 
 
@@ -172,7 +166,7 @@ renderTextLine chara offset lineNum text =
             , SvgAttr.xmlSpace "preserve"
             , SvgAttr.fill "white"
             , SvgAttr.filter "url(#crispify)"
-            , SvgAttr.style <| Character.styleCss (Character.fontStyles chara ++ crispyFontStyles)
+            , SvgAttr.style <| styleCss (Character.fontStyles chara ++ crispyFontStyles)
             ]
             [ Svg.text_
                 ([ SvgAttr.x <| toString 153 ] ++ attrs)
