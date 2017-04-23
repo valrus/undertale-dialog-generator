@@ -97,3 +97,10 @@ styleCss : StyleList -> String
 styleCss style =
     String.join ";\n" <| List.map (\(a, b) -> a ++ ": " ++ b) style
 
+
+crispyFontStyles : StyleList
+crispyFontStyles =
+    [ ( "font-smooth", "never" )
+    , ( "-moz-osx-font-smoothing", "grayscale" )
+    , ( "-webkit-font-smoothing", "none" )
+    ]

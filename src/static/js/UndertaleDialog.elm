@@ -391,6 +391,7 @@ view : Model -> Html Msg
 view model =
     div
         [ Html.Attributes.id "content"
+        , style crispyFontStyles
         ]
         [ title model.staticRoot
         , characterButtons model.staticRoot model.characters

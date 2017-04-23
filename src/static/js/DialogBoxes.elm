@@ -145,14 +145,6 @@ textLineOffset offset lineNum chara =
     (DialogBox.boxHeight offset) + 32 + (36 * lineNum) + (Character.yOffset chara)
 
 
-crispyFontStyles : StyleList
-crispyFontStyles =
-    [ ( "font-smooth", "never" )
-    , ( "-moz-osx-font-smoothing", "grayscale" )
-    , ( "-webkit-font-smoothing", "none" )
-    ]
-
-
 renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
 renderTextLine chara offset lineNum text =
     let
