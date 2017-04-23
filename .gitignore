@@ -4,3 +4,4 @@ resources
 *.acorn
 gh-pages
 *.b64
+elm.js
