@@ -145,12 +145,26 @@ textLineOffset offset lineNum chara =
     (DialogBox.boxHeight offset) + 32 + (36 * lineNum) + (Character.yOffset chara)
 
 
+crispyFontStyles : Character.StyleList
+crispyFontStyles =
+    [ ( "font-smooth", "never" )
+    , ( "image-rendering", "optimizeSpeed" )
+    , ( "image-rendering", "-moz-crisp-edges" )
+    , ( "-moz-osx-font-smoothing", "grayscale" )
+    , ( "-webkit-font-smoothing", "none" )
+    , ( "image-rendering", "-webkit-optimize-contrast" )
+    , ( "image-rendering", "-o-crisp-edges" )
+    , ( "image-rendering", "pixelated" )
+    , ( "-ms-interpolation-mode", "nearest-neighbor" )
+    ]
+
+
 renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
 renderTextLine chara offset lineNum text =
     let
         attrs =
             [ SvgAttr.y <| toString (textLineOffset offset lineNum chara)
-            , SvgAttr.alignmentBaseline "text-before-edge"
+            , SvgAttr.dominantBaseline "text-before-edge"
             ]
     in
         Svg.g
@@ -158,7 +172,7 @@ renderTextLine chara offset lineNum text =
             , SvgAttr.xmlSpace "preserve"
             , SvgAttr.fill "white"
             , SvgAttr.filter "url(#crispify)"
-            , SvgAttr.style <| Character.styleCss (Character.fontStyles chara)
+            , SvgAttr.style <| Character.styleCss (Character.fontStyles chara ++ crispyFontStyles)
             ]
             [ Svg.text_
                 ([ SvgAttr.x <| toString 153 ] ++ attrs)
