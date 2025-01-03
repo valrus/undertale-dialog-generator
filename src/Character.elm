@@ -1,8 +1,7 @@
 module Character exposing (..)
 
-import List exposing (maximum, map)
+import List exposing (map, maximum)
 import Maybe exposing (withDefault)
-
 import UndertaleFonts exposing (..)
 
 
@@ -47,13 +46,21 @@ moodCount exmode c =
             40
 
         Sans ->
-            if exmode then 14 else 6
+            if exmode then
+                14
+
+            else
+                6
 
         Papyrus ->
             19
 
         Undyne ->
-            if exmode then 39 else 24
+            if exmode then
+                39
+
+            else
+                24
 
         Alphys ->
             22
@@ -65,13 +72,21 @@ moodCount exmode c =
             2
 
         Mettaton ->
-            if exmode then 29 else 22
+            if exmode then
+                29
+
+            else
+                22
 
         Flowey ->
             22
 
         Asriel ->
-            if exmode then 26 else 19
+            if exmode then
+                26
+
+            else
+                19
 
         Temmie ->
             3
@@ -104,7 +119,7 @@ portraitOffset c =
 
 styleCss : StyleList -> String
 styleCss style =
-    String.join ";\n" <| List.map (\(a, b) -> a ++ ": " ++ b) style
+    String.join ";\n" <| List.map (\( a, b ) -> a ++ ": " ++ b) style
 
 
 fontFamilyStyle : Name -> String
@@ -131,7 +146,8 @@ fontStyles c =
 
         Sans ->
             [ ( "font-family"
-              , "UndertaleSans, Comic Sans, Comic Sans MS Regular, Comic Sans MS" )
+              , "UndertaleSans, Comic Sans, Comic Sans MS Regular, Comic Sans MS"
+              )
             , ( "font-size", "32px" )
             , ( "letter-spacing", "1px" )
             , ( "text-transform", "lowercase" )
@@ -143,7 +159,7 @@ fontStyles c =
             ]
 
 
-textboxWidth : Name -> ( String, String)
+textboxWidth : Name -> ( String, String )
 textboxWidth c =
     case c of
         Papyrus ->
@@ -155,7 +171,7 @@ textboxWidth c =
 
 textboxLeft : Name -> ( String, String )
 textboxLeft c =
-    ( "left", (toString <| textIndent c) ++ "px" )
+    ( "left", (String.fromInt <| textIndent c) ++ "px" )
 
 
 textIndent : Name -> Int
@@ -163,6 +179,7 @@ textIndent c =
     case c of
         Papyrus ->
             150
+
         _ ->
             184
 
@@ -187,11 +204,21 @@ dialogAsterisk lineIndex c =
             ""
 
         _ ->
-            if lineIndex == 0 then "*" else ""
+            if lineIndex == 0 then
+                "*"
+
+            else
+                ""
 
 
 thumbnail : Name -> List ( String, String )
 thumbnail c =
-    [ ("width", "60px")
-    , ("height", if c == Napstablook then "66px" else "60px")
+    [ ( "width", "60px" )
+    , ( "height"
+      , if c == Napstablook then
+            "66px"
+
+        else
+            "60px"
+      )
     ]

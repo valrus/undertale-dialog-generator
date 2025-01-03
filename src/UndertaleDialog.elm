@@ -557,7 +557,7 @@ getImgurParamsUrl root =
 
 imgurParamsDecoder : Json.Decoder ( String, String )
 imgurParamsDecoder =
-    Json.map2 (,)
+    Json.map2 Tuple.pair
         (Json.field "clientId" Json.string)
         (Json.field "albumId" Json.string)
 

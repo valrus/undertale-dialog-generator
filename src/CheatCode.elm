@@ -1,8 +1,7 @@
 module CheatCode exposing (..)
 
-import Char exposing (KeyCode)
 import Dict exposing (Dict)
-import Maybe
+import Helpers exposing (KeyCode)
 import Set exposing (Set)
 import String
 
@@ -29,10 +28,11 @@ matchCount k nextChar prevCount =
         next =
             Char.toCode nextChar
     in
-        if k == next then
-            prevCount + 1
-        else
-            0
+    if k == next then
+        prevCount + 1
+
+    else
+        0
 
 
 checkChar : KeyCode -> String -> Int -> Int
@@ -63,17 +63,17 @@ update k model =
         complete =
             List.head <| List.filter isComplete <| Dict.toList status
     in
-        case complete of
-            Nothing ->
-                ( { model
-                    | codeStatus = status
-                  }
-                , Nothing
-                )
+    case complete of
+        Nothing ->
+            ( { model
+                | codeStatus = status
+              }
+            , Nothing
+            )
 
-            Just ( match, _ ) ->
-                ( { model
-                    | codeStatus = Dict.map (\_ _ -> 0) status
-                  }
-                , Just match
-                )
+        Just ( match, _ ) ->
+            ( { model
+                | codeStatus = Dict.map (\_ _ -> 0) status
+              }
+            , Just match
+            )

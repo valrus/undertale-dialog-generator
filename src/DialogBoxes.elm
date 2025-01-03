@@ -1,6 +1,12 @@
 port module DialogBoxes exposing (..)
 
-import Array exposing (Array, toList, fromList)
+-- Local modules
+
+import Array exposing (Array, fromList, toList)
+import Character
+import Debug exposing (log)
+import DialogBox
+import Helpers exposing (..)
 import Html exposing (Html)
 import Html.Attributes exposing (style)
 import Maybe.Extra exposing (isJust, join)
@@ -8,14 +14,7 @@ import String
 import Svg
 import Svg.Attributes as SvgAttr
 import Svg.Events
-import Debug exposing (log)
 
-
--- Local modules
-
-import Character
-import DialogBox
-import Helpers exposing (..)
 
 
 -- Helpers for multiple boxes
@@ -138,7 +137,7 @@ renderBox i box =
 
 textLineOffset : Int -> Int -> Character.Name -> Int
 textLineOffset offset lineNum chara =
-    (DialogBox.boxHeight offset) + 32 + (36 * lineNum) + (Character.yOffset chara)
+    DialogBox.boxHeight offset + 32 + (36 * lineNum) + Character.yOffset chara
 
 
 renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
@@ -149,23 +148,23 @@ renderTextLine chara offset lineNum text =
             , SvgAttr.alignmentBaseline "text-before-edge"
             ]
     in
-        Svg.g
-            [ SvgAttr.textAnchor "start"
-            , SvgAttr.xmlSpace "preserve"
-            , SvgAttr.fill "white"
-            , SvgAttr.filter "url(#crispify)"
-            , SvgAttr.style <| Character.styleCss (Character.fontStyles chara)
-            ]
-            [ Svg.text_
-                ([ SvgAttr.x <| toString 153 ] ++ attrs)
-                [ Svg.text <| Character.dialogAsterisk lineNum chara ]
-            , Svg.text_
-                ([ SvgAttr.x <| toString <| (Character.textIndent chara) + 4 ]
-                    ++ attrs
-                )
-              <|
-                [ Svg.text text ]
-            ]
+    Svg.g
+        [ SvgAttr.textAnchor "start"
+        , SvgAttr.xmlSpace "preserve"
+        , SvgAttr.fill "white"
+        , SvgAttr.filter "url(#crispify)"
+        , SvgAttr.style <| Character.styleCss (Character.fontStyles chara)
+        ]
+        [ Svg.text_
+            ([ SvgAttr.x <| toString 153 ] ++ attrs)
+            [ Svg.text <| Character.dialogAsterisk lineNum chara ]
+        , Svg.text_
+            ([ SvgAttr.x <| toString <| Character.textIndent chara + 4 ]
+                ++ attrs
+            )
+          <|
+            [ Svg.text text ]
+        ]
 
 
 renderText : Int -> Character.Name -> String -> List (Svg.Svg Msg)
@@ -200,9 +199,9 @@ renderBoxes boxes id =
         , Svg.Events.onClick Unrender
         ]
     <|
-        [ (Svg.map (\_ -> Unrender) DialogBox.filterDefs) ]
-            ++ (indexMapToList renderBox boxes)
-            ++ (indexMapToList renderTexts boxes)
+        [ Svg.map (\_ -> Unrender) DialogBox.filterDefs ]
+            ++ indexMapToList renderBox boxes
+            ++ indexMapToList renderTexts boxes
 
 
 centerWrapper : Html Msg -> Html Msg
@@ -211,7 +210,7 @@ centerWrapper content =
         [ style [ ( "width", "100%" ) ] ]
         [ Html.div
             [ style
-                [ ( "width", (toString DialogBox.boxWidth) ++ "px" )
+                [ ( "width", toString DialogBox.boxWidth ++ "px" )
                 , ( "margin", "0 auto" )
                 , ( "display", "block" )
                 ]
@@ -240,18 +239,19 @@ dialogStringTexts skipBlanks s =
         filterFunc =
             if skipBlanks then
                 takeNonEmpty
+
             else
                 takeJusts
 
         newTexts =
             fromList <| filterFunc <| fromList <| splitLinesEvery 3 2 s
     in
-        case toList newTexts of
-            [] ->
-                fromList [ "" ]
+    case toList newTexts of
+        [] ->
+            fromList [ "" ]
 
-            something ->
-                newTexts
+        something ->
+            newTexts
 
 
 textsToString : Array (Maybe String) -> String
@@ -283,17 +283,18 @@ updateText boxIndex newBoxText oldTexts =
                     True
 
                 Just s ->
-                    (String.length s) < (String.length prevBoxText)
+                    String.length s < String.length prevBoxText
 
         newTexts =
             dialogStringTexts skipBlanks <| textWithUpdate boxIndex newBoxText oldTexts
     in
-        ( if Array.length newTexts /= List.length (takeJusts oldTexts) then
-            Array.length newTexts
-          else
-            (boxIndex + 1)
-        , pad 3 Nothing <| List.map (Just << takeLines 3) (toList newTexts)
-        )
+    ( if Array.length newTexts /= List.length (takeJusts oldTexts) then
+        Array.length newTexts
+
+      else
+        boxIndex + 1
+    , pad 3 Nothing <| List.map (Just << takeLines 3) (toList newTexts)
+    )
 
 
 updateBoxes : DialogBox.Msg -> Array DialogBox.Model -> Array DialogBox.Model
@@ -310,12 +311,12 @@ resetTexts boxes =
         ( first, rest ) =
             ( List.head boxList, List.tail boxList )
     in
-        case Maybe.map2 (,) first rest of
-            Nothing ->
-                Array.repeat 1 (DialogBox.init (Just "") 1)
+    case Maybe.map2 Tuple.pair first rest of
+        Nothing ->
+            Array.repeat 1 (DialogBox.init (Just "") 1)
 
-            Just ( blank, empty ) ->
-                initBoxes
+        Just ( blank, empty ) ->
+            initBoxes
 
 
 render : Model -> ( Model, String )
@@ -365,35 +366,37 @@ update action model =
                         txt
                         (getTexts model)
             in
-                ( { model
-                    | boxes =
-                        fromList <|
-                            List.map
-                                (\( s, box ) -> DialogBox.update (DialogBox.SetText s) box)
-                            <|
-                                List.map2 (,) newTexts (toList model.boxes)
-                    , focusIndex = focusBoxNum
-                    , renderId = Nothing
-                  }
-                , (model.focusIndex /= focusBoxNum)
-                )
+            ( { model
+                | boxes =
+                    fromList <|
+                        List.map
+                            (\( s, box ) -> DialogBox.update (DialogBox.SetText s) box)
+                        <|
+                            List.map2 (,) newTexts (toList model.boxes)
+                , focusIndex = focusBoxNum
+                , renderId = Nothing
+              }
+            , model.focusIndex /= focusBoxNum
+            )
 
         ExpectImage index b ->
             let
                 box =
                     Array.get index model.boxes
             in
-                case box of
-                    Nothing ->
-                        ( model, False )
+            case box of
+                Nothing ->
+                    ( model, False )
 
-                    Just oldBox ->
-                        ( { model
-                            | boxes = Array.set index (DialogBox.update (DialogBox.ExpectImage b) oldBox) model.boxes
-                          }
-                        , False
-                        )
+                Just oldBox ->
+                    ( { model
+                        | boxes = Array.set index (DialogBox.update (DialogBox.ExpectImage b) oldBox) model.boxes
+                      }
+                    , False
+                    )
 
 
 port getImg : String -> Cmd msg
+
+
 port getRenderData : (String -> msg) -> Sub msg

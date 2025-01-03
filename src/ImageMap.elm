@@ -1,8 +1,8 @@
 module ImageMap exposing (mapArea)
 
 import Either exposing (Either)
-import Html exposing (Html, node)
-import Html.Attributes exposing (href, shape, title, alt, coords)
+import Html exposing (Html)
+import Html.Attributes exposing (coords)
 import Html.Events exposing (onClick)
 import String exposing (join)
 
@@ -18,12 +18,12 @@ mapArea coords caption action =
                 Either.Right msg ->
                     onClick msg
     in
-        Html.node
-            "area"
-            [ Html.Attributes.shape "rect"
-            , Html.Attributes.title caption
-            , Html.Attributes.alt caption
-            , Html.Attributes.coords <| join ", " <| List.map toString coords
-            , clickAction
-            ]
-            []
+    Html.node
+        "area"
+        [ Html.Attributes.shape "rect"
+        , Html.Attributes.title caption
+        , Html.Attributes.alt caption
+        , Html.Attributes.coords <| join ", " <| List.map String.fromInt coords
+        , clickAction
+        ]
+        []
