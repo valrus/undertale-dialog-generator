@@ -21,9 +21,8 @@ import Debug exposing (log)
 -- Local modules
 
 import Helpers exposing (..)
-import Character exposing (thumbnail)
+import Character exposing (thumbnail, defaultSprite, spriteNumber)
 import CheatCode
-import Imgur
 import Modal
 import ImageMap exposing (mapArea)
 import CreditsModal exposing (creditsDialog)
@@ -43,7 +42,6 @@ type alias Model =
     , imageData : Maybe String
     , modal : Modal.Model
     , cheatCode : CheatCode.Model
-    , imgur : Imgur.Model
     , exmode : Bool
     }
 
@@ -52,13 +50,12 @@ init : List Character.Name -> Flags -> ( Model, Cmd Msg )
 init characters flags =
     ( { characters = characters
       , selection = Nothing
-      , dialogs = DialogBoxes.init
+      , dialogs = DialogBoxes.init flags.staticRoot
       , staticRoot = flags.staticRoot
       , scriptRoot = flags.scriptRoot
       , imageData = Nothing
       , modal = Modal.init (grayscale 1)
       , cheatCode = CheatCode.init [ "EX" ]
-      , imgur = Imgur.init
       , exmode = False
       }
     , Cmd.none
@@ -70,12 +67,9 @@ type Msg
     | EnterCheatCode KeyCode
     | ActivateEXMode
     | UpdateDialogs DialogBoxes.Msg
-    | SetScriptRoot String
-    | SetStaticRoot String
     | GetDownload
     | GotDownload String
     | UpdateModal Modal.Msg
-    | UpdateImgur Imgur.Msg
 
 
 
@@ -153,21 +147,6 @@ title root =
 
 
 -- Character section
-
-
-spriteFolder : String -> Character.Name -> String
-spriteFolder root c =
-    root ++ "images/sprites/" ++ toString c
-
-
-spriteNumber : String -> Character.Name -> Int -> String
-spriteNumber root c n =
-    (spriteFolder root c) ++ "/" ++ (toString n) ++ ".png"
-
-
-defaultSprite : String -> Character.Name -> Bool -> String
-defaultSprite root c thumbnail =
-    spriteNumber root c (if thumbnail then 0 else 1)
 
 
 characterButton : String -> Character.Name -> Html Msg
@@ -385,15 +364,7 @@ dialogBoxSection model =
     <|
         Maybe.withDefault [ blank ] <|
             Maybe.Extra.or
-                (Maybe.map2
-                    (++)
-                    (returnedDialogBox model.dialogs model.imageData)
-                    (Just
-                        [ Html.map UpdateImgur <|
-                            Imgur.view model.imgur model.staticRoot
-                        ]
-                    )
-                )
+                (returnedDialogBox model.dialogs model.imageData)
                 (Just <|
                     List.map
                         (Html.map UpdateDialogs)
@@ -420,6 +391,7 @@ view : Model -> Html Msg
 view model =
     div
         [ Html.Attributes.id "content"
+        , style crispyFontStyles
         ]
         [ title model.staticRoot
         , characterButtons model.staticRoot model.characters
@@ -485,20 +457,6 @@ update msg model =
                     }
                 )
 
-        SetScriptRoot s ->
-            ( { model
-                | scriptRoot = s
-              }
-            , getImgurParams s
-            )
-
-        SetStaticRoot s ->
-            ( { model
-                | staticRoot = s
-              }
-            , Cmd.none
-            )
-
         GetDownload ->
             let
                 ( newDialogs, svgId ) = DialogBoxes.render model.dialogs
@@ -511,16 +469,11 @@ update msg model =
                 )
 
         GotDownload data ->
-            let
-                ( newImgur, fx ) =
-                    Imgur.update (Imgur.SetImageData data) model.imgur
-            in
-                ( { model
-                    | imageData = Just data
-                    , imgur = newImgur
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | imageData = Just data
+              }
+            , Cmd.none
+            )
 
         UpdateModal msg ->
             ( { model
@@ -528,17 +481,6 @@ update msg model =
               }
             , Cmd.none
             )
-
-        UpdateImgur msg ->
-            let
-                ( newImgur, cmd ) =
-                    Imgur.update msg model.imgur
-            in
-                ( { model
-                    | imgur = newImgur
-                  }
-                , Cmd.map UpdateImgur cmd
-                )
 
 
 
@@ -560,12 +502,6 @@ imgurParamsDecoder =
     Json.map2 Tuple.pair
         (Json.field "clientId" Json.string)
         (Json.field "albumId" Json.string)
-
-
-getImgurParams : String -> Cmd Msg
-getImgurParams scriptRoot =
-    Http.send (Imgur.SetParams >> UpdateImgur) <|
-        Http.get (getImgurParamsUrl scriptRoot) imgurParamsDecoder
 
 
 subs : Model -> Sub Msg

@@ -19,6 +19,10 @@ type alias Position =
     }
 
 
+type alias StyleList =
+    List ( String, String )
+
+
 offset : Int -> Int -> Position -> Position
 offset x y pos =
     Position (x + pos.x) (y + pos.y) pos.w pos.h
@@ -96,3 +100,16 @@ queryPair ( key, value ) =
 queryEscape : String -> String
 queryEscape string =
     String.join "+" (String.split "%20" (percentEncode string))
+
+
+styleCss : StyleList -> String
+styleCss style =
+    String.join ";\n" <| List.map (\( a, b ) -> a ++ ": " ++ b) style
+
+
+crispyFontStyles : StyleList
+crispyFontStyles =
+    [ ( "font-smooth", "never" )
+    , ( "-moz-osx-font-smoothing", "grayscale" )
+    , ( "-webkit-font-smoothing", "none" )
+    ]

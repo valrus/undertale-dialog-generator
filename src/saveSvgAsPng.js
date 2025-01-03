@@ -66,6 +66,145 @@
     }
   }
 
+  function styles(el, options, cssLoadedCallback) {
+    var selectorRemap = options.selectorRemap;
+    var modifyStyle = options.modifyStyle;
+    var css = "";
+    // each font that has extranl link is saved into queue, and processed
+    // asynchronously
+    var fontsQueue = [];
+    var sheets = document.styleSheets;
+    for (var i = 0; i < sheets.length; i++) {
+      try {
+        var rules = sheets[i].cssRules;
+      } catch (e) {
+        console.warn("Stylesheet could not be loaded: "+sheets[i].href);
+        continue;
+      }
+
+      if (rules != null) {
+        for (var j = 0, match; j < rules.length; j++, match = null) {
+          var rule = rules[j];
+          if (typeof(rule.style) != "undefined") {
+            var selectorText;
+
+            try {
+              selectorText = rule.selectorText;
+            } catch(err) {
+              console.warn('The following CSS rule has an invalid selector: "' + rule + '"', err);
+            }
+
+            try {
+              if (selectorText) {
+                match = el.querySelector(selectorText) || el.parentNode.querySelector(selectorText);
+              }
+            } catch(err) {
+              console.warn('Invalid CSS selector "' + selectorText + '"', err);
+            }
+
+            if (match) {
+              var selector = selectorRemap ? selectorRemap(rule.selectorText) : rule.selectorText;
+              var cssText = modifyStyle ? modifyStyle(rule.style.cssText) : rule.style.cssText;
+              css += selector + " { " + cssText + " }\n";
+            }
+              else if(rule.cssText.match(/^@font-face/)) {
+            css += rule.cssText + '\n';
+            }
+          }
+        }
+      }
+    }
+
+    // Now all css is processed, it's time to handle scheduled fonts
+    // processFontQueue(fontsQueue);
+
+      cssLoadedCallback(css);
+
+    function getFontMimeTypeFromUrl(fontUrl) {
+      var supportedFormats = {
+        'woff2': 'font/woff2',
+        'woff': 'font/woff',
+        'otf': 'application/x-font-opentype',
+        'ttf': 'application/x-font-ttf',
+        'eot': 'application/vnd.ms-fontobject',
+        'sfnt': 'application/font-sfnt',
+        'svg': 'image/svg+xml'
+      };
+      var extensions = Object.keys(supportedFormats);
+      for (var i = 0; i < extensions.length; ++i) {
+        var extension = extensions[i];
+        // TODO: This is not bullet proof, it needs to handle edge cases...
+        if (fontUrl.indexOf('.' + extension) > 0) {
+          return supportedFormats[extension];
+        }
+      }
+
+      // If you see this error message, you probably need to update code above.
+      console.error('Unknown font format for ' + fontUrl+ '; Fonts may not be working correctly');
+      return 'application/octet-stream';
+    }
+
+    function processFontQueue(queue) {
+      if (queue.length > 0) {
+        // load fonts one by one until we have anything in the queue:
+        var font = queue.pop();
+        processNext(font);
+      } else {
+        // no more fonts to load.
+        cssLoadedCallback(css);
+      }
+
+      function processNext(font) {
+        // TODO: This could benefit from caching.
+        var oReq = new XMLHttpRequest();
+        oReq.addEventListener('load', fontLoaded);
+        oReq.addEventListener('error', transferFailed);
+        oReq.addEventListener('abort', transferFailed);
+        oReq.open('GET', font.url);
+        oReq.responseType = 'arraybuffer';
+        oReq.send();
+
+        function fontLoaded() {
+          // TODO: it may be also worth to wait until fonts are fully loaded before
+          // attempting to rasterize them. (e.g. use https://developer.mozilla.org/en-US/docs/Web/API/FontFaceSet )
+          var fontBits = oReq.response;
+          var fontInBase64 = arrayBufferToBase64(fontBits);
+          updateFontStyle(font, fontInBase64);
+        }
+
+        function transferFailed(e) {
+          console.warn('Failed to load font from: ' + font.url);
+          console.warn(e)
+          css += font.text + '\n';
+          processFontQueue(queue);
+        }
+
+        function updateFontStyle(font, fontInBase64) {
+          var dataUrl = 'url("data:' + font.format + ';base64,' + fontInBase64 + '")';
+          css += font.text.replace(font.fontUrlRegexp, dataUrl) + '\n';
+
+          // schedule next font download on next tick.
+          setTimeout(function() {
+            processFontQueue(queue)
+          }, 0);
+        }
+
+      }
+    }
+
+    function arrayBufferToBase64(buffer) {
+      var binary = '';
+      var bytes = new Uint8Array(buffer);
+      var len = bytes.byteLength;
+
+      for (var i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+      }
+
+      return window.btoa(binary);
+    }
+  }
+
   function getDimension(el, clone, dim) {
     var v = (el.viewBox && el.viewBox.baseVal && el.viewBox.baseVal[dim]) ||
       (clone.getAttribute(dim) !== null && !clone.getAttribute(dim).match(/%$/) && parseInt(clone.getAttribute(dim))) ||
@@ -146,6 +285,14 @@
 
       outer.appendChild(clone);
 
+      // In case of custom fonts we need to fetch font first, and then inline
+      // its url into data-uri format (encode as base64). That's why style
+      // processing is done asynchonously. Once all inlining is finshed
+      // cssLoadedCallback() is called.
+      styles(el, options, cssLoadedCallback);
+
+      function cssLoadedCallback(css) {
+        // here all fonts are inlined, so that we can render them properly.
         var s = document.createElement('style');
         s.setAttribute('type', 'text/css');
         s.innerHTML = "<![CDATA[\n" + css + "\n]]>";
@@ -154,10 +301,11 @@
         clone.insertBefore(defs, clone.firstChild);
 
         if (cb) {
-            var outHtml = outer.innerHTML;
-            outHtml = outHtml.replace(/NS\d+:href/gi, 'xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href');
-            cb(outHtml, width, height);
+          var outHtml = outer.innerHTML;
+          outHtml = outHtml.replace(/NS\d+:href/gi, 'xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href');
+          cb(outHtml, width, height);
         }
+      }
     });
   }
 
@@ -179,7 +327,6 @@
 
     var convertToPng = function(src, w, h) {
       var canvas = document.createElement('canvas');
-
       var context = canvas.getContext('2d');
       canvas.width = w;
       canvas.height = h;
@@ -189,10 +336,6 @@
       } else {
         context.drawImage(src, 0, 0);
       }
-
-        // debug
-        // document.getElementById("content").append(canvas);
-        //
 
       if(options.backgroundColor){
         context.globalCompositeOperation = 'destination-over';
@@ -245,9 +388,21 @@
       var downloadSupported = 'download' in saveLink;
       if (downloadSupported) {
         saveLink.download = name;
-        saveLink.href = uri;
         saveLink.style.display = 'none';
         document.body.appendChild(saveLink);
+        try {
+          var blob = uriToBlob(uri);
+          var url = URL.createObjectURL(blob);
+          saveLink.href = url;
+          saveLink.onclick = function() {
+            requestAnimationFrame(function() {
+              URL.revokeObjectURL(url);
+            })
+          };
+        } catch (e) {
+          console.warn('This browser does not support object URLs. Falling back to string URL.');
+          saveLink.href = uri;
+        }
         saveLink.click();
         document.body.removeChild(saveLink);
       }

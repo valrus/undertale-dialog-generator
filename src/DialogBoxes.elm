@@ -27,18 +27,22 @@ type alias Model =
     }
 
 
-initBoxes : Array DialogBox.Model
-initBoxes =
-    fromList
-        [ DialogBox.init (Just "") 1
-        , DialogBox.init Nothing 2
-        , DialogBox.init Nothing 3
-        ]
+initBoxes : String -> Array DialogBox.Model
+initBoxes imgRoot =
+    let
+        initBoxWithRoot =
+            DialogBox.init imgRoot
+    in
+        fromList
+            [ initBoxWithRoot (Just "") 1
+            , initBoxWithRoot Nothing 2
+            , initBoxWithRoot Nothing 3
+            ]
 
 
-init : Model
-init =
-    { boxes = initBoxes
+init : String -> Model
+init imgRoot =
+    { boxes = initBoxes imgRoot
     , focusIndex = 0
     , renderId = Nothing
     }
@@ -81,7 +85,7 @@ getImgSrcs model =
 
 viewable : Model -> Bool
 viewable model =
-    List.any isJust (toList <| Array.map DialogBox.certifyModel model.boxes)
+    List.any isJust (toList <| Array.map (DialogBox.certifyModel False) model.boxes)
 
 
 
@@ -120,7 +124,7 @@ mapBoxView i box =
 
 renderBox : Int -> DialogBox.Model -> Svg.Svg Msg
 renderBox i box =
-    case DialogBox.certifyModel box of
+    case DialogBox.certifyModel True box of
         Nothing ->
             Svg.g [] []
 
@@ -145,26 +149,26 @@ renderTextLine chara offset lineNum text =
     let
         attrs =
             [ SvgAttr.y <| toString (textLineOffset offset lineNum chara)
-            , SvgAttr.alignmentBaseline "text-before-edge"
+            , SvgAttr.dominantBaseline "text-before-edge"
             ]
     in
-    Svg.g
-        [ SvgAttr.textAnchor "start"
-        , SvgAttr.xmlSpace "preserve"
-        , SvgAttr.fill "white"
-        , SvgAttr.filter "url(#crispify)"
-        , SvgAttr.style <| Character.styleCss (Character.fontStyles chara)
-        ]
-        [ Svg.text_
-            ([ SvgAttr.x <| toString 153 ] ++ attrs)
-            [ Svg.text <| Character.dialogAsterisk lineNum chara ]
-        , Svg.text_
-            ([ SvgAttr.x <| toString <| Character.textIndent chara + 4 ]
-                ++ attrs
-            )
-          <|
-            [ Svg.text text ]
-        ]
+        Svg.g
+            [ SvgAttr.textAnchor "start"
+            , SvgAttr.xmlSpace "preserve"
+            , SvgAttr.fill "white"
+            , SvgAttr.filter "url(#crispify)"
+            , SvgAttr.style <| styleCss (Character.fontStyles chara ++ crispyFontStyles)
+            ]
+            [ Svg.text_
+                ([ SvgAttr.x <| toString 153 ] ++ attrs)
+                [ Svg.text <| Character.dialogAsterisk lineNum chara ]
+            , Svg.text_
+                ([ SvgAttr.x <| toString <| (Character.textIndent chara) + 4 ]
+                    ++ attrs
+                )
+              <|
+                [ Svg.text text ]
+            ]
 
 
 renderText : Int -> Character.Name -> String -> List (Svg.Svg Msg)
@@ -174,7 +178,7 @@ renderText i chara text =
 
 renderTexts : Int -> DialogBox.Model -> Svg.Svg Msg
 renderTexts i box =
-    case DialogBox.certifyModel box of
+    case DialogBox.certifyModel True box of
         Nothing ->
             Svg.g [] []
 
@@ -185,7 +189,7 @@ renderTexts i box =
 
 indexMapToList : (Int -> a -> b) -> Array a -> List b
 indexMapToList f arr =
-    Array.toList <| Array.indexedMap f arr
+    Array.indexedMap f arr |> Array.toList
 
 
 renderBoxes : Array DialogBox.Model -> String -> Html Msg
@@ -302,6 +306,7 @@ updateBoxes action boxes =
     Array.map (DialogBox.update action) boxes
 
 
+<<<<<<< HEAD:src/DialogBoxes.elm
 resetTexts : Array DialogBox.Model -> Array DialogBox.Model
 resetTexts boxes =
     let
@@ -319,6 +324,8 @@ resetTexts boxes =
             initBoxes
 
 
+=======
+>>>>>>> client-side:src/static/js/DialogBoxes.elm
 render : Model -> ( Model, String )
 render model =
     ( { model
