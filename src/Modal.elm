@@ -64,12 +64,13 @@ backgroundAttrs : Color -> List (Attribute Msg)
 backgroundAttrs color =
     [ onClick (Show Nothing)
     , style "backgroundColor" (partlyTransparent color)
-    , style "height" "100%"
-    , style "width" "100%"
+    , style "height" "100vh"
+    , style "width" "100vw"
     , style "position" "fixed"
     , style "top" "0"
     , style "left" "0"
     , style "z-index" "99999"
+    , class "modalWrapper"
     ]
 
 
@@ -81,16 +82,12 @@ swallowClick msg =
 wrapperDiv : SizedHtml Msg -> List (Html Msg)
 wrapperDiv inner =
     [ div
-        [ swallowClick NoOp
-        , style "width" inner.width
+        -- [ swallowClick NoOp
+        [ style "width" inner.width
         , style "height" inner.height
         , style "overflow" "auto"
         , style "margin" "auto"
         , style "position" "absolute"
-        , style "top" "0"
-        , style "left" "0"
-        , style "bottom" "0"
-        , style "right" "0"
         ]
         [ inner.html ]
     ]

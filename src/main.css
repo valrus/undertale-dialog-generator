@@ -64,3 +64,9 @@ textarea {
     top: 32px;
     left: 154px;
 }
+
+.modalWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}

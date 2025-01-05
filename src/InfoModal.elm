@@ -45,10 +45,8 @@ infoDialog staticRoot =
     let
         innerDiv =
             div
-                ([ style "backgroundColor" "white"
-                 , style "color" "black"
-                 ]
-                    ++ expand
+                (style "color" "black"
+                    :: expand
                 )
                 [ infoImg staticRoot
                 , infoImgMap
