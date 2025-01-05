@@ -362,12 +362,17 @@ languageParams c =
 
 asciiSet : Set.Set Char
 asciiSet =
-    Set.fromList <| String.toList " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
+    Set.fromList <|
+        String.toList <|
+            " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
 
 
 cp1252Set : Set.Set Char
 cp1252Set =
-    Set.fromList <| String.toList "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+    Set.union asciiSet <|
+        Set.fromList <|
+            String.toList <|
+                "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
 
 
 illegalStringForChar : Name -> String -> Bool
@@ -385,7 +390,7 @@ illegalStringForChar c s =
                     cp1252Set
     in
     (Set.size <|
-        Set.intersect
+        Set.diff
             (Set.fromList <| String.toList s)
             permissibleCharsSet
     )
