@@ -538,7 +538,7 @@ cheatCodeDecoder =
 
 
 subs : Model -> Sub Msg
-subs model =
+subs _ =
     Sub.batch
         [ Browser.Events.onKeyDown cheatCodeDecoder
         ]
