@@ -191,7 +191,7 @@ portraitAlpha dim =
 portraitButton : Position -> String -> Bool -> Svg Msg
 portraitButton pos src expectingImage =
     Svg.String.node "image"
-        ([ SvgAttr.attribute "xlink:href" src
+        ([ SvgAttr.attribute "href" src
          , SvgAttr.attribute "opacity" <| portraitAlpha expectingImage
          , onClick (ExpectImage <| not expectingImage)
          , SvgAttr.filter "url(#crispify)"
