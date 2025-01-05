@@ -1,20 +1,17 @@
 module DialogBox exposing (..)
 
--- Local modules
-
-import Char
 import Character exposing (RenderOverride, spriteNumber)
 import Debug exposing (log)
 import Helpers exposing (KeyCode, Position, offset, takeLines)
 import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr
-import Html.Events exposing (keyCode, on, onInput, targetValue)
+import Html.Events exposing (keyCode, on, onInput)
 import Json.Decode as Json
 import Maybe
-import Svg exposing (Svg)
-import Svg.Attributes as SvgAttr
-import Svg.Events exposing (onClick)
-import TextCleaning exposing (TextReplacement, unicodeSanitizer)
+import Svg.String exposing (Svg)
+import Svg.String.Attributes as SvgAttr
+import Svg.String.Events exposing (onClick)
+import TextCleaning
 import UndertaleFonts exposing (allFonts)
 
 
@@ -112,23 +109,23 @@ fontFaceStyles =
 -- ++ "\n]]>"
 
 
-filterDefs : Svg.Svg Msg
+filterDefs : Svg Msg
 filterDefs =
-    Svg.defs []
-        [ Svg.filter
+    Svg.String.defs []
+        [ Svg.String.filter
             [ SvgAttr.id "crispify" ]
-            [ Svg.node "feComponentTransfer"
+            [ Svg.String.node "feComponentTransfer"
                 []
-                [ Svg.feFuncA
+                [ Svg.String.node "feFuncA"
                     [ SvgAttr.type_ "discrete"
-                    , SvgAttr.tableValues "0 1"
+                    , SvgAttr.attribute "table-values" "0 1"
                     ]
                     []
                 ]
             ]
-        , Svg.style
+        , Svg.String.node "style"
             [ SvgAttr.type_ "text/css" ]
-            [ Svg.text <| fontFaceStyles ]
+            [ Svg.String.text <| fontFaceStyles ]
         ]
 
 
@@ -173,7 +170,7 @@ dialogCollage elem model =
         ]
 
 
-svgPosition : Position -> List (Svg.Attribute Msg)
+svgPosition : Position -> List (Svg.String.Attribute Msg)
 svgPosition pos =
     [ SvgAttr.x (String.fromInt pos.x)
     , SvgAttr.y (String.fromInt pos.y)
@@ -191,11 +188,11 @@ portraitAlpha dim =
         "1"
 
 
-portraitButton : Position -> String -> Bool -> Html Msg
+portraitButton : Position -> String -> Bool -> Svg Msg
 portraitButton pos src expectingImage =
-    Svg.image
-        ([ SvgAttr.xlinkHref src
-         , SvgAttr.opacity <| portraitAlpha expectingImage
+    Svg.String.node "image"
+        ([ SvgAttr.attribute "xlink:href" src
+         , SvgAttr.attribute "opacity" <| portraitAlpha expectingImage
          , onClick (ExpectImage <| not expectingImage)
          , SvgAttr.filter "url(#crispify)"
          ]
@@ -206,7 +203,7 @@ portraitButton pos src expectingImage =
 
 svgBorder : Position -> String -> Svg Msg
 svgBorder pos color =
-    Svg.rect
+    Svg.String.rect
         (SvgAttr.fill color :: svgPosition pos)
         []
 
@@ -221,7 +218,7 @@ boxWidth =
     596
 
 
-singleBox : Int -> Int -> FullModel -> List (Html Msg)
+singleBox : Int -> Int -> FullModel -> List (Svg Msg)
 singleBox x y model =
     let
         ( imgX, imgY ) =
@@ -249,9 +246,9 @@ singleBox x y model =
     ]
 
 
-dialogFrame : FullModel -> Html Msg
+dialogFrame : FullModel -> Svg.String.Html Msg
 dialogFrame model =
-    Svg.svg
+    Svg.String.svg
         [ SvgAttr.width (String.fromInt boxWidth)
         , SvgAttr.height (String.fromInt (boxHeight 1))
         ]
@@ -316,7 +313,7 @@ view model =
 
         Just fullModel ->
             dialogCollage
-                (dialogFrame fullModel)
+                (Svg.String.toHtml <| dialogFrame fullModel)
                 fullModel
 
 

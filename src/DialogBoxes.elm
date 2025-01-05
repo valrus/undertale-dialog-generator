@@ -11,9 +11,9 @@ import Html exposing (Html)
 import Html.Attributes exposing (style)
 import Maybe.Extra exposing (isJust, join)
 import String
-import Svg
-import Svg.Attributes as SvgAttr
-import Svg.Events
+import Svg.String exposing (Svg)
+import Svg.String.Attributes as SvgAttr
+import Svg.String.Events as SvgEvents
 
 
 
@@ -122,17 +122,17 @@ mapBoxView i box =
 -- Crispy rendering
 
 
-renderBox : Int -> DialogBox.Model -> Svg.Svg Msg
+renderBox : Int -> DialogBox.Model -> Svg Msg
 renderBox i box =
     case DialogBox.certifyModel True box of
         Nothing ->
-            Svg.g [] []
+            Svg.String.g [] []
 
         Just fullModel ->
-            Svg.g
+            Svg.String.g
                 []
             <|
-                List.map (Html.map <| convertViewMessage i) <|
+                List.map (Svg.String.map <| convertViewMessage i) <|
                     DialogBox.singleBox
                         0
                         (DialogBox.boxHeight i)
@@ -144,46 +144,46 @@ textLineOffset offset lineNum chara =
     DialogBox.boxHeight offset + 32 + (36 * lineNum) + Character.yOffset chara
 
 
-renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
+renderTextLine : Character.Name -> Int -> Int -> String -> Svg Msg
 renderTextLine chara offset lineNum text =
     let
         attrs =
             [ SvgAttr.y <| String.fromInt (textLineOffset offset lineNum chara)
-            , SvgAttr.dominantBaseline "text-before-edge"
+            , SvgAttr.attribute "dominant-baseline" "text-before-edge"
             ]
     in
-    Svg.g
-        [ SvgAttr.textAnchor "start"
-        , SvgAttr.xmlSpace "preserve"
+    Svg.String.g
+        [ SvgAttr.attribute "text-anchor" "start"
+        , SvgAttr.attribute "xml-space" "preserve"
         , SvgAttr.fill "white"
         , SvgAttr.filter "url(#crispify)"
         , SvgAttr.style <| styleCss (Character.fontStyleArgs chara ++ crispyFontStyleArgs)
         ]
-        [ Svg.text_
+        [ Svg.String.text_
             ((SvgAttr.x <| String.fromInt 153) :: attrs)
-            [ Svg.text <| Character.dialogAsterisk lineNum chara ]
-        , Svg.text_
+            [ Svg.String.text <| Character.dialogAsterisk lineNum chara ]
+        , Svg.String.text_
             ((SvgAttr.x <| String.fromInt <| Character.textIndent chara + 4)
                 :: attrs
             )
           <|
-            [ Svg.text text ]
+            [ Svg.String.text text ]
         ]
 
 
-renderText : Int -> Character.Name -> String -> List (Svg.Svg Msg)
+renderText : Int -> Character.Name -> String -> List (Svg Msg)
 renderText i chara text =
     List.indexedMap (renderTextLine chara i) <| String.split "\n" text
 
 
-renderTexts : Int -> DialogBox.Model -> Svg.Svg Msg
+renderTexts : Int -> DialogBox.Model -> Svg Msg
 renderTexts i box =
     case DialogBox.certifyModel True box of
         Nothing ->
-            Svg.g [] []
+            Svg.String.g [] []
 
         Just fullModel ->
-            Svg.g [] <|
+            Svg.String.g [] <|
                 renderText i fullModel.chara fullModel.text
 
 
@@ -192,18 +192,18 @@ indexMapToList f arr =
     Array.indexedMap f arr |> Array.toList
 
 
-renderBoxes : Array DialogBox.Model -> String -> Html Msg
+renderBoxes : Array DialogBox.Model -> String -> Svg.String.Html Msg
 renderBoxes boxes id =
-    Svg.svg
+    Svg.String.svg
         [ SvgAttr.id id
-        , SvgAttr.version "1.1"
-        , SvgAttr.xmlSpace "http://www.w3.org/2000/svg"
+        , SvgAttr.attribute "version" "1.1"
+        , SvgAttr.attribute "xml-space" "http://www.w3.org/2000/svg"
         , SvgAttr.width (String.fromInt DialogBox.boxWidth)
         , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count boxes)
-        , Svg.Events.onClick Unrender
+        , SvgEvents.onClick Unrender
         ]
     <|
-        Svg.map (\_ -> Unrender) DialogBox.filterDefs
+        Svg.String.map (\_ -> Unrender) DialogBox.filterDefs
             :: indexMapToList renderBox boxes
             ++ indexMapToList renderTexts boxes
 
@@ -225,7 +225,7 @@ view : Model -> List (Html Msg)
 view model =
     case model.renderId of
         Just id ->
-            [ centerWrapper <| renderBoxes model.boxes id ]
+            [ centerWrapper <| Svg.String.toHtml <| renderBoxes model.boxes id ]
 
         _ ->
             indexMapToList mapBoxView model.boxes
