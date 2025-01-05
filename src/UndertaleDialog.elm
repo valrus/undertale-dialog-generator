@@ -23,6 +23,7 @@ import Maybe exposing (Maybe)
 import Maybe.Extra exposing (join)
 import Modal
 import Svg.String exposing (Svg)
+import Url
 
 
 
@@ -257,23 +258,27 @@ crunchyButton =
             [ onClick GetRender
             , Html.Attributes.id "crunchybutton"
             ]
-            [ text "MAKE IT CRUNCHY" ]
+            [ text "PREPARE SVG" ]
         ]
     ]
 
 
-downloadButton : String -> List (Html Msg)
-downloadButton svgData =
-    [ div
+svgAsData : String -> String
+svgAsData svgString =
+    "data:image/svg+xml;utf8," ++ Url.percentEncode svgString
+
+
+downloadButton : String -> Html Msg
+downloadButton svgString =
+    div
         [ style "width" "100%" ]
         [ Html.a
             [ Html.Attributes.download "image.svg"
             , Html.Attributes.id "crunchybutton"
-            , Html.Attributes.href svgData
+            , Html.Attributes.href (svgAsData svgString)
             ]
-            [ text "MAKE IT CRUNCHY" ]
+            [ text "DOWNLOAD SVG" ]
         ]
-    ]
 
 
 dialogBoxTexts : Array (Maybe String) -> List String
@@ -291,8 +296,8 @@ numBoxes texts =
     List.length <| dialogBoxTexts texts
 
 
-renderedDialogBox : DialogBoxes.Model -> Maybe (List (Html Msg))
-renderedDialogBox boxes =
+wrappedDialogBoxes : DialogBoxes.Model -> Maybe (Html DialogBoxes.Msg) -> Maybe (Html Msg)
+wrappedDialogBoxes boxes boxesHtml =
     let
         boxCount =
             DialogBoxes.countBoxes boxes
@@ -310,9 +315,8 @@ renderedDialogBox boxes =
                 , style "align-items" "center"
                 , style "justify-content" "space-around"
                 ]
-            >> List.singleton
         )
-        (DialogBoxes.toHtml boxes)
+        boxesHtml
 
 
 
@@ -358,6 +362,18 @@ textBoxId n =
     "textBox" ++ String.fromInt n
 
 
+renderedDialogBoxSection : DialogBoxes.Model -> Maybe (List (Html Msg))
+renderedDialogBoxSection boxes =
+    let
+        boxesSvgHtml =
+            DialogBoxes.toSvgHtml boxes
+    in
+    Maybe.map2
+        (\el svgHtml -> [ el, downloadButton <| Svg.String.toString 2 svgHtml ])
+        (wrappedDialogBoxes boxes (Maybe.map Svg.String.toHtml boxesSvgHtml))
+        boxesSvgHtml
+
+
 dialogBoxSection : Model -> Html Msg
 dialogBoxSection model =
     div
@@ -365,7 +381,7 @@ dialogBoxSection model =
     <|
         Maybe.withDefault [ blank ] <|
             Maybe.Extra.or
-                (renderedDialogBox model.dialogs)
+                (renderedDialogBoxSection model.dialogs)
                 (Just <|
                     List.map
                         (Html.map UpdateDialogs)

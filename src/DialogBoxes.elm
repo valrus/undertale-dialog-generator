@@ -202,19 +202,18 @@ renderBoxes boxes id =
             ++ indexMapToList renderTexts boxes
 
 
-toHtml : Model -> Maybe (Html Msg)
-toHtml model =
+toSvgHtml : Model -> Maybe (Svg.String.Html Msg)
+toSvgHtml model =
     Maybe.map
         (List.singleton
             >> Svg.String.svg
                 [ SvgAttr.id renderedSvgId
                 , SvgAttr.attribute "version" "1.1"
-                , SvgAttr.attribute "xml-space" "http://www.w3.org/2000/svg"
+                , SvgAttr.attribute "xmlns" "http://www.w3.org/2000/svg"
                 , SvgAttr.width (String.fromInt DialogBox.boxWidth)
                 , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count model.boxes)
                 , SvgEvents.onClick Unrender
                 ]
-            >> Svg.String.toHtml
         )
         model.render
 
