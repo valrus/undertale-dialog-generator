@@ -9,7 +9,6 @@ import Character exposing (defaultSprite, spriteNumber, thumbnail)
 import CheatCode
 import Color exposing (rgb255)
 import CreditsModal exposing (creditsDialog)
-import Debug exposing (log)
 import DialogBoxes
 import Either
 import Focus
@@ -47,7 +46,7 @@ init characters flags =
     ( { characters = characters
       , selection = Nothing
       , dialogs = DialogBoxes.init flags.staticRoot
-      , staticRoot = log "staticRoot" flags.staticRoot
+      , staticRoot = flags.staticRoot
       , scriptRoot = flags.scriptRoot
       , imageData = Nothing
       , modal = Modal.init (rgb255 0 0 0)
