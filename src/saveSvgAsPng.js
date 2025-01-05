@@ -40,6 +40,7 @@
         }
         var canvas = document.createElement('canvas');
         var ctx = canvas.getContext('2d');
+        ctx = canvas.imageSmoothingEnabled = false;
         var img = new Image();
         img.crossOrigin="anonymous";
         href = href || image.getAttribute('href');
@@ -329,6 +330,7 @@
     var convertToPng = function(src, w, h) {
       var canvas = document.createElement('canvas');
       var context = canvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
       canvas.width = w;
       canvas.height = h;
 
