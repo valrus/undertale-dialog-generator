@@ -6,7 +6,7 @@
     "start": "parcel src/index.html",
     "lint": "eslint src/undertale.js",
     "build": "parcel build src/index.html",
-    "build-gh": "rm docs/*; parcel build src/index.html --dist-dir docs --public-url /undertale-dialog-generator/"
+    "build-gh": "rm -rf docs/*; parcel build src/index.html --dist-dir docs --public-url /undertale-dialog-generator/"
   },
   "keywords": [],
   "author": "",
