@@ -157,6 +157,7 @@ dialogCollage elem model =
         [ HtmlAttr.style "width" "100%" ]
         [ div
             [ HtmlAttr.style "width" (String.fromInt boxWidth ++ "px")
+            , HtmlAttr.style "height" (String.fromInt (boxHeight 1) ++ "px")
             , HtmlAttr.style "position" "relative"
             , HtmlAttr.style "margin" "0 auto"
             ]
