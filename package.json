@@ -1,0 +1,30 @@
+{
+  "name": "undertale-dialog-generator",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "parcel src/index.html",
+    "lint": "eslint src/undertale.js",
+    "build": "parcel build src/index.html",
+    "build-gh": "rm docs/*; parcel build public/index.html --dist-dir gh-pages --public-url /undertale-dialog-generator/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@parcel/packager-raw-url": "^2.0.0",
+    "@parcel/transformer-elm": "^2.12.0",
+    "@parcel/transformer-webmanifest": "^2.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.2.0",
+    "events": "^3.3.0",
+    "parcel": "^2.12.0",
+    "parcel-reporter-static-files-copy": "^1.5.3",
+    "process": "^0.11.10",
+    "svgo": "^3",
+    "yarn": "^1.22.22"
+  }
+}

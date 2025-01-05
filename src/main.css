@@ -1,0 +1,66 @@
+@viewport {
+    zoom: 1.0;
+    width: 800px;
+}
+
+
+body {
+    background-color: black;
+    margin: 0px;
+}
+
+a {
+    color: yellow;
+}
+
+#content {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    height: 100%;
+    font-family: "determination_monoregular";
+}
+
+ul {
+    padding-left: 20px;
+}
+
+#crunchybutton {
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+    font-family: "determination_monoregular";
+    font-size: 42px;
+    margin: 10px auto;
+    color: yellow;
+    border: none;
+    background-color: black;
+    width: 400px;
+    display: block;
+    text-align: center;
+}
+
+.dialog {
+    background-color: black;
+    color: white;
+}
+
+textarea {
+    background-color: black;
+    color: white;
+    display: block;
+    border: 1px dashed white;
+    resize: none;
+    overflow: hidden;
+    white-space: pre;
+    word-wrap: normal;
+    position: absolute;
+    top: 27px;
+    padding: 2px 4px;
+}
+
+#indent {
+    display: block;
+    position: absolute;
+    top: 32px;
+    left: 154px;
+}

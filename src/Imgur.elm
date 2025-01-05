@@ -2,9 +2,9 @@ module Imgur exposing (..)
 
 import Either exposing (Either)
 import Html exposing (..)
-import Html.Attributes exposing (src, id, style, href)
+import Html.Attributes exposing (href, id, src, style)
 import Html.Events exposing (onClick)
-import Http exposing (request, send, expectJson, stringBody)
+import Http exposing (expectJson, request, send, stringBody)
 import Json.Decode exposing (Decoder, at)
 import Json.Encode as JSON
 import Maybe exposing (Maybe, withDefault)
@@ -67,12 +67,12 @@ uploadButton state imgSrc =
                 Either.Right url ->
                     [ style [ ( "border", "1px solid black" ) ] ]
     in
-        button
-            ([ id "imgurButton" ] ++ attrs)
-            [ img
-                [ src imgSrc ]
-                []
-            ]
+    button
+        ([ id "imgurButton" ] ++ attrs)
+        [ img
+            [ src imgSrc ]
+            []
+        ]
 
 
 uploadField : ImgState -> Html Msg
@@ -91,9 +91,9 @@ uploadField state =
                             [ Html.text url ]
                         ]
     in
-        div
-            [ id "imgurUrl" ]
-            [ content ]
+    div
+        [ id "imgurUrl" ]
+        [ content ]
 
 
 uploadView : ImgState -> String -> Html Msg
@@ -122,7 +122,7 @@ imgurButtonSrc status root =
                 Failed ->
                     "upload-failed.png"
     in
-        root ++ "images/" ++ fileName
+    root ++ "images/" ++ fileName
 
 
 view : Model -> String -> Html Msg
@@ -148,7 +148,7 @@ albumData id =
 
 doUpload : Model -> Cmd Msg
 doUpload model =
-    case Maybe.map2 (,) model.clientId model.imgState of
+    case Maybe.map2 Tuple.pair model.clientId model.imgState of
         Just ( id, Either.Left data ) ->
             request
                 { method = "POST"

@@ -2,3 +2,11 @@ resources
 .python-version
 .env
 *.acorn
+gh-pages
+*.b64
+elm.js
+/dist/
+/.direnv/
+/.parcel-cache/
+/elm-stuff/
+/node_modules/

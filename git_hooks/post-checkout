@@ -1,8 +1,11 @@
-workon undertale
+# workon undertale
+
 python -m rcssmin <src/static/css/main.css >src/static/css/main.min.css
 slimit src/static/js/elm.js >src/static/js/elm.min.js
 slimit src/static/js/undertale.js >src/static/js/undertale.min.js
+slimit src/static/js/saveSvgAsPng.js >src/static/js/saveSvgAsPng.min.js
 
-gzip --keep src/static/css/main.min.css
-gzip --keep src/static/js/elm.min.js
-gzip --keep src/static/js/undertale.min.js
+gzip -f --keep src/static/css/main.min.css
+gzip -f --keep src/static/js/elm.min.js
+gzip -f --keep src/static/js/undertale.min.js
+gzip -f --keep src/static/js/saveSvgAsPng.min.js

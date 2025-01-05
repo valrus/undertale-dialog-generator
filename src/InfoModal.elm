@@ -1,12 +1,10 @@
 module InfoModal exposing (..)
 
+-- Local
+
 import Either exposing (Either)
 import Html exposing (..)
 import Html.Attributes exposing (style)
-
-
--- Local
-
 import ImageMap exposing (mapArea)
 import Modal exposing (SizedHtml, expand)
 
@@ -47,14 +45,13 @@ infoDialog staticRoot =
     let
         innerDiv =
             div
-                [ style <|
-                    [ ( "backgroundColor", "white" )
-                    , ( "color", "black" )
-                    ]
-                        ++ expand
-                ]
+                ([ style "backgroundColor" "white"
+                 , style "color" "black"
+                 ]
+                    ++ expand
+                )
                 [ infoImg staticRoot
                 , infoImgMap
                 ]
     in
-        SizedHtml innerDiv "596" "654"
+    SizedHtml innerDiv "596" "654"
