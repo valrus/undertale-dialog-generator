@@ -1,33 +1,29 @@
 module UndertaleDialog exposing (..)
 
-import Array exposing (Array, toList, fromList)
-import Char exposing (KeyCode)
-import Color exposing (grayscale)
-import Either exposing (Either)
-import Html exposing (..)
-import Html.Events exposing (on, targetValue, onClick, keyCode)
-import Html.Attributes exposing (class, src, style)
-import Http
-import Json.Decode as Json
-import Keyboard
-import Maybe exposing (Maybe, andThen)
-import Maybe.Extra exposing (combine, isJust, join, maybeToList)
-import Platform.Cmd
-import Focus
-
-import Debug exposing (log)
-
-
 -- Local modules
 
-import Helpers exposing (..)
-import Character exposing (thumbnail, defaultSprite, spriteNumber)
+import Array exposing (Array)
+import Browser exposing (element)
+import Browser.Events
+import Character exposing (defaultSprite, spriteNumber, thumbnail)
 import CheatCode
-import Modal
-import ImageMap exposing (mapArea)
+import Color exposing (rgb255)
 import CreditsModal exposing (creditsDialog)
-import InfoModal exposing (infoDialog)
+import Debug exposing (log)
 import DialogBoxes
+import Either
+import Focus
+import Helpers exposing (..)
+import Html exposing (..)
+import Html.Attributes exposing (class, src, style)
+import Html.Events exposing (onClick)
+import ImageMap exposing (mapArea)
+import InfoModal exposing (infoDialog)
+import Json.Decode as Json
+import Maybe exposing (Maybe)
+import Maybe.Extra exposing (join)
+import Modal
+
 
 
 -- Model
@@ -51,10 +47,10 @@ init characters flags =
     ( { characters = characters
       , selection = Nothing
       , dialogs = DialogBoxes.init flags.staticRoot
-      , staticRoot = flags.staticRoot
+      , staticRoot = log "staticRoot" flags.staticRoot
       , scriptRoot = flags.scriptRoot
       , imageData = Nothing
-      , modal = Modal.init (grayscale 1)
+      , modal = Modal.init (rgb255 0 0 0)
       , cheatCode = CheatCode.init [ "EX" ]
       , exmode = False
       }
@@ -77,11 +73,11 @@ type Msg
 -- General styles
 
 
-flatButton : List ( String, String )
+flatButton : StyleList msg
 flatButton =
-    [ ( "backgroundColor", "transparent" )
-    , ( "border", "none" )
-    , ( "display", "inline-block" )
+    [ style "backgroundColor" "transparent"
+    , style "border" "none"
+    , style "display" "inline-block"
     ]
 
 
@@ -89,7 +85,7 @@ header : Html Msg
 header =
     div
         []
-        [ hr [ style [ ( "margin-bottom", "30px" ) ] ] [] ]
+        [ hr [ style "margin-bottom" "30px" ] [] ]
 
 
 maybeDivider : Maybe a -> Html Msg
@@ -126,17 +122,14 @@ titleImgMap root =
 title : String -> Html Msg
 title root =
     div
-        [ style
-            [ ( "padding-top", "60px" )
-            , ( "padding-bottom", "30px" )
-            , ( "display", "block" )
-            ]
+        [ style "padding-top" "60px"
+        , style "padding-bottom" "30px"
+        , style "display" "block"
         ]
         [ img
-            [ style
-                [ ( "margin", "0 auto" )
-                , ( "display", "block" )
-                ]
+            [ style "margin" "0 auto"
+            , style "display" "block"
+            , style "width" "672px"
             , src <| root ++ "images/title.png"
             , Html.Attributes.usemap "#titleMap"
             ]
@@ -157,17 +150,19 @@ characterButton staticRoot c =
 
         _ ->
             button
-                [ onClick <|
+                ((onClick <|
                     UpdateDialogs <|
                         DialogBoxes.SetImages c <|
                             defaultSprite staticRoot c False
-                , style flatButton
-                ]
+                 )
+                    :: flatButton
+                )
                 [ img
-                      -- Use Toriel here to avoid the Napstablook special case
-                  (style (thumbnail Character.Toriel)
-                  :: [ src <| defaultSprite staticRoot c True ])
-                  []
+                    -- Use Toriel here to avoid the Napstablook special case
+                    ((src <| defaultSprite staticRoot c True)
+                        :: thumbnail Character.Toriel
+                    )
+                    []
                 ]
 
 
@@ -192,25 +187,23 @@ moodButton root c n =
         spriteStr =
             spriteNumber root c n
     in
-        button
-            [ onClick <|
-                UpdateDialogs <|
-                    DialogBoxes.SetImages c spriteStr
-            , style flatButton
-            ]
-            [ img (style (thumbnail c) :: [ src <| spriteStr ]) [] ]
+    button
+        ((onClick <|
+            UpdateDialogs <|
+                DialogBoxes.SetImages c spriteStr
+         )
+            :: flatButton
+        )
+        [ img ((src <| spriteStr) :: thumbnail c) [] ]
 
 
 moodBlank : Html Msg
 moodBlank =
     div
-        [ style flatButton
-        ]
+        flatButton
         [ div
-            [ style
-                [ ( "height", "60px" )
-                , ( "width", "60px" )
-                ]
+            [ style "height" "60px"
+            , style "width" "60px"
             ]
             []
         ]
@@ -220,12 +213,13 @@ moodSpace : String -> Character.Name -> Bool -> Int -> Html Msg
 moodSpace root c exmode n =
     let
         numMoods =
-            (Character.moodCount exmode c)
+            Character.moodCount exmode c
     in
-        if n <= numMoods then
-            (moodButton root c n)
-        else
-            moodBlank
+    if n <= numMoods then
+        moodButton root c n
+
+    else
+        moodBlank
 
 
 moodButtons : String -> Character.Name -> Bool -> Html Msg
@@ -258,7 +252,7 @@ moodSection root maybeChar exmode =
 crunchyButton : List (Html Msg)
 crunchyButton =
     [ div
-        [ style [ ( "width", "100%" ) ] ]
+        [ style "width" "100%" ]
         [ Html.button
             [ onClick GetDownload
             , Html.Attributes.id "crunchybutton"
@@ -275,7 +269,7 @@ dialogBoxTexts arr =
             [ "" ]
 
         Just first ->
-            [ first ] ++ takeJusts (Array.slice 1 3 arr)
+            first :: takeJusts (Array.slice 1 3 arr)
 
 
 numBoxes : Array (Maybe String) -> Int
@@ -289,27 +283,25 @@ dialogBoxImg boxes pngData =
         boxCount =
             DialogBoxes.countBoxes boxes
     in
-        [ Html.a
-            []
-            [ Html.img
-                [ onClick <|
-                    UpdateDialogs <|
-                        DialogBoxes.UpdateText boxCount <|
-                            DialogBoxes.getText boxCount boxes
-                , style
-                    [ ( "margin", "0 auto" )
-                    , ( "display", "block" )
-                    ]
-                , src pngData
-                ]
-                []
+    [ Html.a
+        []
+        [ Html.img
+            [ onClick <|
+                UpdateDialogs <|
+                    DialogBoxes.UpdateText boxCount <|
+                        DialogBoxes.getText boxCount boxes
+            , style "margin" "0 auto"
+            , style "display" "block"
+            , src pngData
             ]
+            []
         ]
+    ]
 
 
 returnedDialogBox : DialogBoxes.Model -> Maybe String -> Maybe (List (Html Msg))
 returnedDialogBox boxes imgData =
-      imgData |> Maybe.andThen (Just << dialogBoxImg boxes)
+    imgData |> Maybe.andThen (Just << dialogBoxImg boxes)
 
 
 
@@ -319,32 +311,30 @@ returnedDialogBox boxes imgData =
 infoButton : String -> Html Msg
 infoButton root =
     button
-        [ onClick <|
+        ([ onClick <|
             UpdateModal <|
                 Modal.Show (Just <| infoDialog root)
-        , style <|
-            [ ( "position", "fixed" )
-            , ( "bottom", "15px" )
-            , ( "left", "20px" )
-            ]
-                ++ flatButton
-        ]
+         , style "position" "fixed"
+         , style "bottom" "15px"
+         , style "left" "20px"
+         ]
+            ++ flatButton
+        )
         [ img [ src <| root ++ "images/heart.png" ] [] ]
 
 
 creditsButton : String -> Html Msg
 creditsButton root =
     button
-        [ onClick <|
+        ([ onClick <|
             UpdateModal <|
                 Modal.Show (Just <| creditsDialog root)
-        , style <|
-            [ ( "position", "fixed" )
-            , ( "bottom", "10px" )
-            , ( "right", "20px" )
-            ]
-                ++ flatButton
-        ]
+         , style "position" "fixed"
+         , style "bottom" "10px"
+         , style "right" "20px"
+         ]
+            ++ flatButton
+        )
         [ img [ src <| root ++ "images/creditsbutton.png" ] [] ]
 
 
@@ -354,7 +344,7 @@ creditsButton root =
 
 textBoxId : Int -> String
 textBoxId n =
-    "textBox" ++ (toString n)
+    "textBox" ++ String.fromInt n
 
 
 dialogBoxSection : Model -> Html Msg
@@ -371,6 +361,7 @@ dialogBoxSection model =
                         (DialogBoxes.view model.dialogs)
                         ++ (if DialogBoxes.viewable model.dialogs then
                                 crunchyButton
+
                             else
                                 []
                            )
@@ -390,9 +381,9 @@ getEXModeValue s =
 view : Model -> Html Msg
 view model =
     div
-        [ Html.Attributes.id "content"
-        , style crispyFontStyles
-        ]
+        (Html.Attributes.id "content"
+            :: stylesFromArgs crispyFontStyleArgs
+        )
         [ title model.staticRoot
         , characterButtons model.staticRoot model.characters
         , maybeDivider model.selection
@@ -421,12 +412,12 @@ update msg model =
                 ( newCheatCode, cheatResult ) =
                     CheatCode.update ks model.cheatCode
             in
-                ( { model
-                    | cheatCode = newCheatCode
-                    , exmode = getEXModeValue cheatResult
-                  }
-                , Cmd.none
-                )
+            ( { model
+                | cheatCode = newCheatCode
+                , exmode = getEXModeValue cheatResult
+              }
+            , Cmd.none
+            )
 
         ActivateEXMode ->
             ( { model
@@ -435,38 +426,38 @@ update msg model =
             , Cmd.none
             )
 
-        UpdateDialogs msg ->
+        UpdateDialogs dialogMsg ->
             let
                 ( newBoxes, moveCursor ) =
-                    DialogBoxes.update msg model.dialogs
+                    DialogBoxes.update dialogMsg model.dialogs
             in
-                ( { model
-                    | selection =
-                        case msg of
-                            DialogBoxes.SetImages c s ->
-                                Just c
+            ( { model
+                | selection =
+                    case dialogMsg of
+                        DialogBoxes.SetImages c s ->
+                            Just c
 
-                            _ ->
-                                model.selection
-                    , dialogs = newBoxes
-                    , imageData = Nothing
-                  }
-                , Focus.focus
-                    { elementId = textBoxId newBoxes.focusIndex
-                    , moveCursorToEnd = moveCursor
-                    }
-                )
+                        _ ->
+                            model.selection
+                , dialogs = newBoxes
+                , imageData = Nothing
+              }
+            , Focus.focus
+                { elementId = textBoxId newBoxes.focusIndex
+                , moveCursorToEnd = moveCursor
+                }
+            )
 
         GetDownload ->
             let
-                ( newDialogs, svgId ) = DialogBoxes.render model.dialogs
-
+                ( newDialogs, svgId ) =
+                    DialogBoxes.render model.dialogs
             in
-                ( { model
-                    | dialogs = newDialogs
-                  }
-                , DialogBoxes.getImg svgId
-                )
+            ( { model
+                | dialogs = newDialogs
+              }
+            , DialogBoxes.getImg svgId
+            )
 
         GotDownload data ->
             ( { model
@@ -475,9 +466,9 @@ update msg model =
             , Cmd.none
             )
 
-        UpdateModal msg ->
+        UpdateModal modalMsg ->
             ( { model
-                | modal = Modal.update msg model.modal
+                | modal = Modal.update modalMsg model.modal
               }
             , Cmd.none
             )
@@ -504,10 +495,25 @@ imgurParamsDecoder =
         (Json.field "albumId" Json.string)
 
 
+toCheatCodeMsg : String -> Msg
+toCheatCodeMsg s =
+    case String.uncons s of
+        Just ( char, "" ) ->
+            EnterCheatCode <| Char.toCode char
+
+        _ ->
+            NoOp
+
+
+cheatCodeDecoder : Json.Decoder Msg
+cheatCodeDecoder =
+    Json.map toCheatCodeMsg (Json.field "key" Json.string)
+
+
 subs : Model -> Sub Msg
 subs model =
     Sub.batch
-        [ Keyboard.downs EnterCheatCode
+        [ Browser.Events.onKeyDown cheatCodeDecoder
         , DialogBoxes.getRenderData GotDownload
         ]
 
@@ -524,7 +530,7 @@ type alias Flags =
 
 main : Program Flags Model Msg
 main =
-    Html.programWithFlags
+    element
         { init =
             init Character.allNames
         , update = update

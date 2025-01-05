@@ -33,11 +33,11 @@ initBoxes imgRoot =
         initBoxWithRoot =
             DialogBox.init imgRoot
     in
-        fromList
-            [ initBoxWithRoot (Just "") 1
-            , initBoxWithRoot Nothing 2
-            , initBoxWithRoot Nothing 3
-            ]
+    fromList
+        [ initBoxWithRoot (Just "") 1
+        , initBoxWithRoot Nothing 2
+        , initBoxWithRoot Nothing 3
+        ]
 
 
 init : String -> Model
@@ -148,27 +148,27 @@ renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
 renderTextLine chara offset lineNum text =
     let
         attrs =
-            [ SvgAttr.y <| toString (textLineOffset offset lineNum chara)
+            [ SvgAttr.y <| String.fromInt (textLineOffset offset lineNum chara)
             , SvgAttr.dominantBaseline "text-before-edge"
             ]
     in
-        Svg.g
-            [ SvgAttr.textAnchor "start"
-            , SvgAttr.xmlSpace "preserve"
-            , SvgAttr.fill "white"
-            , SvgAttr.filter "url(#crispify)"
-            , SvgAttr.style <| styleCss (Character.fontStyles chara ++ crispyFontStyles)
-            ]
-            [ Svg.text_
-                ([ SvgAttr.x <| toString 153 ] ++ attrs)
-                [ Svg.text <| Character.dialogAsterisk lineNum chara ]
-            , Svg.text_
-                ([ SvgAttr.x <| toString <| (Character.textIndent chara) + 4 ]
-                    ++ attrs
-                )
-              <|
-                [ Svg.text text ]
-            ]
+    Svg.g
+        [ SvgAttr.textAnchor "start"
+        , SvgAttr.xmlSpace "preserve"
+        , SvgAttr.fill "white"
+        , SvgAttr.filter "url(#crispify)"
+        , SvgAttr.style <| styleCss (Character.fontStyleArgs chara ++ crispyFontStyleArgs)
+        ]
+        [ Svg.text_
+            ((SvgAttr.x <| String.fromInt 153) :: attrs)
+            [ Svg.text <| Character.dialogAsterisk lineNum chara ]
+        , Svg.text_
+            ((SvgAttr.x <| String.fromInt <| Character.textIndent chara + 4)
+                :: attrs
+            )
+          <|
+            [ Svg.text text ]
+        ]
 
 
 renderText : Int -> Character.Name -> String -> List (Svg.Svg Msg)
@@ -198,26 +198,24 @@ renderBoxes boxes id =
         [ SvgAttr.id id
         , SvgAttr.version "1.1"
         , SvgAttr.xmlSpace "http://www.w3.org/2000/svg"
-        , SvgAttr.width (toString DialogBox.boxWidth)
-        , SvgAttr.height (toString <| DialogBox.boxHeight <| count boxes)
+        , SvgAttr.width (String.fromInt DialogBox.boxWidth)
+        , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count boxes)
         , Svg.Events.onClick Unrender
         ]
     <|
-        [ Svg.map (\_ -> Unrender) DialogBox.filterDefs ]
-            ++ indexMapToList renderBox boxes
+        Svg.map (\_ -> Unrender) DialogBox.filterDefs
+            :: indexMapToList renderBox boxes
             ++ indexMapToList renderTexts boxes
 
 
 centerWrapper : Html Msg -> Html Msg
 centerWrapper content =
     Html.div
-        [ style [ ( "width", "100%" ) ] ]
+        [ style "width" "100%" ]
         [ Html.div
-            [ style
-                [ ( "width", toString DialogBox.boxWidth ++ "px" )
-                , ( "margin", "0 auto" )
-                , ( "display", "block" )
-                ]
+            [ style "width" <| String.fromInt DialogBox.boxWidth ++ "px"
+            , style "margin" "0 auto"
+            , style "display" "block"
             ]
             [ content ]
         ]
@@ -306,26 +304,6 @@ updateBoxes action boxes =
     Array.map (DialogBox.update action) boxes
 
 
-<<<<<<< HEAD:src/DialogBoxes.elm
-resetTexts : Array DialogBox.Model -> Array DialogBox.Model
-resetTexts boxes =
-    let
-        boxList =
-            toList boxes
-
-        ( first, rest ) =
-            ( List.head boxList, List.tail boxList )
-    in
-    case Maybe.map2 Tuple.pair first rest of
-        Nothing ->
-            Array.repeat 1 (DialogBox.init (Just "") 1)
-
-        Just ( blank, empty ) ->
-            initBoxes
-
-
-=======
->>>>>>> client-side:src/static/js/DialogBoxes.elm
 render : Model -> ( Model, String )
 render model =
     ( { model
@@ -379,7 +357,7 @@ update action model =
                         List.map
                             (\( s, box ) -> DialogBox.update (DialogBox.SetText s) box)
                         <|
-                            List.map2 (,) newTexts (toList model.boxes)
+                            List.map2 Tuple.pair newTexts (toList model.boxes)
                 , focusIndex = focusBoxNum
                 , renderId = Nothing
               }

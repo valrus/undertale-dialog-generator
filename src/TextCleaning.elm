@@ -1,23 +1,29 @@
 module TextCleaning exposing (..)
 
-import Regex exposing (contains, escape, regex, Regex)
-
-import Character exposing (illegalCharRegex)
+import Character exposing (illegalStringForChar)
+import Regex exposing (Regex, contains)
 
 
 type TextReplacement
-  = HasCusses
-  | UnknownLanguage
-  | TooLong
-  | NoMatch
+    = HasCusses
+    | UnknownLanguage
+    | TooLong
+    | NoMatch
 
 
 matchHelper : Character.Name -> String -> TextReplacement
 matchHelper chara s =
-  if contains cussRegex s then HasCusses
-  else if contains (illegalCharRegex chara) s then UnknownLanguage
-  else if isTooLong s then TooLong
-  else NoMatch
+    if contains cussRegex s then
+        HasCusses
+
+    else if illegalStringForChar chara s then
+        UnknownLanguage
+
+    else if isTooLong s then
+        TooLong
+
+    else
+        NoMatch
 
 
 isTooLong : String -> Bool
@@ -27,21 +33,28 @@ isTooLong s =
 
 cussRegex : Regex
 cussRegex =
-    regex "\\b(fag|faggot|tranny|nigger|kike)\\b"
+    Maybe.withDefault Regex.never <|
+        Regex.fromString "\\b(fag|faggot|tranny|nigger|kike)\\b"
 
 
 unicodeSanitizer : Char -> Char
 unicodeSanitizer c =
     case c of
-        '‘' -> '\''
+        '‘' ->
+            '\''
 
-        '’' -> '\''
+        '’' ->
+            '\''
 
-        '“' -> '"'
+        '“' ->
+            '"'
 
-        '”' -> '"'
+        '”' ->
+            '"'
 
         -- non-breaking space
-        ' ' -> ' '
+        '\u{00A0}' ->
+            ' '
 
-        _ -> c
+        _ ->
+            c

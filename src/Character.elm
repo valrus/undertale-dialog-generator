@@ -1,9 +1,11 @@
 module Character exposing (..)
 
-import Helpers exposing (StyleList)
+import Helpers exposing (StyleList, stylesFromArgs)
+import Html
+import Html.Attributes exposing (style)
 import List exposing (map, maximum)
 import Maybe exposing (withDefault)
-import Regex exposing (Regex, escape, regex)
+import Set
 import UndertaleFonts exposing (..)
 
 
@@ -35,6 +37,43 @@ allNames =
     , Asriel
     , Temmie
     ]
+
+
+nameAsString : Name -> String
+nameAsString name =
+    case name of
+        Toriel ->
+            "Toriel"
+
+        Sans ->
+            "Sans"
+
+        Papyrus ->
+            "Papyrus"
+
+        Undyne ->
+            "Undyne"
+
+        Alphys ->
+            "Alphys"
+
+        Asgore ->
+            "Asgore"
+
+        Flowey ->
+            "Flowey"
+
+        Napstablook ->
+            "Napstablook"
+
+        Mettaton ->
+            "Mettaton"
+
+        Asriel ->
+            "Asriel"
+
+        Temmie ->
+            "Temmie"
 
 
 moodCount : Bool -> Name -> Int
@@ -97,19 +136,19 @@ maxMoods exmode =
 
 spriteFolder : String -> Name -> String
 spriteFolder root c =
-    root ++ "images/sprites/" ++ toString c
+    root ++ "images/sprites/" ++ nameAsString c
 
 
 spriteNumber : String -> Name -> Int -> String
 spriteNumber root c n =
-    spriteFolder root c ++ "/" ++ toString n ++ ".png"
+    spriteFolder root c ++ "/" ++ String.fromInt n ++ ".png"
 
 
 defaultSprite : String -> Name -> Bool -> String
-defaultSprite root c thumbnail =
+defaultSprite root c asThumbnail =
     spriteNumber root
         c
-        (if thumbnail then
+        (if asThumbnail then
             0
 
          else
@@ -150,8 +189,8 @@ fontFamilyStyle c =
             "font-family: 'determination_monoregular';"
 
 
-fontStyles : Name -> StyleList
-fontStyles c =
+fontStyleArgs : Name -> List ( String, String )
+fontStyleArgs c =
     case c of
         Papyrus ->
             [ ( "font-family", "UndertalePapyrus, Smooth_Papyrus, Papyrus" )
@@ -174,19 +213,24 @@ fontStyles c =
             ]
 
 
-textboxWidth : Name -> ( String, String )
+fontStyles : Name -> StyleList msg
+fontStyles c =
+    stylesFromArgs <| fontStyleArgs c
+
+
+textboxWidth : Name -> Html.Attribute msg
 textboxWidth c =
     case c of
         Papyrus ->
-            ( "width", "416px" )
+            style "width" "416px"
 
         _ ->
-            ( "width", "382px" )
+            style "width" "382px"
 
 
-textboxLeft : Name -> ( String, String )
+textboxLeft : Name -> Html.Attribute msg
 textboxLeft c =
-    ( "left", (String.fromInt <| textIndent c) ++ "px" )
+    style "left" ((String.fromInt <| textIndent c) ++ "px")
 
 
 textIndent : Name -> Int
@@ -226,16 +270,15 @@ dialogAsterisk lineIndex c =
                 ""
 
 
-thumbnail : Name -> StyleList
+thumbnail : Name -> StyleList msg
 thumbnail c =
-    [ ( "width", "60px" )
-    , ( "height"
-      , if c == Napstablook then
+    [ style "width" "60px"
+    , style "height" <|
+        if c == Napstablook then
             "66px"
 
         else
             "60px"
-      )
     ]
 
 
@@ -317,34 +360,33 @@ languageParams c =
             ( "um.....\n...... ... ...... .\n... .. . ... ..wut????!", 1 )
 
 
-asciiString : String
-asciiString =
-    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
+asciiSet : Set.Set Char
+asciiSet =
+    Set.fromList <| String.toList " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\n"
 
 
-cp1252String : String
-cp1252String =
-    "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+cp1252Set : Set.Set Char
+cp1252Set =
+    Set.fromList <| String.toList "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
 
 
-outsideAscii : Regex
-outsideAscii =
-    regex <| "[^" ++ escape asciiString ++ "]"
+illegalStringForChar : Name -> String -> Bool
+illegalStringForChar c s =
+    let
+        permissibleCharsSet =
+            case c of
+                Sans ->
+                    asciiSet
 
+                Papyrus ->
+                    asciiSet
 
-outsideCP1252 : Regex
-outsideCP1252 =
-    regex <| "[^" ++ escape asciiString ++ escape cp1252String ++ "]"
-
-
-illegalCharRegex : Name -> Regex
-illegalCharRegex c =
-    case c of
-        Sans ->
-            outsideAscii
-
-        Papyrus ->
-            outsideAscii
-
-        _ ->
-            outsideCP1252
+                _ ->
+                    cp1252Set
+    in
+    (Set.size <|
+        Set.intersect
+            (Set.fromList <| String.toList s)
+            permissibleCharsSet
+    )
+        > 0

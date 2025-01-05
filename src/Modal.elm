@@ -1,12 +1,11 @@
 module Modal exposing (..)
 
-import Color exposing (Color)
+import Color exposing (Color, toRgba)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (Options, onClick, onWithOptions)
+import Html.Events exposing (custom, onClick)
 import Json.Decode
 import Maybe exposing (Maybe)
-import String
 
 
 type alias Model =
@@ -46,75 +45,52 @@ update message model =
             model
 
 
-expand : List ( String, String )
+expand : List (Html.Attribute msg)
 expand =
-    [ ( "width", "100%" ), ( "height", "100%" ) ]
+    [ style "width" "100%", style "height" "100%" ]
 
 
 partlyTransparent : Color -> String
 partlyTransparent color =
     let
-        rgb = (Color.toRgb color)
+        rgba =
+            toRgba color
     in
-        "rgba("
-            ++ (String.join ", "
-                    <| List.map
-                        toString
-                        [ rgb.red
-                        , rgb.green
-                        , rgb.blue
-                        ]
-               )
-            ++ ", 0.7)"
+    Color.toCssString <|
+        Color.rgba rgba.red rgba.green rgba.blue 0.7
 
 
 backgroundAttrs : Color -> List (Attribute Msg)
 backgroundAttrs color =
     [ onClick (Show Nothing)
-    , style
-        [ ( "backgroundColor", partlyTransparent color )
-        , ( "height", "100%" )
-        , ( "width", "100%" )
-        , ( "position", "fixed" )
-        , ( "top", "0" )
-        , ( "left", "0" )
-        , ( "z-index", "99999" )
-        ]
+    , style "backgroundColor" (partlyTransparent color)
+    , style "height" "100%"
+    , style "width" "100%"
+    , style "position" "fixed"
+    , style "top" "0"
+    , style "left" "0"
+    , style "z-index" "99999"
     ]
 
 
-messageOn : String -> Options -> msg -> Attribute msg
-messageOn event options message =
-    onWithOptions event options (Json.Decode.succeed message)
-
-
-noBubble : Options
-noBubble =
-    { stopPropagation = True
-    , preventDefault = False
-    }
-
-
 swallowClick : msg -> Attribute msg
-swallowClick =
-    messageOn "click" noBubble
+swallowClick msg =
+    custom "click" (Json.Decode.succeed { message = msg, stopPropagation = True, preventDefault = True })
 
 
 wrapperDiv : SizedHtml Msg -> List (Html Msg)
 wrapperDiv inner =
     [ div
         [ swallowClick NoOp
-        , style
-            [ ( "width", inner.width )
-            , ( "height", inner.height )
-            , ( "overflow", "auto" )
-            , ( "margin", "auto" )
-            , ( "position", "absolute" )
-            , ( "top", "0" )
-            , ( "left", "0" )
-            , ( "bottom", "0" )
-            , ( "right", "0" )
-            ]
+        , style "width" inner.width
+        , style "height" inner.height
+        , style "overflow" "auto"
+        , style "margin" "auto"
+        , style "position" "absolute"
+        , style "top" "0"
+        , style "left" "0"
+        , style "bottom" "0"
+        , style "right" "0"
         ]
         [ inner.html ]
     ]

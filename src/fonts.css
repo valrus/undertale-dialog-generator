@@ -5,9 +5,9 @@
 /* Converted to web font with font squirrel */
 @font-face {
     font-family: 'determination_monoregular';
-    src: url('fonts/DeterminationMono/DeterminationMono.woff2') format('woff2'),
-         url('fonts/DeterminationMono/DeterminationMono.woff') format('woff'),
-         url('fonts/DeterminationMono/DeterminationMono.svg#determination_monoregular') format('svg');
+    src: url('./fonts/DeterminationMono/dtm-mono-webfont.woff2') format('woff2'),
+         url('./fonts/DeterminationMono/dtm-mono-webfont.woff') format('woff'),
+         url('./fonts/DeterminationMono/dtm-mono-webfont.svg#determination_monoregular') format('svg');
     font-weight: normal;
     font-style: normal;
 }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "parcel public/index.html",
+    "start": "parcel src/index.html",
     "lint": "eslint src/undertale.js",
     "build": "parcel build src/index.html",
     "build-gh": "rm docs/*; parcel build public/index.html --dist-dir gh-pages --public-url /undertale-dialog-generator/"
@@ -22,7 +22,9 @@
     "eslint-plugin-promise": "^5.2.0",
     "events": "^3.3.0",
     "parcel": "^2.12.0",
+    "parcel-reporter-static-files-copy": "^1.5.3",
     "process": "^0.11.10",
+    "svgo": "^3",
     "yarn": "^1.22.22"
   }
 }

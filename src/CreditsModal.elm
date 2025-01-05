@@ -1,12 +1,10 @@
 module CreditsModal exposing (..)
 
+-- Local stuff
+
 import Either exposing (Either)
 import Html exposing (..)
 import Html.Attributes exposing (style)
-
-
--- Local stuff
-
 import ImageMap exposing (mapArea)
 import Modal exposing (SizedHtml, expand)
 
@@ -71,14 +69,13 @@ creditsDialog staticRoot =
     let
         innerDiv =
             div
-                [ style <|
-                    [ ( "backgroundColor", "white" )
-                    , ( "color", "black" )
-                    ]
-                        ++ expand
-                ]
+                ([ style "backgroundColor" "white"
+                 , style "color" "black"
+                 ]
+                    ++ expand
+                )
                 [ creditsImg staticRoot
                 , creditsImgMap
                 ]
     in
-        SizedHtml innerDiv "596" "654"
+    SizedHtml innerDiv "596" "654"

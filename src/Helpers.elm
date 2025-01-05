@@ -1,6 +1,8 @@
 module Helpers exposing (..)
 
 import Array exposing (Array, fromList)
+import Html
+import Html.Attributes exposing (style)
 import List
 import List.Extra exposing (splitAt)
 import Maybe.Extra exposing (isJust)
@@ -19,8 +21,8 @@ type alias Position =
     }
 
 
-type alias StyleList =
-    List ( String, String )
+type alias StyleList msg =
+    List (Html.Attribute msg)
 
 
 offset : Int -> Int -> Position -> Position
@@ -102,14 +104,19 @@ queryEscape string =
     String.join "+" (String.split "%20" (percentEncode string))
 
 
-styleCss : StyleList -> String
+styleCss : List ( String, String ) -> String
 styleCss style =
     String.join ";\n" <| List.map (\( a, b ) -> a ++ ": " ++ b) style
 
 
-crispyFontStyles : StyleList
-crispyFontStyles =
+crispyFontStyleArgs : List ( String, String )
+crispyFontStyleArgs =
     [ ( "font-smooth", "never" )
     , ( "-moz-osx-font-smoothing", "grayscale" )
     , ( "-webkit-font-smoothing", "none" )
     ]
+
+
+stylesFromArgs : List ( String, String ) -> StyleList msg
+stylesFromArgs args =
+    List.map (\( a, b ) -> style a b) args

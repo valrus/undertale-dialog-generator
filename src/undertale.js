@@ -1,8 +1,11 @@
 const { Elm } = require('./UndertaleDialog.elm');
 
-var undertale = Elm.UndertaleDialog.fullscreen({
-        staticRoot: $STATIC_ROOT,
-        scriptRoot: $SCRIPT_ROOT
+var undertale = Elm.UndertaleDialog.init({
+        node: document.getElementById('root'),
+        flags: {
+            staticRoot: './',
+            scriptRoot: './'
+        },
     }
 );
 

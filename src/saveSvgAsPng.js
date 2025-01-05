@@ -77,6 +77,7 @@
     for (var i = 0; i < sheets.length; i++) {
       try {
         var rules = sheets[i].cssRules;
+        console.log("Stylesheet loaded: "+sheets[i].href);
       } catch (e) {
         console.warn("Stylesheet could not be loaded: "+sheets[i].href);
         continue;
