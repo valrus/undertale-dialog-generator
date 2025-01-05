@@ -23,7 +23,7 @@ import Svg.String.Events as SvgEvents
 type alias Model =
     { boxes : Array DialogBox.Model
     , focusIndex : Int
-    , renderId : Maybe String
+    , render : Maybe (Svg Msg)
     }
 
 
@@ -44,7 +44,7 @@ init : String -> Model
 init imgRoot =
     { boxes = initBoxes imgRoot
     , focusIndex = 0
-    , renderId = Nothing
+    , render = Nothing
     }
 
 
@@ -192,20 +192,31 @@ indexMapToList f arr =
     Array.indexedMap f arr |> Array.toList
 
 
-renderBoxes : Array DialogBox.Model -> String -> Svg.String.Html Msg
+renderBoxes : Array DialogBox.Model -> String -> Svg Msg
 renderBoxes boxes id =
-    Svg.String.svg
-        [ SvgAttr.id id
-        , SvgAttr.attribute "version" "1.1"
-        , SvgAttr.attribute "xml-space" "http://www.w3.org/2000/svg"
-        , SvgAttr.width (String.fromInt DialogBox.boxWidth)
-        , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count boxes)
-        , SvgEvents.onClick Unrender
-        ]
+    Svg.String.g
+        []
     <|
         Svg.String.map (\_ -> Unrender) DialogBox.filterDefs
             :: indexMapToList renderBox boxes
             ++ indexMapToList renderTexts boxes
+
+
+toHtml : Model -> Maybe (Html Msg)
+toHtml model =
+    Maybe.map
+        (List.singleton
+            >> Svg.String.svg
+                [ SvgAttr.id renderedSvgId
+                , SvgAttr.attribute "version" "1.1"
+                , SvgAttr.attribute "xml-space" "http://www.w3.org/2000/svg"
+                , SvgAttr.width (String.fromInt DialogBox.boxWidth)
+                , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count model.boxes)
+                , SvgEvents.onClick Unrender
+                ]
+            >> Svg.String.toHtml
+        )
+        model.render
 
 
 centerWrapper : Html Msg -> Html Msg
@@ -223,9 +234,9 @@ centerWrapper content =
 
 view : Model -> List (Html Msg)
 view model =
-    case model.renderId of
-        Just id ->
-            [ centerWrapper <| Svg.String.toHtml <| renderBoxes model.boxes id ]
+    case model.render of
+        Just svg ->
+            [ centerWrapper <| Svg.String.toHtml <| Svg.String.svg [] [ svg ] ]
 
         _ ->
             indexMapToList mapBoxView model.boxes
@@ -304,13 +315,11 @@ updateBoxes action boxes =
     Array.map (DialogBox.update action) boxes
 
 
-render : Model -> ( Model, String )
+render : Model -> Model
 render model =
-    ( { model
-        | renderId = Just renderedSvgId
-      }
-    , renderedSvgId
-    )
+    { model
+        | render = Just <| renderBoxes model.boxes renderedSvgId
+    }
 
 
 type Msg
@@ -325,7 +334,7 @@ update action model =
     case action of
         Unrender ->
             ( { model
-                | renderId = Nothing
+                | render = Nothing
               }
             , False
             )
@@ -359,7 +368,7 @@ update action model =
                         <|
                             List.map2 Tuple.pair newTexts (toList model.boxes)
                 , focusIndex = focusBoxNum
-                , renderId = Nothing
+                , render = Nothing
               }
             , model.focusIndex /= focusBoxNum
             )
@@ -379,9 +388,6 @@ update action model =
                       }
                     , False
                     )
-
-
-port getImg : String -> Cmd msg
 
 
 port getRenderData : (String -> msg) -> Sub msg
