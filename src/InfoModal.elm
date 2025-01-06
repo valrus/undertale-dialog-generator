@@ -17,12 +17,7 @@ infoImgMap =
         , Html.Attributes.name "infoMap"
         ]
         [ mapArea
-            [ 62, 121, 161, 147 ]
-            "IDTHV on Twitter!"
-          <|
-            Either.Left "https://twitter.com/IDTHV"
-        , mapArea
-            [ 430, 186, 529, 212 ]
+            [ 430, 134, 529, 160 ]
             "IDTHV on GitHub!"
           <|
             Either.Left "https://github.com/valrus/undertale-dialog-generator/issues"
@@ -33,7 +28,7 @@ infoImg : String -> Html msg
 infoImg staticRoot =
     img
         [ Html.Attributes.width 596
-        , Html.Attributes.height 654
+        , Html.Attributes.height 400
         , Html.Attributes.usemap "#infoMap"
         , Html.Attributes.src <| staticRoot ++ "images/info.png"
         ]
