@@ -10,6 +10,7 @@
             "avh4/elm-color": "1.0.0",
             "danfishgold/base64-bytes": "1.1.0",
             "elm/browser": "1.0.2",
+            "elm/bytes": "1.0.8",
             "elm/core": "1.0.5",
             "elm/html": "1.0.0",
             "elm/http": "2.0.0",
@@ -22,7 +23,6 @@
             "toastal/either": "3.6.3"
         },
         "indirect": {
-            "elm/bytes": "1.0.8",
             "elm/file": "1.0.5",
             "elm/time": "1.0.0",
             "elm/virtual-dom": "1.0.3"

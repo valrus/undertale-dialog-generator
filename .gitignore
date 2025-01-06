@@ -10,3 +10,4 @@ elm.js
 /.parcel-cache/
 /elm-stuff/
 /node_modules/
+.DS_Store

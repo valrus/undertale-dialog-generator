@@ -1,14 +1,16 @@
-port module DialogBoxes exposing (..)
+module DialogBoxes exposing (..)
 
 -- Local modules
 
 import Array exposing (Array, fromList, toList)
+import Bytes exposing (Bytes)
 import Character
 import Debug exposing (log)
 import DialogBox
 import Helpers exposing (..)
 import Html exposing (Html)
 import Html.Attributes exposing (style)
+import Http exposing (Response)
 import Maybe.Extra exposing (isJust, join)
 import String
 import Svg.String exposing (Svg)
@@ -106,6 +108,9 @@ convertViewMessage boxNum boxMsg =
                 Just src ->
                     SetImages c src
 
+        DialogBox.SetData s ->
+            SetImageData boxNum s
+
         DialogBox.SetText s ->
             UpdateText boxNum s
 
@@ -192,8 +197,8 @@ indexMapToList f arr =
     Array.indexedMap f arr |> Array.toList
 
 
-renderBoxes : Array DialogBox.Model -> String -> Svg Msg
-renderBoxes boxes id =
+renderBoxes : Array DialogBox.Model -> Svg Msg
+renderBoxes boxes =
     Svg.String.g
         []
     <|
@@ -317,20 +322,79 @@ updateBoxes action boxes =
 render : Model -> Model
 render model =
     { model
-        | render = Just <| renderBoxes model.boxes renderedSvgId
+        | render = Just <| renderBoxes model.boxes
+    }
+
+
+bytesResultMsg : Int -> Result Http.Error Bytes -> Msg
+bytesResultMsg boxIndex result =
+    case result of
+        Ok bytes ->
+            SetImageData boxIndex bytes
+
+        Err _ ->
+            NoOp
+
+
+bytesResultFromResponse : Response Bytes -> Result Http.Error Bytes
+bytesResultFromResponse resp =
+    case resp of
+        Http.GoodStatus_ _ body ->
+            Ok body
+
+        _ ->
+            Err (Http.BadBody "")
+
+
+getPortraitDatum : Int -> DialogBox.Model -> Cmd Msg
+getPortraitDatum boxIndex dialogBox =
+    case dialogBox.imgSrc of
+        Just src ->
+            Http.get
+                { url = src
+                , expect =
+                    Http.expectBytesResponse
+                        (bytesResultMsg boxIndex)
+                        bytesResultFromResponse
+                }
+
+        Nothing ->
+            Cmd.none
+
+
+getPortraitsData : Model -> Cmd Msg
+getPortraitsData model =
+    Cmd.batch (List.indexedMap getPortraitDatum <| Array.toList model.boxes)
+
+
+updateRendered : Model -> Int -> DialogBox.Model -> Model
+updateRendered model index newBox =
+    let
+        newBoxes =
+            Array.set index newBox model.boxes
+    in
+    { model
+        | boxes = newBoxes
+        , render = Just (renderBoxes newBoxes)
     }
 
 
 type Msg
-    = Unrender
+    = NoOp
+    | Unrender
     | SetImages Character.Name String
     | UpdateText Int (Maybe String)
+    | SetImageData Int Bytes.Bytes
     | ExpectImage Int Bool
 
 
 update : Msg -> Model -> ( Model, Bool )
 update action model =
+    -- the Bool is whether to move the cursor
     case action of
+        NoOp ->
+            ( model, False )
+
         Unrender ->
             ( { model
                 | render = Nothing
@@ -347,6 +411,7 @@ update action model =
                             (countBoxes model == 1)
                         )
                         model.boxes
+                , render = Nothing
               }
             , False
             )
@@ -372,6 +437,20 @@ update action model =
             , model.focusIndex /= focusBoxNum
             )
 
+        SetImageData index data ->
+            let
+                box =
+                    Array.get index model.boxes
+            in
+            case box of
+                Nothing ->
+                    ( model, False )
+
+                Just oldBox ->
+                    ( updateRendered model index (DialogBox.update (DialogBox.SetData data) oldBox)
+                    , False
+                    )
+
         ExpectImage index b ->
             let
                 box =
@@ -387,6 +466,3 @@ update action model =
                       }
                     , False
                     )
-
-
-port getRenderData : (String -> msg) -> Sub msg

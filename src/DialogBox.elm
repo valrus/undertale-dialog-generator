@@ -1,7 +1,8 @@
 module DialogBox exposing (..)
 
+import Base64
+import Bytes exposing (Bytes)
 import Character exposing (RenderOverride, spriteNumber)
-import Debug exposing (log)
 import Helpers exposing (KeyCode, Position, offset, takeLines)
 import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr
@@ -23,6 +24,7 @@ type alias Model =
     { chara : Maybe Character.Name
     , imgRoot : String
     , imgSrc : Maybe String
+    , imgData : Maybe String
     , text : Maybe String
     , index : Int
     , expectingImage : Bool
@@ -32,6 +34,7 @@ type alias Model =
 type alias FullModel =
     { chara : Character.Name
     , imgSrc : String
+    , imgData : Maybe String
     , text : String
     , index : Int
     , expectingImage : Bool
@@ -43,6 +46,7 @@ init root txt i =
     { chara = Nothing
     , imgRoot = root
     , imgSrc = Nothing
+    , imgData = Nothing
     , text = txt
     , index = i
     , expectingImage = False
@@ -219,6 +223,11 @@ boxWidth =
     596
 
 
+imgDataUri : Maybe String -> Maybe String
+imgDataUri =
+    Maybe.map (\d -> "data:image/png;base64," ++ d)
+
+
 singleBox : Int -> Int -> FullModel -> List (Svg Msg)
 singleBox x y model =
     let
@@ -242,7 +251,10 @@ singleBox x y model =
             (sizeY * 2)
             |> move
         )
-        model.imgSrc
+        (Maybe.withDefault
+            model.imgSrc
+            (imgDataUri model.imgData)
+        )
         model.expectingImage
     ]
 
@@ -295,6 +307,7 @@ toFullModel override model chara src txt =
     in
     { chara = chara
     , imgSrc = overrideSrc
+    , imgData = model.imgData
     , text = overrideText
     , index = model.index
     , expectingImage = model.expectingImage
@@ -331,6 +344,7 @@ type Msg
     = NoOp
     | SetImage Character.Name (Maybe String) Bool
     | SetText (Maybe String)
+    | SetData Bytes
     | ExpectImage Bool
 
 
@@ -349,15 +363,23 @@ update action model =
                 | imgSrc =
                     updateField model.imgSrc src wantToSet
                 , chara = updateField model.chara (Just chara) wantToSet
+                , imgData = Nothing
                 , expectingImage = False
             }
 
         SetText text ->
             { model
                 | text = text
+                , imgData = Nothing
+            }
+
+        SetData data ->
+            { model
+                | imgData = Base64.fromBytes data
             }
 
         ExpectImage b ->
             { model
                 | expectingImage = b
+                , imgData = Nothing
             }

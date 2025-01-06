@@ -36,7 +36,6 @@ type alias Model =
     , dialogs : DialogBoxes.Model
     , staticRoot : String
     , scriptRoot : String
-    , svgImage : Maybe (Svg Msg)
     , modal : Modal.Model
     , cheatCode : CheatCode.Model
     , exmode : Bool
@@ -50,7 +49,6 @@ init characters flags =
       , dialogs = DialogBoxes.init flags.staticRoot
       , staticRoot = flags.staticRoot
       , scriptRoot = flags.scriptRoot
-      , svgImage = Nothing
       , modal = Modal.init (rgb255 0 0 0)
       , cheatCode = CheatCode.init [ "EX" ]
       , exmode = False
@@ -65,7 +63,6 @@ type Msg
     | ActivateEXMode
     | UpdateDialogs DialogBoxes.Msg
     | GetRender
-    | GotRender (Svg DialogBoxes.Msg)
     | UpdateModal Modal.Msg
 
 
@@ -247,7 +244,7 @@ moodSection root maybeChar exmode =
 
 
 
--- Dialog boxes
+-- Dialog box section
 
 
 crunchyButton : List (Html Msg)
@@ -467,7 +464,6 @@ update msg model =
                         _ ->
                             model.selection
                 , dialogs = newBoxes
-                , svgImage = Nothing
               }
             , Focus.focus
                 { elementId = textBoxId newBoxes.focusIndex
@@ -476,21 +472,9 @@ update msg model =
             )
 
         GetRender ->
-            let
-                newDialogs =
-                    DialogBoxes.render model.dialogs
-            in
-            ( { model
-                | dialogs = newDialogs
-              }
-            , Cmd.none
-            )
-
-        GotRender svg ->
-            ( { model
-                | svgImage = Just (Svg.String.map UpdateDialogs svg)
-              }
-            , Cmd.none
+            ( model
+            , Cmd.map UpdateDialogs
+                (DialogBoxes.getPortraitsData model.dialogs)
             )
 
         UpdateModal modalMsg ->
