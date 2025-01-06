@@ -22,6 +22,8 @@ import Json.Decode as Json
 import Maybe exposing (Maybe)
 import Maybe.Extra exposing (join)
 import Modal
+import Svg.String exposing (Svg)
+import Url
 
 
 
@@ -34,7 +36,6 @@ type alias Model =
     , dialogs : DialogBoxes.Model
     , staticRoot : String
     , scriptRoot : String
-    , imageData : Maybe String
     , modal : Modal.Model
     , cheatCode : CheatCode.Model
     , exmode : Bool
@@ -48,7 +49,6 @@ init characters flags =
       , dialogs = DialogBoxes.init flags.staticRoot
       , staticRoot = flags.staticRoot
       , scriptRoot = flags.scriptRoot
-      , imageData = Nothing
       , modal = Modal.init (rgb255 0 0 0)
       , cheatCode = CheatCode.init [ "EX" ]
       , exmode = False
@@ -62,8 +62,7 @@ type Msg
     | EnterCheatCode KeyCode
     | ActivateEXMode
     | UpdateDialogs DialogBoxes.Msg
-    | GetDownload
-    | GotDownload String
+    | GetRender
     | UpdateModal Modal.Msg
 
 
@@ -245,7 +244,7 @@ moodSection root maybeChar exmode =
 
 
 
--- Dialog boxes
+-- Dialog box section
 
 
 crunchyButton : List (Html Msg)
@@ -253,12 +252,30 @@ crunchyButton =
     [ div
         [ style "width" "100%" ]
         [ Html.button
-            [ onClick GetDownload
+            [ onClick GetRender
             , Html.Attributes.id "crunchybutton"
             ]
-            [ text "MAKE IT CRUNCHY" ]
+            [ text "PREPARE SVG" ]
         ]
     ]
+
+
+svgAsData : String -> String
+svgAsData svgString =
+    "data:image/svg+xml;utf8," ++ Url.percentEncode svgString
+
+
+downloadButton : String -> Html Msg
+downloadButton svgString =
+    div
+        [ style "width" "100%" ]
+        [ Html.a
+            [ Html.Attributes.download "image.svg"
+            , Html.Attributes.id "crunchybutton"
+            , Html.Attributes.href (svgAsData svgString)
+            ]
+            [ text "DOWNLOAD SVG" ]
+        ]
 
 
 dialogBoxTexts : Array (Maybe String) -> List String
@@ -276,31 +293,27 @@ numBoxes texts =
     List.length <| dialogBoxTexts texts
 
 
-dialogBoxImg : DialogBoxes.Model -> String -> List (Html Msg)
-dialogBoxImg boxes pngData =
+wrappedDialogBoxes : DialogBoxes.Model -> Maybe (Html DialogBoxes.Msg) -> Maybe (Html Msg)
+wrappedDialogBoxes boxes boxesHtml =
     let
         boxCount =
             DialogBoxes.countBoxes boxes
     in
-    [ Html.a
-        []
-        [ Html.img
-            [ onClick <|
-                UpdateDialogs <|
-                    DialogBoxes.UpdateText boxCount <|
-                        DialogBoxes.getText boxCount boxes
-            , style "margin" "0 auto"
-            , style "display" "block"
-            , src pngData
-            ]
-            []
-        ]
-    ]
-
-
-returnedDialogBox : DialogBoxes.Model -> Maybe String -> Maybe (List (Html Msg))
-returnedDialogBox boxes imgData =
-    imgData |> Maybe.andThen (Just << dialogBoxImg boxes)
+    Maybe.map
+        (Html.map UpdateDialogs
+            >> List.singleton
+            >> Html.a
+                [ onClick <|
+                    UpdateDialogs <|
+                        DialogBoxes.UpdateText boxCount <|
+                            DialogBoxes.getText boxCount boxes
+                , style "margin" "0 auto"
+                , style "display" "flex"
+                , style "align-items" "center"
+                , style "justify-content" "space-around"
+                ]
+        )
+        boxesHtml
 
 
 
@@ -346,6 +359,18 @@ textBoxId n =
     "textBox" ++ String.fromInt n
 
 
+renderedDialogBoxSection : DialogBoxes.Model -> Maybe (List (Html Msg))
+renderedDialogBoxSection boxes =
+    let
+        boxesSvgHtml =
+            DialogBoxes.toSvgHtml boxes
+    in
+    Maybe.map2
+        (\el svgHtml -> [ el, downloadButton <| Svg.String.toString 2 svgHtml ])
+        (wrappedDialogBoxes boxes (Maybe.map Svg.String.toHtml boxesSvgHtml))
+        boxesSvgHtml
+
+
 dialogBoxSection : Model -> Html Msg
 dialogBoxSection model =
     div
@@ -353,7 +378,7 @@ dialogBoxSection model =
     <|
         Maybe.withDefault [ blank ] <|
             Maybe.Extra.or
-                (returnedDialogBox model.dialogs model.imageData)
+                (renderedDialogBoxSection model.dialogs)
                 (Just <|
                     List.map
                         (Html.map UpdateDialogs)
@@ -439,7 +464,6 @@ update msg model =
                         _ ->
                             model.selection
                 , dialogs = newBoxes
-                , imageData = Nothing
               }
             , Focus.focus
                 { elementId = textBoxId newBoxes.focusIndex
@@ -447,22 +471,10 @@ update msg model =
                 }
             )
 
-        GetDownload ->
-            let
-                ( newDialogs, svgId ) =
-                    DialogBoxes.render model.dialogs
-            in
-            ( { model
-                | dialogs = newDialogs
-              }
-            , DialogBoxes.getImg svgId
-            )
-
-        GotDownload data ->
-            ( { model
-                | imageData = Just data
-              }
-            , Cmd.none
+        GetRender ->
+            ( model
+            , Cmd.map UpdateDialogs
+                (DialogBoxes.getPortraitsData model.dialogs)
             )
 
         UpdateModal modalMsg ->
@@ -482,18 +494,6 @@ getSubmitUrl root =
     root ++ "/submit"
 
 
-getImgurParamsUrl : String -> String
-getImgurParamsUrl root =
-    root ++ "/imgur_id"
-
-
-imgurParamsDecoder : Json.Decoder ( String, String )
-imgurParamsDecoder =
-    Json.map2 Tuple.pair
-        (Json.field "clientId" Json.string)
-        (Json.field "albumId" Json.string)
-
-
 toCheatCodeMsg : String -> Msg
 toCheatCodeMsg s =
     case String.uncons s of
@@ -510,10 +510,9 @@ cheatCodeDecoder =
 
 
 subs : Model -> Sub Msg
-subs model =
+subs _ =
     Sub.batch
         [ Browser.Events.onKeyDown cheatCodeDecoder
-        , DialogBoxes.getRenderData GotDownload
         ]
 
 

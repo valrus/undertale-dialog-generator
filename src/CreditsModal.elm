@@ -12,10 +12,8 @@ import Modal exposing (SizedHtml, expand)
 creditsImg : String -> Html msg
 creditsImg staticRoot =
     img
-        [ Html.Attributes.width 596
-        , Html.Attributes.height 654
-        , Html.Attributes.usemap "#creditsMap"
-        , Html.Attributes.src <| staticRoot ++ "images/credits.png"
+        [ Html.Attributes.usemap "#creditsMap"
+        , Html.Attributes.src <| staticRoot ++ "images/credits.svg"
         ]
         []
 
@@ -33,16 +31,16 @@ creditsImgMap =
         ]
         [ mapArea
             [ 331, 75, 441, 96 ]
-            "valrus's Twitter!"
+            "valrus's Mastodon!"
           <|
-            Either.Left "http://twitter.com/valrus"
+            Either.Left "https://icosahedron.website/@valrus/"
         , mapArea
             [ 299, 110, 475, 132 ]
             "This web page's source code!"
           <|
             Either.Left "https://github.com/valrus/undertale-dialog-generator"
         , mapArea
-            [ 448, 192, 523, 218 ]
+            [ 472, 192, 548, 218 ]
             "Determination, the Better Undertale Font!"
           <|
             Either.Left "https://www.behance.net/gallery/31268855/Determination-Better-Undertale-Font"
@@ -57,7 +55,7 @@ creditsImgMap =
           <|
             Either.Left "https://www.behance.net/JapanYoshi"
         , mapArea
-            [ 338, 359, 456, 391 ]
+            [ 320, 402, 450, 434 ]
             "The official Undertale website!"
           <|
             Either.Left "http://undertale.com"

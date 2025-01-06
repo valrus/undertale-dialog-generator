@@ -1,19 +1,21 @@
-port module DialogBoxes exposing (..)
+module DialogBoxes exposing (..)
 
 -- Local modules
 
 import Array exposing (Array, fromList, toList)
+import Bytes exposing (Bytes)
 import Character
 import Debug exposing (log)
 import DialogBox
 import Helpers exposing (..)
 import Html exposing (Html)
 import Html.Attributes exposing (style)
+import Http exposing (Response)
 import Maybe.Extra exposing (isJust, join)
 import String
-import Svg
-import Svg.Attributes as SvgAttr
-import Svg.Events
+import Svg.String exposing (Svg)
+import Svg.String.Attributes as SvgAttr
+import Svg.String.Events as SvgEvents
 
 
 
@@ -23,7 +25,7 @@ import Svg.Events
 type alias Model =
     { boxes : Array DialogBox.Model
     , focusIndex : Int
-    , renderId : Maybe String
+    , render : Maybe (Svg Msg)
     }
 
 
@@ -44,7 +46,7 @@ init : String -> Model
 init imgRoot =
     { boxes = initBoxes imgRoot
     , focusIndex = 0
-    , renderId = Nothing
+    , render = Nothing
     }
 
 
@@ -106,6 +108,9 @@ convertViewMessage boxNum boxMsg =
                 Just src ->
                     SetImages c src
 
+        DialogBox.SetData s ->
+            SetImageData boxNum s
+
         DialogBox.SetText s ->
             UpdateText boxNum s
 
@@ -122,17 +127,17 @@ mapBoxView i box =
 -- Crispy rendering
 
 
-renderBox : Int -> DialogBox.Model -> Svg.Svg Msg
+renderBox : Int -> DialogBox.Model -> Svg Msg
 renderBox i box =
     case DialogBox.certifyModel True box of
         Nothing ->
-            Svg.g [] []
+            Svg.String.g [] []
 
         Just fullModel ->
-            Svg.g
+            Svg.String.g
                 []
             <|
-                List.map (Html.map <| convertViewMessage i) <|
+                List.map (Svg.String.map <| convertViewMessage i) <|
                     DialogBox.singleBox
                         0
                         (DialogBox.boxHeight i)
@@ -144,46 +149,46 @@ textLineOffset offset lineNum chara =
     DialogBox.boxHeight offset + 32 + (36 * lineNum) + Character.yOffset chara
 
 
-renderTextLine : Character.Name -> Int -> Int -> String -> Svg.Svg Msg
+renderTextLine : Character.Name -> Int -> Int -> String -> Svg Msg
 renderTextLine chara offset lineNum text =
     let
         attrs =
             [ SvgAttr.y <| String.fromInt (textLineOffset offset lineNum chara)
-            , SvgAttr.dominantBaseline "text-before-edge"
+            , SvgAttr.attribute "dominant-baseline" "text-before-edge"
             ]
     in
-    Svg.g
-        [ SvgAttr.textAnchor "start"
-        , SvgAttr.xmlSpace "preserve"
+    Svg.String.g
+        [ SvgAttr.attribute "text-anchor" "start"
+        , SvgAttr.attribute "xml-space" "preserve"
         , SvgAttr.fill "white"
         , SvgAttr.filter "url(#crispify)"
         , SvgAttr.style <| styleCss (Character.fontStyleArgs chara ++ crispyFontStyleArgs)
         ]
-        [ Svg.text_
+        [ Svg.String.text_
             ((SvgAttr.x <| String.fromInt 153) :: attrs)
-            [ Svg.text <| Character.dialogAsterisk lineNum chara ]
-        , Svg.text_
+            [ Svg.String.text <| Character.dialogAsterisk lineNum chara ]
+        , Svg.String.text_
             ((SvgAttr.x <| String.fromInt <| Character.textIndent chara + 4)
                 :: attrs
             )
           <|
-            [ Svg.text text ]
+            [ Svg.String.text text ]
         ]
 
 
-renderText : Int -> Character.Name -> String -> List (Svg.Svg Msg)
+renderText : Int -> Character.Name -> String -> List (Svg Msg)
 renderText i chara text =
     List.indexedMap (renderTextLine chara i) <| String.split "\n" text
 
 
-renderTexts : Int -> DialogBox.Model -> Svg.Svg Msg
+renderTexts : Int -> DialogBox.Model -> Svg Msg
 renderTexts i box =
     case DialogBox.certifyModel True box of
         Nothing ->
-            Svg.g [] []
+            Svg.String.g [] []
 
         Just fullModel ->
-            Svg.g [] <|
+            Svg.String.g [] <|
                 renderText i fullModel.chara fullModel.text
 
 
@@ -192,20 +197,30 @@ indexMapToList f arr =
     Array.indexedMap f arr |> Array.toList
 
 
-renderBoxes : Array DialogBox.Model -> String -> Html Msg
-renderBoxes boxes id =
-    Svg.svg
-        [ SvgAttr.id id
-        , SvgAttr.version "1.1"
-        , SvgAttr.xmlSpace "http://www.w3.org/2000/svg"
-        , SvgAttr.width (String.fromInt DialogBox.boxWidth)
-        , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count boxes)
-        , Svg.Events.onClick Unrender
-        ]
+renderBoxes : Array DialogBox.Model -> Svg Msg
+renderBoxes boxes =
+    Svg.String.g
+        []
     <|
-        Svg.map (\_ -> Unrender) DialogBox.filterDefs
+        Svg.String.map (\_ -> Unrender) DialogBox.filterDefs
             :: indexMapToList renderBox boxes
             ++ indexMapToList renderTexts boxes
+
+
+toSvgHtml : Model -> Maybe (Svg.String.Html Msg)
+toSvgHtml model =
+    Maybe.map
+        (List.singleton
+            >> Svg.String.svg
+                [ SvgAttr.id renderedSvgId
+                , SvgAttr.attribute "version" "1.1"
+                , SvgAttr.attribute "xmlns" "http://www.w3.org/2000/svg"
+                , SvgAttr.width (String.fromInt DialogBox.boxWidth)
+                , SvgAttr.height (String.fromInt <| DialogBox.boxHeight <| count model.boxes)
+                , SvgEvents.onClick Unrender
+                ]
+        )
+        model.render
 
 
 centerWrapper : Html Msg -> Html Msg
@@ -223,9 +238,9 @@ centerWrapper content =
 
 view : Model -> List (Html Msg)
 view model =
-    case model.renderId of
-        Just id ->
-            [ centerWrapper <| renderBoxes model.boxes id ]
+    case model.render of
+        Just svg ->
+            [ centerWrapper <| Svg.String.toHtml <| Svg.String.svg [] [ svg ] ]
 
         _ ->
             indexMapToList mapBoxView model.boxes
@@ -304,28 +319,85 @@ updateBoxes action boxes =
     Array.map (DialogBox.update action) boxes
 
 
-render : Model -> ( Model, String )
+render : Model -> Model
 render model =
-    ( { model
-        | renderId = Just renderedSvgId
-      }
-    , renderedSvgId
-    )
+    { model
+        | render = Just <| renderBoxes model.boxes
+    }
+
+
+bytesResultMsg : Int -> Result Http.Error Bytes -> Msg
+bytesResultMsg boxIndex result =
+    case result of
+        Ok bytes ->
+            SetImageData boxIndex bytes
+
+        Err _ ->
+            NoOp
+
+
+bytesResultFromResponse : Response Bytes -> Result Http.Error Bytes
+bytesResultFromResponse resp =
+    case resp of
+        Http.GoodStatus_ _ body ->
+            Ok body
+
+        _ ->
+            Err (Http.BadBody "")
+
+
+getPortraitDatum : Int -> DialogBox.Model -> Cmd Msg
+getPortraitDatum boxIndex dialogBox =
+    case dialogBox.imgSrc of
+        Just src ->
+            Http.get
+                { url = src
+                , expect =
+                    Http.expectBytesResponse
+                        (bytesResultMsg boxIndex)
+                        bytesResultFromResponse
+                }
+
+        Nothing ->
+            Cmd.none
+
+
+getPortraitsData : Model -> Cmd Msg
+getPortraitsData model =
+    Cmd.batch (List.indexedMap getPortraitDatum <| Array.toList model.boxes)
+
+
+updateRendered : Model -> Int -> DialogBox.Model -> Model
+updateRendered model index newBox =
+    let
+        newBoxes =
+            Array.set index newBox model.boxes
+    in
+    { model
+        | boxes = newBoxes
+        , render = Just (renderBoxes newBoxes)
+    }
 
 
 type Msg
-    = Unrender
+    = NoOp
+    | Unrender
     | SetImages Character.Name String
     | UpdateText Int (Maybe String)
+    | SetImageData Int Bytes.Bytes
     | ExpectImage Int Bool
 
 
 update : Msg -> Model -> ( Model, Bool )
 update action model =
+    -- the Bool is whether to move the cursor
     case action of
+        NoOp ->
+            ( model, False )
+
         Unrender ->
             ( { model
-                | renderId = Nothing
+                | render = Nothing
               }
             , False
             )
@@ -339,6 +411,7 @@ update action model =
                             (countBoxes model == 1)
                         )
                         model.boxes
+                , render = Nothing
               }
             , False
             )
@@ -359,10 +432,24 @@ update action model =
                         <|
                             List.map2 Tuple.pair newTexts (toList model.boxes)
                 , focusIndex = focusBoxNum
-                , renderId = Nothing
+                , render = Nothing
               }
             , model.focusIndex /= focusBoxNum
             )
+
+        SetImageData index data ->
+            let
+                box =
+                    Array.get index model.boxes
+            in
+            case box of
+                Nothing ->
+                    ( model, False )
+
+                Just oldBox ->
+                    ( updateRendered model index (DialogBox.update (DialogBox.SetData data) oldBox)
+                    , False
+                    )
 
         ExpectImage index b ->
             let
@@ -379,9 +466,3 @@ update action model =
                       }
                     , False
                     )
-
-
-port getImg : String -> Cmd msg
-
-
-port getRenderData : (String -> msg) -> Sub msg

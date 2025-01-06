@@ -1,20 +1,18 @@
 module DialogBox exposing (..)
 
--- Local modules
-
-import Char
+import Base64
+import Bytes exposing (Bytes)
 import Character exposing (RenderOverride, spriteNumber)
-import Debug exposing (log)
 import Helpers exposing (KeyCode, Position, offset, takeLines)
 import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr
-import Html.Events exposing (keyCode, on, onInput, targetValue)
+import Html.Events exposing (keyCode, on, onInput)
 import Json.Decode as Json
 import Maybe
-import Svg exposing (Svg)
-import Svg.Attributes as SvgAttr
-import Svg.Events exposing (onClick)
-import TextCleaning exposing (TextReplacement, unicodeSanitizer)
+import Svg.String exposing (Svg)
+import Svg.String.Attributes as SvgAttr
+import Svg.String.Events exposing (onClick)
+import TextCleaning
 import UndertaleFonts exposing (allFonts)
 
 
@@ -26,6 +24,7 @@ type alias Model =
     { chara : Maybe Character.Name
     , imgRoot : String
     , imgSrc : Maybe String
+    , imgData : Maybe String
     , text : Maybe String
     , index : Int
     , expectingImage : Bool
@@ -35,6 +34,7 @@ type alias Model =
 type alias FullModel =
     { chara : Character.Name
     , imgSrc : String
+    , imgData : Maybe String
     , text : String
     , index : Int
     , expectingImage : Bool
@@ -46,6 +46,7 @@ init root txt i =
     { chara = Nothing
     , imgRoot = root
     , imgSrc = Nothing
+    , imgData = Nothing
     , text = txt
     , index = i
     , expectingImage = False
@@ -112,23 +113,23 @@ fontFaceStyles =
 -- ++ "\n]]>"
 
 
-filterDefs : Svg.Svg Msg
+filterDefs : Svg Msg
 filterDefs =
-    Svg.defs []
-        [ Svg.filter
+    Svg.String.defs []
+        [ Svg.String.filter
             [ SvgAttr.id "crispify" ]
-            [ Svg.node "feComponentTransfer"
+            [ Svg.String.node "feComponentTransfer"
                 []
-                [ Svg.feFuncA
+                [ Svg.String.node "feFuncA"
                     [ SvgAttr.type_ "discrete"
-                    , SvgAttr.tableValues "0 1"
+                    , SvgAttr.attribute "table-values" "0 1"
                     ]
                     []
                 ]
             ]
-        , Svg.style
+        , Svg.String.node "style"
             [ SvgAttr.type_ "text/css" ]
-            [ Svg.text <| fontFaceStyles ]
+            [ Svg.String.text <| fontFaceStyles ]
         ]
 
 
@@ -160,6 +161,7 @@ dialogCollage elem model =
         [ HtmlAttr.style "width" "100%" ]
         [ div
             [ HtmlAttr.style "width" (String.fromInt boxWidth ++ "px")
+            , HtmlAttr.style "height" (String.fromInt (boxHeight 1) ++ "px")
             , HtmlAttr.style "position" "relative"
             , HtmlAttr.style "margin" "0 auto"
             ]
@@ -173,7 +175,7 @@ dialogCollage elem model =
         ]
 
 
-svgPosition : Position -> List (Svg.Attribute Msg)
+svgPosition : Position -> List (Svg.String.Attribute Msg)
 svgPosition pos =
     [ SvgAttr.x (String.fromInt pos.x)
     , SvgAttr.y (String.fromInt pos.y)
@@ -191,11 +193,11 @@ portraitAlpha dim =
         "1"
 
 
-portraitButton : Position -> String -> Bool -> Html Msg
+portraitButton : Position -> String -> Bool -> Svg Msg
 portraitButton pos src expectingImage =
-    Svg.image
-        ([ SvgAttr.xlinkHref src
-         , SvgAttr.opacity <| portraitAlpha expectingImage
+    Svg.String.node "image"
+        ([ SvgAttr.attribute "href" src
+         , SvgAttr.attribute "opacity" <| portraitAlpha expectingImage
          , onClick (ExpectImage <| not expectingImage)
          , SvgAttr.filter "url(#crispify)"
          ]
@@ -206,7 +208,7 @@ portraitButton pos src expectingImage =
 
 svgBorder : Position -> String -> Svg Msg
 svgBorder pos color =
-    Svg.rect
+    Svg.String.rect
         (SvgAttr.fill color :: svgPosition pos)
         []
 
@@ -221,7 +223,12 @@ boxWidth =
     596
 
 
-singleBox : Int -> Int -> FullModel -> List (Html Msg)
+imgDataUri : Maybe String -> Maybe String
+imgDataUri =
+    Maybe.map (\d -> "data:image/png;base64," ++ d)
+
+
+singleBox : Int -> Int -> FullModel -> List (Svg Msg)
 singleBox x y model =
     let
         ( imgX, imgY ) =
@@ -244,14 +251,17 @@ singleBox x y model =
             (sizeY * 2)
             |> move
         )
-        model.imgSrc
+        (Maybe.withDefault
+            model.imgSrc
+            (imgDataUri model.imgData)
+        )
         model.expectingImage
     ]
 
 
-dialogFrame : FullModel -> Html Msg
+dialogFrame : FullModel -> Svg.String.Html Msg
 dialogFrame model =
-    Svg.svg
+    Svg.String.svg
         [ SvgAttr.width (String.fromInt boxWidth)
         , SvgAttr.height (String.fromInt (boxHeight 1))
         ]
@@ -297,6 +307,7 @@ toFullModel override model chara src txt =
     in
     { chara = chara
     , imgSrc = overrideSrc
+    , imgData = model.imgData
     , text = overrideText
     , index = model.index
     , expectingImage = model.expectingImage
@@ -316,7 +327,7 @@ view model =
 
         Just fullModel ->
             dialogCollage
-                (dialogFrame fullModel)
+                (Svg.String.toHtml <| dialogFrame fullModel)
                 fullModel
 
 
@@ -333,6 +344,7 @@ type Msg
     = NoOp
     | SetImage Character.Name (Maybe String) Bool
     | SetText (Maybe String)
+    | SetData Bytes
     | ExpectImage Bool
 
 
@@ -351,15 +363,23 @@ update action model =
                 | imgSrc =
                     updateField model.imgSrc src wantToSet
                 , chara = updateField model.chara (Just chara) wantToSet
+                , imgData = Nothing
                 , expectingImage = False
             }
 
         SetText text ->
             { model
                 | text = text
+                , imgData = Nothing
+            }
+
+        SetData data ->
+            { model
+                | imgData = Base64.fromBytes data
             }
 
         ExpectImage b ->
             { model
                 | expectingImage = b
+                , imgData = Nothing
             }
