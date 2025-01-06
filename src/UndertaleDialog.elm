@@ -494,18 +494,6 @@ getSubmitUrl root =
     root ++ "/submit"
 
 
-getImgurParamsUrl : String -> String
-getImgurParamsUrl root =
-    root ++ "/imgur_id"
-
-
-imgurParamsDecoder : Json.Decoder ( String, String )
-imgurParamsDecoder =
-    Json.map2 Tuple.pair
-        (Json.field "clientId" Json.string)
-        (Json.field "albumId" Json.string)
-
-
 toCheatCodeMsg : String -> Msg
 toCheatCodeMsg s =
     case String.uncons s of
